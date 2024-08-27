@@ -6,4 +6,12 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\Announcements\" />
+      <Folder Include="Features\Classes\" />
+      <Folder Include="Features\Donation\" />
+      <Folder Include="Features\PrayerTimes\" />
+      <Folder Include="Shared\" />
+    </ItemGroup>
+
 </Project>
