@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <Folder Include="Features\Announcements\" />
+      <Folder Include="Features\Authentication\" />
       <Folder Include="Features\Classes\" />
       <Folder Include="Features\Donation\" />
       <Folder Include="Features\PrayerTimes\" />
