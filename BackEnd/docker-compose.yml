@@ -1,0 +1,6 @@
+﻿services:
+  masjidapp.api.restful:
+    image: masjidapp.api.restful
+    build:
+      context: .
+      dockerfile: MasjidApp.API.Restful/Dockerfile

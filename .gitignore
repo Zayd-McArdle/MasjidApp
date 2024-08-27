@@ -1,0 +1,61 @@
+# .NET C# Backend
+## Ignore build output and packages
+bin/
+obj/
+*.log
+*.user
+*.vs/
+.vscode/
+.vs/
+# Rider/JetBrains
+.idea/
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+# Visual Studio Code configuration
+.vscode/
+
+# Flutter Frontend
+## Flutter/Dart files
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/flutter_export_environment.sh
+**/.packages
+**/.flutter-plugins
+## MacOS
+**/.DS_Store
+# Web
+**/web/.dart_tool/
+## Android
+**/android/.gradle/
+**/android/app/proguard-rules.pro
+**/android/local.properties
+**/android/app/src/main/kotlin/com/example/**/*.kt
+**/android/key.properties
+**/android/gradle.properties
+**/android/app/src/debug/
+**/android/app/src/main/
+**/android/app/src/profile/
+**/android/app/google-services.json
+## iOS
+**/ios/.symlinks/
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ServiceDefinitions.json
+**/ios/Pods/
+**/ios/Runner.xcodeproj/
+**/ios/Runner.xcworkspace/
+**/ios/Flutter/Flutter.podspec
+
+# General
+**/pubspec.lock
+**/pubspec.yaml
+**/ios/Flutter/Flutter.podspec
+**/macos/Flutter/ephemeral/
+
