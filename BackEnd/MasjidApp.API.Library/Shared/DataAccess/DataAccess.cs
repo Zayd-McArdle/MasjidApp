@@ -21,7 +21,7 @@ internal sealed class DataAccess<TDbProvider> : IDataAccess, IDisposable
         _connection.Open();
         return connection;
     }
-    public DataAccess(string connectionString, bool isPersistentConnection)
+    public DataAccess(string connectionString, bool isPersistentConnection = false)
     {
         _connectionString = connectionString;
         _isPersistentConnection = isPersistentConnection;
@@ -87,8 +87,7 @@ internal sealed class DataAccess<TDbProvider> : IDataAccess, IDisposable
 
         using TDbProvider connection = CreateDbConnection();
         {
-            TClass record = await connection.QueryFirstOrDefaultAsync<TClass>(storedProcedure, parameters,
-                commandType: CommandType.StoredProcedure);
+            TClass record = await connection.QueryFirstOrDefaultAsync<TClass>(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
             return record;
         }
     }
