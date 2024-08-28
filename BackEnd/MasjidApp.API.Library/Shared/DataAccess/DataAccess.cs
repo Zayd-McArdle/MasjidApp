@@ -86,8 +86,7 @@ internal sealed class DataAccess<TDbProvider> : IDataAccess, IDisposable
 
         using TDbProvider connection = CreateDbConnection();
         {
-            TClass record = await connection.QueryFirstOrDefaultAsync<TClass>(storedProcedure, parameters,
-                commandType: CommandType.StoredProcedure);
+            TClass record = await connection.QueryFirstOrDefaultAsync<TClass>(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
             return record;
         }
     }
