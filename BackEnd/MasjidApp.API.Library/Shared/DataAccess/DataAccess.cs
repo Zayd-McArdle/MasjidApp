@@ -50,10 +50,31 @@ internal sealed class DataAccess<TDbProvider> : IDataAccess, IDisposable
     /// Returns a collection of data from an SQL query.
     /// </summary>
     /// <typeparam name="TClass">The class the data will be mapped tp</typeparam>
+    /// <param name="storedProcedure">The stored procedure you want your SQL provider to execute</param>
+    public async Task<IEnumerable<TClass>> ReadRecordsFromDatabaseAsync<TClass>(string storedProcedure)
+    {
+        if (_isPersistentConnection)
+        {
+            IEnumerable<TClass> records =
+                await _connection.QueryAsync<TClass>(storedProcedure, commandType: CommandType.StoredProcedure);
+            return records;
+        }
+
+        using TDbProvider connection = CreateDbConnection();
+        {
+            IEnumerable<TClass> records = await connection.QueryAsync<TClass>(storedProcedure, commandType: CommandType.StoredProcedure);
+            return records;
+        }
+    }
+    
+    /// <summary>
+    /// Returns a collection of data from an SQL query.
+    /// </summary>
+    /// <typeparam name="TClass">The class the data will be mapped tp</typeparam>
     /// <typeparam name="TParameters">The parameter type; for example, dynamic, key value pair.</typeparam>
     /// <param name="storedProcedure">The stored procedure you want your SQL provider to execute</param>
     /// <param name="parameters">Parameters to be injected into the stored procedure</param>   
-    public async Task<IEnumerable<TClass>> ReadRecordsFromDatabaseAsync<TClass, TParameters>(string storedProcedure, TParameters parameters)
+    public async Task<IEnumerable<TClass>> ReadRecordsFromDatabaseWithParametersAsync<TClass, TParameters>(string storedProcedure, TParameters parameters)
     {
         if (_isPersistentConnection)
         {
@@ -69,6 +90,28 @@ internal sealed class DataAccess<TDbProvider> : IDataAccess, IDisposable
         }
     }
     
+    
+    /// <summary>
+    /// Returns a single record from a SQL Query
+    /// </summary>
+    /// <typeparam name="TClass">The class the data will be mapped tp</typeparam>
+    /// <param name="storedProcedure">The stored procedure you want your SQL provider to execute</param>
+    public async Task<TClass> ReadFirstRecordFromDatabaseAsync<TClass>(string storedProcedure)
+    {
+        if (_isPersistentConnection)
+        {
+            TClass record =
+                await _connection.QueryFirstOrDefaultAsync(storedProcedure, commandType: CommandType.StoredProcedure);
+            return record;
+        }
+
+        using TDbProvider connection = CreateDbConnection();
+        {
+            TClass record = await connection.QueryFirstOrDefaultAsync<TClass>(storedProcedure, commandType: CommandType.StoredProcedure);
+            return record;
+        }
+    }
+
     /// <summary>
     /// Returns a single record from a SQL Query
     /// </summary>
@@ -76,7 +119,7 @@ internal sealed class DataAccess<TDbProvider> : IDataAccess, IDisposable
     /// <typeparam name="TParameters">The parameter type; for example, dynamic, key value pair.</typeparam>
     /// <param name="storedProcedure">The stored procedure you want your SQL provider to execute</param>
     /// <param name="parameters">Parameters to be injected into the stored procedure</param>    
-    public async Task<TClass> ReadFirstRecordFromDatabaseAsync<TClass, TParameters>(string storedProcedure, TParameters parameters)
+    public async Task<TClass> ReadFirstRecordFromDatabaseWithParametersAsync<TClass, TParameters>(string storedProcedure, TParameters parameters)
     {
         if (_isPersistentConnection)
         {
@@ -92,6 +135,7 @@ internal sealed class DataAccess<TDbProvider> : IDataAccess, IDisposable
         }
     }
 
+    
     public async Task WriteToDatabaseAsync<TParameters> (string storedProcedure, TParameters parameters)
     {
         if (_isPersistentConnection)
