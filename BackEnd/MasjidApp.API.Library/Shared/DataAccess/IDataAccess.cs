@@ -1,6 +1,6 @@
 namespace MasjidApp.API.Library.Shared.DataAccess;
 
-public interface IDataAccess
+public interface IDataAccess : IDisposable
 {
     Task<int> ReadRecordCountFromDatabaseAsync<TParameters>(string storedProcedure, TParameters parameters);
     Task<IEnumerable<TClass>> ReadRecordsFromDatabaseAsync<TClass>(string storedProcedure);
