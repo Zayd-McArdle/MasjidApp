@@ -21,4 +21,8 @@
       <Folder Include="Controllers\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\MasjidApp.API.Library\MasjidApp.API.Library.csproj" />
+    </ItemGroup>
+
 </Project>
