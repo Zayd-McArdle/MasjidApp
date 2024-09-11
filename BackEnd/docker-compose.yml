@@ -1,5 +1,18 @@
 ﻿services:
-  masjidapp.api.restful:
+  db:
+    image: mysql:8.0
+    environment:
+        MYSQL_ROOT_PASSWORD: rootpassword
+        MYSQL_DATABASE: mydatabase
+        MYSQL_USER: myuser1
+        MYSQL_PASSWORD: mypassword1
+    ports:
+        - "3306:3306"
+    volumes:
+        - db_data:/var/lib/mysql
+        - ./init-db:../Database # Mount a directory for initialization scripts
+
+  api:
     image: masjidapp.api.restful
     build:
       context: .

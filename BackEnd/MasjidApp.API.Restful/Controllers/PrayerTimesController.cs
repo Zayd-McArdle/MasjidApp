@@ -1,6 +1,5 @@
 using MasjidApp.API.Library.Features.PrayerTimes;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
 
