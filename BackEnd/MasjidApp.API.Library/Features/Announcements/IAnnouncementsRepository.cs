@@ -5,5 +5,5 @@ namespace MasjidApp.API.Library.Features.Announcements;
 public interface IAnnouncementsRepository
 {
     Task<IEnumerable<Announcement>> GetAnnouncements();
-    Task PostAnnouncement(Announcement announcement);
+    Task<AnnouncementsResponse> PostAnnouncement(Announcement announcement);
 }

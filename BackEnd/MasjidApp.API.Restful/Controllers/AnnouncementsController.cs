@@ -7,18 +7,12 @@ namespace MasjidApp.API.Restful.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AnnouncementsController : ControllerBase
+    public class AnnouncementsController(IAnnouncementsRepository announcementsRepository) : ControllerBase
     {
-        private readonly IAnnouncementsRepository _announcementsRepository;
-        public AnnouncementsController(IAnnouncementsRepository announcementsRepository)
-        {
-            _announcementsRepository = announcementsRepository;
-        }
-
         [HttpGet]
         public async Task<IEnumerable<Announcement>> GetAnnouncements() 
         {
-            IEnumerable<Announcement> announcements = await _announcementsRepository.GetAnnouncements();
+            IEnumerable<Announcement> announcements = await announcementsRepository.GetAnnouncements();
             return announcements;
         }
 
@@ -28,12 +22,12 @@ namespace MasjidApp.API.Restful.Controllers
         {
             try
             {
-                await _announcementsRepository.PostAnnouncement(announcement);
+                await announcementsRepository.PostAnnouncement(announcement);
                 return Ok();
             }
             catch (Exception)
             {
-                
+                return StatusCode(500);
             }
             
         }
