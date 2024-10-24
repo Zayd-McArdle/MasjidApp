@@ -1,31 +1,56 @@
-using System;
-using System.Reflection;
 using MasjidApp.API.Library.Shared.DataAccess;
 
 namespace MasjidApp.API.Library.Features.Announcements;
 
-public sealed class AnnouncementsRepository(string connectionString) : IAnnouncementsRepository
+public sealed class AnnouncementsRepository(IDataAccessFactory dataAccessFactory) : IAnnouncementsRepository
 {
-    private static async Task<AnnouncementsResponse> VerifyAnnouncementPosted(IDataAccess dataAccess, Announcement announcement)
+    public async Task<IEnumerable<AnnouncementDto>> GetAnnouncements()
     {
-        int announcementCount = await dataAccess.ReadRecordCountFromDatabaseAsync<dynamic>("get_announcement", new { announcement.Title, announcement.Description, announcement.Image, announcement.DatePosted });
-        if (announcementCount == 0)
-        {
-            return AnnouncementsResponse.FailedToPostAnnouncement("There was an error posting an announcement.");
-        }
-        return AnnouncementsResponse.SuccessfullyPostedAnnoucement();
-    }
-    public async Task<IEnumerable<Announcement>> GetAnnouncements()
-    {
-        using IDataAccess dataAccess = DataAccessFactory.EstablishDbConnnection(connectionString);
-        IEnumerable<Announcement> announcements = await dataAccess.ReadRecordsFromDatabaseAsync<Announcement>("get_announcements");
+        using IDataAccess dataAccess = dataAccessFactory.EstablishDbConnection();
+        IEnumerable<AnnouncementDto> announcements = await dataAccess.ReadRecordsFromDatabaseAsync<AnnouncementDto>("get_announcements");
         return announcements;
     }
 
-    public async Task<AnnouncementsResponse> PostAnnouncement(Announcement announcement)
+    public async Task<AnnouncementsResponse> PostAnnouncement(AnnouncementDto announcement)
     {
-        using IDataAccess dataAccess = DataAccessFactory.EstablishDbConnnection(connectionString);
-        await dataAccess.WriteToDatabaseAsync<dynamic>("post_announcement", new { announcement.Title, announcement.Description, announcement.Image, announcement.DatePosted});
-        return await VerifyAnnouncementPosted(dataAccess, announcement);
+        using IDataAccess dataAccess = dataAccessFactory.EstablishDbConnection();
+        int id = await dataAccess.WriteToDatabaseAsyncWithVerification("post_announcement", new
+        {
+            p_title = announcement.Title, 
+            p_description = announcement.Description, 
+            p_image = announcement.Image, 
+        });
+        if (id == 0)
+        {
+            return AnnouncementsResponse.FailedToPostAnnouncement;
+        }
+        return AnnouncementsResponse.SuccessfullyPostedAnnouncement;
+    }
+
+    public async Task<AnnouncementsResponse> EditAnnouncement(AnnouncementDto announcement)
+    {
+        using IDataAccess dataAccess = dataAccessFactory.EstablishDbConnection();
+        AnnouncementDto oldAnnouncementDto = await dataAccess.ReadFirstRecordFromDatabaseWithParametersAsync<AnnouncementDto, dynamic>("get_announcement", new { p_id = announcement.Id });
+        if (oldAnnouncementDto == null)
+        {
+            return AnnouncementsResponse.AnnouncementNotFound;
+        }
+        if (oldAnnouncementDto == announcement)
+        {
+            return AnnouncementsResponse.NewAnnouncementMatchesOldAnnouncement;
+        }
+        await dataAccess.WriteToDatabaseAsync("edit_announcement", new {
+            p_id = announcement.Id, 
+            p_title = announcement.Title, 
+            p_description = announcement.Description, 
+            p_image = announcement.Image, 
+        });
+        AnnouncementDto editedAnnouncementDto = await dataAccess.ReadFirstRecordFromDatabaseWithParametersAsync<AnnouncementDto, dynamic>("get_announcement", new { p_id = announcement.Id });
+        if (oldAnnouncementDto == editedAnnouncementDto)
+        {
+            return AnnouncementsResponse.FailedToEditAnnouncement;
+        }
+
+        return AnnouncementsResponse.SuccessfullyEditedAnnouncement;
     }
 }

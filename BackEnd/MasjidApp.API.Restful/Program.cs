@@ -27,7 +27,7 @@ builder.Services.AddSingleton<IPrayerTimesRepository, PrayerTimesRepository>(pro
 builder.Services.AddSingleton<IAnnouncementsRepository, AnnouncementsRepository>(provider =>
 {
     IConfiguration configuration = provider.GetRequiredService<IConfiguration>();
-    return new AnnouncementsRepository(configuration.GetConnectionString("AnnouncementsConnection"));
+    return new AnnouncementsRepository(new DataAccessFactory(configuration.GetConnectionString("AnnouncementsConnection")));
 });
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

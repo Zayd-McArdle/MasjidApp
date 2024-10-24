@@ -47,7 +47,6 @@ internal sealed class DataAccess<TDbProvider> : IDataAccess where TDbProvider : 
         return records;
     }
     
-    
     /// <summary>
     /// Returns a single record from a SQL Query
     /// </summary>
@@ -71,13 +70,18 @@ internal sealed class DataAccess<TDbProvider> : IDataAccess where TDbProvider : 
         TClass record = await _connection.QueryFirstOrDefaultAsync(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
         return record;
     }
-
-    
     public async Task WriteToDatabaseAsync<TParameters> (string storedProcedure, TParameters parameters)
     {
         await _connection.ExecuteAsync(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
     }
-    
+
+    public async Task<int> WriteToDatabaseAsyncWithVerification<TParameters>(string storedProcedure, TParameters parameters)
+    {
+        int id = await _connection.ExecuteScalarAsync<int>(storedProcedure, parameters,
+            commandType: CommandType.StoredProcedure);
+        return id;
+    }
+
     /// <summary>
     /// Closes any connection
     /// </summary>

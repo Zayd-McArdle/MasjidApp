@@ -35,6 +35,21 @@ public interface IDataAccess : IDisposable
     /// <param name="storedProcedure">The stored procedure you want your SQL provider to execute</param>
     /// <param name="parameters">Parameters to be injected into the stored procedure</param>    
     Task<TClass> ReadFirstRecordFromDatabaseWithParametersAsync<TClass, TParameters>(string storedProcedure, TParameters parameters);
-
+    
+    /// <summary>
+    /// Creates a record from a SQL stored procedure
+    /// </summary>
+    /// <param name="storedProcedure"></param>
+    /// <param name="parameters"></param>
+    /// <typeparam name="TParameters"></typeparam>
+    /// <returns></returns>
     Task WriteToDatabaseAsync<TParameters> (string storedProcedure, TParameters parameters);
+    /// <summary>
+    /// Creates a record from a SQL stored procedure
+    /// </summary>
+    /// <param name="storedProcedure"></param>
+    /// <param name="parameters"></param>
+    /// <typeparam name="TParameters"></typeparam>
+    /// <returns></returns>
+    Task<int> WriteToDatabaseAsyncWithVerification<TParameters> (string storedProcedure, TParameters parameters);
 }

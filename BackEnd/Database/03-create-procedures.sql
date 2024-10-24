@@ -34,4 +34,22 @@ BEGIN
     UPDATE prayer_times SET file_data = p_updated_prayer_times_file;
 END //
 
+CREATE PROCEDURE IF NOT EXISTS get_announcements()
+BEGIN
+    SELECT * FROM announcements;
+END //
+
+CREATE PROCEDURE IF NOT EXISTS post_announcement(IN p_title VARCHAR(50), IN p_description VARCHAR(50), IN p_image LONGBLOB)
+BEGIN
+    INSERT INTO announcements (title, description, image)
+    VALUES (p_title, p_description, p_image);
+    SELECT LAST_INSERT_ID();
+END //
+
+CREATE PROCEDURE IF NOT EXISTS edit_announcement(IN p_id INT, IN p_title VARCHAR(50), IN p_description VARCHAR(50), IN p_image LONGBLOB)
+BEGIN 
+    UPDATE announcements SET title = p_title, description = p_description, image = p_image, last_updated = CURDATE() where id = p_id;
+END //
+
+
 DELIMITER ;
