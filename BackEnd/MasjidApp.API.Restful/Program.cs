@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using MasjidApp.API.Library.Features.PrayerTimes;
 using MasjidApp.API.Library.Shared.DataAccess;
+using MasjidApp.API.Library.Features.Announcements;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,7 @@ builder.Services.AddSingleton<IPrayerTimesRepository, PrayerTimesRepository>(pro
     IConfiguration configuration = provider.GetRequiredService<IConfiguration>();
     return new PrayerTimesRepository(new DataAccessFactory(configuration.GetConnectionString("PrayerTimesConnection")));
 });
+builder.Services.AddSingleton<IAnnouncementsRepository, AnnouncementsRepository>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
