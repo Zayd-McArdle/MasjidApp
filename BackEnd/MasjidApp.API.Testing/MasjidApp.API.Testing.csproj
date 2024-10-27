@@ -40,6 +40,7 @@
       <Folder Include="Unit/Features/PrayerTimes/" />
       <Folder Include="Unit/Shared/DataAccess/" />
       <Folder Include="Unit\Features\Announcements\" />
+      <Folder Include="Unit\Shared\Security\" />
     </ItemGroup>
 
 </Project>

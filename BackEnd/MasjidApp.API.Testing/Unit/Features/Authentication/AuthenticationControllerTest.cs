@@ -4,6 +4,7 @@ using MasjidApp.API.Library.Features.Authentication.Registration;
 using MasjidApp.API.Library.Features.Authentication.ResetPassword;
 using MasjidApp.API.Library.Shared.UserManagement;
 using MasjidApp.API.Restful.Controllers;
+using MasjidApp.API.Restful.Handlers;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
@@ -12,6 +13,7 @@ namespace MasjidApp.API.Testing.Unit.Features.Authentication;
 public sealed class AuthenticationControllerTest 
 {
     private readonly Mock<IUserRepository> _mockUserRepository;
+    private readonly Mock<ITokenGenerator> _mockTokenGenerator;
     private readonly AuthenticationController _controller;
     private async Task TestInvalidModelState<T>(Func<T, Task<IActionResult>> performHttpRequest)
     where T : new()
@@ -30,7 +32,8 @@ public sealed class AuthenticationControllerTest
     public AuthenticationControllerTest()
     {
         _mockUserRepository = new();
-        _controller = new(_mockUserRepository.Object);
+        _mockTokenGenerator = new();
+        _controller = new(_mockUserRepository.Object, _mockTokenGenerator.Object);
     }
 
     #region Login Tests
@@ -74,9 +77,9 @@ public sealed class AuthenticationControllerTest
             Password = "DummyPassword"
         };
         _mockUserRepository.Setup(repository => repository.GetUserCredentials(request)).ReturnsAsync(1);
-        
+        _mockTokenGenerator.Setup(tokenGenerator => tokenGenerator.GenerateToken(It.IsAny<string>())).Returns("DummyToken");
         // When
-        IActionResult expected = _controller.Ok();
+        IActionResult expected = _controller.Ok("DummyToken");
         IActionResult actual = await _controller.Login(request);
         // Then
         Assert.Equivalent(expected, actual);
@@ -200,6 +203,7 @@ public sealed class AuthenticationControllerTest
         // When
         IActionResult expected = _controller.Ok();
         IActionResult actual = await _controller.ResetPassword(request);
+        
         // Then
         Assert.Equivalent(expected, actual);
     }

@@ -16,7 +16,7 @@ public sealed class UserRepository(string connectionString) : IUserRepository
     public async Task<int> GetUserCredentials(IUserCredentials credentials)
     {
         using IDataAccess connection = DataAccessFactory.EstablishDbConnnection(connectionString);
-        int userCount =  await connection.ReadRecordCountFromDatabaseAsync<dynamic>("get_user_credentials", new { credentials.Username, credentials.Password});
+        int userCount = await connection.ReadRecordCountFromDatabaseAsync<dynamic>("get_user_credentials", new { credentials.Username, credentials.Password});
         return userCount;
     }
 
@@ -54,12 +54,13 @@ public sealed class UserRepository(string connectionString) : IUserRepository
     public async Task<ResetPasswordResponse> ResetUserPassword(string username, string newPassword)
     {
         using IDataAccess connection = DataAccessFactory.EstablishDbConnnection(connectionString);
+        username = HashingService.HashCredential(username);
         bool userExists = await UserExistsInDatabase(connection, username);
         if (!userExists)
         {
             return ResetPasswordResponse.UserDoesNotExist();
         }
-
+        HashingService.HashCredential(newPassword);
         await connection.WriteToDatabaseAsync("reset_user_password", new { Username = username, Password = newPassword });
         return ResetPasswordResponse.SuccessfullyResetUserPassword();
     }
@@ -67,6 +68,7 @@ public sealed class UserRepository(string connectionString) : IUserRepository
     public async Task<bool> UserRegistered(string username)
     {
         using IDataAccess connection = DataAccessFactory.EstablishDbConnnection(connectionString);
+        username = HashingService.HashCredential(username);
         return await UserExistsInDatabase(connection, username);
     }
 }

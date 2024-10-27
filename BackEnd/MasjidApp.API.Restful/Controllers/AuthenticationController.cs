@@ -4,6 +4,7 @@ using MasjidApp.API.Library.Features.Authentication.Registration;
 using MasjidApp.API.Library.Features.Authentication.ResetPassword;
 using MasjidApp.API.Library.Features.Authentication.Security;
 using MasjidApp.API.Library.Shared.UserManagement;
+using MasjidApp.API.Restful.Handlers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,7 @@ namespace MasjidApp.API.Restful.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthenticationController(IUserRepository userRepository) : ControllerBase
+    public class AuthenticationController(IUserRepository userRepository, ITokenGenerator tokenGenerator) : ControllerBase
     {
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginRequest request) 
@@ -21,12 +22,13 @@ namespace MasjidApp.API.Restful.Controllers
             {
                 return BadRequest("Invalid request");
             }
+            HashingService.HashCredentials(request);
             int loginCount = await userRepository.GetUserCredentials(request);
             if (loginCount == 0) 
             {
                 return Unauthorized("Invalid username or password");
             }
-            return Ok();
+            return Ok(tokenGenerator.GenerateToken(request.Username));
         }
 
         [HttpPost]
