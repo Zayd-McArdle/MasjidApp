@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <Nullable>disable</Nullable>
 
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
@@ -35,12 +35,11 @@
       <Folder Include="Integration/Features/PrayerTimes/" />
       <Folder Include="Integration/Shared/DataAccess/" />
       <Folder Include="Unit/Shared/DataAccess/" />
-      <Folder Include="Unit/Features/Announcements/" />
-      <Folder Include="Unit/Features/Authentication/" />
       <Folder Include="Unit/Features/Classes/" />
       <Folder Include="Unit/Features/Donation/" />
       <Folder Include="Unit/Features/PrayerTimes/" />
       <Folder Include="Unit/Shared/DataAccess/" />
+      <Folder Include="Unit\Features\Announcements\" />
     </ItemGroup>
 
 </Project>

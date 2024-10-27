@@ -1,13 +1,19 @@
-var builder = WebApplication.CreateBuilder(args);
+using MasjidApp.API.Library.Features.Authentication;
+
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Services.AddSingleton<IUserRepository, UserRepository>(provider =>
+{
+    IConfiguration configuration = provider.GetRequiredService<IConfiguration>();
+    return new UserRepository(configuration.GetConnectionString("AuthenticationConnection"));
+});
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
