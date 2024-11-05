@@ -2,18 +2,27 @@
   db:
     image: mysql:8.0
     environment:
-        MYSQL_ROOT_PASSWORD: rootpassword
-        MYSQL_DATABASE: mydatabase
-        MYSQL_USER: myuser1
-        MYSQL_PASSWORD: mypassword1
+      MYSQL_ROOT_PASSWORD: REG+~.Uqj1HYuci_0aFUht~Nk56Vh
+      MYSQL_DATABASE: masjidappdatabase
+      MYSQL_USER: masjidappuser
+      MYSQL_PASSWORD: 2T4@Kzh,LnU+}_Cs0^ob@*VMT7V
     ports:
-        - "3306:3306"
+      - "3306:3306"
     volumes:
-        - db_data:/var/lib/mysql
-        - ./init-db:../Database # Mount a directory for initialization scripts
+      - ./Database/data:/var/lib/mysql
+      - ./Database/scripts:/docker-entrypoint-initdb.d/
 
   api:
     image: masjidapp.api.restful
     build:
       context: .
       dockerfile: MasjidApp.API.Restful/Dockerfile
+    environment:
+      #connection string here
+    ports:
+      - "5000:8080"
+
+networks:
+  default:
+    driver: bridge
+
