@@ -18,7 +18,7 @@
       context: .
       dockerfile: MasjidApp.API.Restful/Dockerfile
     environment:
-      #connection string here
+      ConnectionStrings__AuthenticationConnection: "Server=db;Database=masjidappdatabase;User=authenticationuser;Password=BL/6Fx$Ku!2{37GvPS9;"
     ports:
       - "5000:8080"
 
