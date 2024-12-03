@@ -1,7 +1,4 @@
 use std::sync::Arc;
-use sqlx::mysql;
-use std::collections::HashMap;
-use std::ffi::CString;
 use sqlx::mysql::{MySqlPool, MySqlPoolOptions};
 #[derive(Hash, Eq, PartialEq)]
 pub enum ConnectionString {
@@ -9,21 +6,26 @@ pub enum ConnectionString {
     PrayerTimesConnection,
     AnnouncementConnection,
 }
-const connection_string_mapper: HashMap<ConnectionString, &str> = HashMap::from([
-    (ConnectionString::AuthenticationConnection, "AUTHENTICATION_CONNECTION"),
-    (ConnectionString::PrayerTimesConnection, "PRAYER_TIMES_CONNECTION"),
-    (ConnectionString::AnnouncementConnection, "ANNOUNCEMENT_CONNECTION"),
-]);
 
-pub struct Repository {
-    pub(crate) db_connection : MySqlPool
+#[derive(PartialEq)]
+pub enum RepositoryMode {
+    InMemory,
+    Normal,
 }
-impl Repository {
+pub struct MainRepository {
+    pub(crate) db_connection : Arc<MySqlPool>
+}
+impl MainRepository {
     pub async fn new(connection_string: ConnectionString) -> Self {
+        let connection_string_environment_variable  = match connection_string {
+            ConnectionString::AuthenticationConnection => "AUTHENTICATION_CONNECTION",
+            ConnectionString::PrayerTimesConnection => "PRAYER_TIMES_CONNECTION",
+            ConnectionString::AnnouncementConnection => "ANNOUNCEMENT_CONNECTION",
+        };
         let db_connection = MySqlPoolOptions::new()
             .max_connections(10)
-            .connect(std::env::var(connection_string_mapper.get(&connection_string).unwrap()).unwrap().as_str())
+            .connect(std::env::var(connection_string_environment_variable).unwrap().as_str())
             .await.unwrap();
-        Repository{db_connection}
+        MainRepository {db_connection: Arc::new(db_connection)}
     }
 }

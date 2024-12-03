@@ -12,3 +12,12 @@ CREATE TABLE IF NOT EXISTS user_details (
 CREATE TABLE IF NOT EXISTS prayer_times (
     file_data LONGBLOB NOT NULL
 );
+CREATE TABLE IF NOT EXISTS announcements (
+    id INT NOT NULL AUTO_INCREMENT,
+    title VARCHAR(50) NOT NULL,
+    description VARCHAR(50) NOT NULL,
+    image LONGBLOB NULL,
+    last_updated DATE DEFAULT (CURDATE()),
+    user_id INT NOT NULL,
+    PRIMARY KEY (id)
+);
