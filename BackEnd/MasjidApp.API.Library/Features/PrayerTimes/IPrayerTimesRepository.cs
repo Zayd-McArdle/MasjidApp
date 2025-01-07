@@ -3,5 +3,5 @@ namespace MasjidApp.API.Library.Features.PrayerTimes;
 public interface IPrayerTimesRepository
 {
     Task<byte[]> GetPrayerTimes();
-    Task UpdatePrayerTimes(byte[] updatedPrayerTimesBytes);
+    Task<PrayerTimesFileResponse> UpdatePrayerTimes(byte[] updatedPrayerTimesBytes);
 }
