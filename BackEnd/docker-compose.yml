@@ -4,13 +4,15 @@
     build: 
       context: .
       dockerfile: Database/Dockerfile
+    ports:
+      - "3306:3306"
     volumes:
       - ./Database/data:/var/lib/mysql
   api:
     image: masjidapp.api.restful
     build:
       context: .
-      dockerfile: MasjidApp.API.Restful/Dockerfile
+      dockerfile: MasjidApp.API.Restful/Dockerfisle
     environment:
       ConnectionStrings__AuthenticationConnection: "Server=db;Database=masjidappdatabase;User=authenticationuser;Password=BL/6Fx$Ku!2{37GvPS9;"
     ports:
