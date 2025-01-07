@@ -1,21 +1,5 @@
--- Create database
-CREATE DATABASE IF NOT EXISTS masjidappdatabase;
-USE masjidappdatabase;
-
--- Create tables
-CREATE TABLE IF NOT EXISTS user_details (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(50),
-    last_name VARCHAR(50),
-    role VARCHAR(50),
-    email VARCHAR(50),
-    username VARCHAR(MAX),
-    password VARCHAR(MAX),
-);
-
--- Create stored procedures
 DELIMITER $$
-
+-- user_details stored procedures
 CREATE PROCEDURE IF NOT EXISTS get_username(IN p_username VARCHAR(MAX))
 BEGIN
     SELECT COUNT(*) FROM user_details WHERE username = p_username;
@@ -38,14 +22,3 @@ BEGIN
 END
 
 DELIMITER ;
-
--- Create users
-CREATE USER IF NOT EXISTS 'authenticationuser'@'%' IDENTIFIED BY 'BL/6Fx$Ku!2{37GvPS9';
-
---Adjust user permissions
-REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'authenticationuser'@'%';
-GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_username TO 'authenticationuser'@'%'
-GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_user_credentials TO 'authenticationuser'@'%'
-GRANT EXECUTE ON PROCEDURE masjidappdatabase.register_user TO 'authenticationuser'@'%'
-GRANT EXECUTE ON PROCEDURE masjidappdatabase.reset_user_password TO 'authenticationuser'@'%'
-

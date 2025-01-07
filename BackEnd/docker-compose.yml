@@ -1,17 +1,11 @@
 ﻿services:
   db:
     image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: REG+~.Uqj1HYuci_0aFUht~Nk56Vh
-      MYSQL_DATABASE: masjidappdatabase
-      MYSQL_USER: masjidappuser
-      MYSQL_PASSWORD: 2T4@Kzh,LnU+}_Cs0^ob@*VMT7V
-    ports:
-      - "3306:3306"
+    build: 
+      context: .
+      dockerfile: Database/Dockerfile
     volumes:
       - ./Database/data:/var/lib/mysql
-      - ./Database/scripts:/docker-entrypoint-initdb.d/
-
   api:
     image: masjidapp.api.restful
     build:
