@@ -6,7 +6,7 @@ using MasjidApp.API.Library.Shared.UserManagement;
 
 namespace MasjidApp.API.Library.Features.Authentication;
 
-public sealed class UserRepository(string connectionString) : IUserRepository
+public sealed class UserRepository(IDataAccessFactory dataAccessFactory) : IUserRepository
 {
     private static async Task<bool> UserExistsInDatabase(IDataAccess connection, string username)
     {
@@ -15,14 +15,14 @@ public sealed class UserRepository(string connectionString) : IUserRepository
     }
     public async Task<int> GetUserCredentials(IUserCredentials credentials)
     {
-        using IDataAccess connection = DataAccessFactory.EstablishDbConnnection(connectionString);
+        using IDataAccess connection = dataAccessFactory.EstablishDbConnection();
         int userCount = await connection.ReadRecordCountFromDatabaseAsync<dynamic>("get_user_credentials", new { credentials.Username, credentials.Password});
         return userCount;
     }
 
     public async Task<RegistrationResponse> RegisterUser(UserAccount newUser)
     {
-        using IDataAccess connection = DataAccessFactory.EstablishDbConnnection(connectionString);
+        using IDataAccess connection = dataAccessFactory.EstablishDbConnection();
         HashingService.HashCredentials(newUser);
         bool userExists = await UserExistsInDatabase(connection, newUser.Username);
         if (userExists)
@@ -53,7 +53,7 @@ public sealed class UserRepository(string connectionString) : IUserRepository
 
     public async Task<ResetPasswordResponse> ResetUserPassword(string username, string newPassword)
     {
-        using IDataAccess connection = DataAccessFactory.EstablishDbConnnection(connectionString);
+        using IDataAccess connection = dataAccessFactory.EstablishDbConnection();
         username = HashingService.HashCredential(username);
         bool userExists = await UserExistsInDatabase(connection, username);
         if (!userExists)
@@ -67,7 +67,7 @@ public sealed class UserRepository(string connectionString) : IUserRepository
 
     public async Task<bool> UserRegistered(string username)
     {
-        using IDataAccess connection = DataAccessFactory.EstablishDbConnnection(connectionString);
+        using IDataAccess connection = dataAccessFactory.EstablishDbConnection();
         username = HashingService.HashCredential(username);
         return await UserExistsInDatabase(connection, username);
     }

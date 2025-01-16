@@ -2,9 +2,9 @@ using MySql.Data.MySqlClient;
 
 namespace MasjidApp.API.Library.Shared.DataAccess;
 
-public static class DataAccessFactory
+public sealed class DataAccessFactory(string connectionString) : IDataAccessFactory
 {
-    public static IDataAccess EstablishDbConnnection(string connectionString)
+    public IDataAccess EstablishDbConnection()
     {
         return new DataAccess<MySqlConnection>(connectionString);
     }

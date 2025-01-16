@@ -1,11 +1,16 @@
-﻿services:
+﻿version: '3.8'
+services:
   db:
-    image: mysql:8.0
+    image: zayd-mcardle/masjidapp-database
     build: 
       context: .
       dockerfile: Database/Dockerfile
+    environment:
+      MYSQL_ROOT_PASSWORD: REGUqj1HYuci_0aFUhtNk56Vh
     volumes:
       - ./Database/data:/var/lib/mysql
+    networks:
+      - masjidapp-network
   api:
     image: masjidapp.api.restful
     build:
@@ -13,10 +18,13 @@
       dockerfile: MasjidApp.API.Restful/Dockerfile
     environment:
       ConnectionStrings__AuthenticationConnection: "Server=db;Database=masjidappdatabase;User=authenticationuser;Password=BL/6Fx$Ku!2{37GvPS9;"
+      ConnectionStrings__PrayerTimesConnection: "Server=db;Database=masjidappdatabase;User=prayertimesuser;Password=HR0o8N&Rk%wvu@Ma%IBh7yaf;"
     ports:
       - "5000:8080"
+    networks:
+      - masjidapp-network
 
 networks:
-  default:
+  masjidapp-network:
     driver: bridge
 
