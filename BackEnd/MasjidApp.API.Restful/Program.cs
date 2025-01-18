@@ -8,7 +8,7 @@ using MasjidApp.API.Library.Shared.DataAccess;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddSingleton(provider =>
+builder.Services.AddSingleton<ITokenGenerator, TokenGenerator>(provider =>
 {
     IConfiguration configuration = provider.GetRequiredService<IConfiguration>();
     return new TokenGenerator(configuration);
