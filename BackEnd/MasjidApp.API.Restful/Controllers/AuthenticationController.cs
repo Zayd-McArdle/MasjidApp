@@ -15,7 +15,7 @@ namespace MasjidApp.API.Restful.Controllers
     [ApiController]
     public class AuthenticationController(IUserRepository userRepository, ITokenGenerator tokenGenerator) : ControllerBase
     {
-        [HttpPost]
+        [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request) 
         {
             if (request.Username == null || request.Password == null)
@@ -31,7 +31,7 @@ namespace MasjidApp.API.Restful.Controllers
             return Ok(tokenGenerator.GenerateToken(request.Username));
         }
 
-        [HttpPost]
+        [HttpPost("register-user")]
         public async Task<IActionResult> RegisterUser([FromBody] UserRegistrationRequest request)
         {
             if (!ModelState.IsValid)
