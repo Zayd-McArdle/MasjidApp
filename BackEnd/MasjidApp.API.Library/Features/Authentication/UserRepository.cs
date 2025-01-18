@@ -27,7 +27,7 @@ public sealed class UserRepository(IDataAccessFactory dataAccessFactory) : IUser
         bool userExists = await UserExistsInDatabase(connection, newUser.Username);
         if (userExists)
         {
-            return RegistrationResponse.UserAlreadyRegistered();
+            return RegistrationResponse.UserAlreadyRegistered;
         }
 
         try
@@ -40,14 +40,14 @@ public sealed class UserRepository(IDataAccessFactory dataAccessFactory) : IUser
             }
             if (!userExists)
             {
-                return RegistrationResponse.FailedToRegister($"Unable to register user {newUser.Username}");
+                return RegistrationResponse.FailedToRegister;
             }
 
-            return RegistrationResponse.UserSuccessfullyRegistered();
+            return RegistrationResponse.UserSuccessfullyRegistered;
         }
         catch (Exception ex)
         {
-            return RegistrationResponse.FailedToRegister(ex.Message);
+            return RegistrationResponse.FailedToRegister;
         }
     }
 
@@ -58,11 +58,11 @@ public sealed class UserRepository(IDataAccessFactory dataAccessFactory) : IUser
         bool userExists = await UserExistsInDatabase(connection, username);
         if (!userExists)
         {
-            return ResetPasswordResponse.UserDoesNotExist();
+            return ResetPasswordResponse.UserDoesNotExist;
         }
         HashingService.HashCredential(newPassword);
         await connection.WriteToDatabaseAsync("reset_user_password", new { Username = username, Password = newPassword });
-        return ResetPasswordResponse.SuccessfullyResetUserPassword();
+        return ResetPasswordResponse.SuccessfullyResetUserPassword;
     }
 
     public async Task<bool> UserRegistered(string username)

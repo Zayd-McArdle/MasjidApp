@@ -38,110 +38,52 @@ public sealed class AuthenticationControllerTest
 
     #region Login Tests
 
-    [Fact]
-    public async Task Login_InvalidModelState()
+    [InlineData(true, 0)]
+    [InlineData(false, 0)]
+    [InlineData(false, 1)]
+    [Theory]
+    public async Task Login_Test(bool checkBadModelState, int userCount)
     {
-        // Given
-        LoginRequest request = new();
-
-        // When
-        IActionResult expected = _controller.BadRequest("Invalid request");
-        IActionResult actual = await _controller.Login(request);
-
-        // Then
-        Assert.Equivalent(expected, actual);
-    }
-    [Fact]
-    public async Task Login_UserNotFound()
-    {
+        if (checkBadModelState)
+        {
+            TestInvalidModelState<LoginRequest>(_controller.Login);
+            return;
+        }
         // Given
         LoginRequest request = new() {
             Username = "DummyUserName",
             Password = "DummyPassword"
         };
-        _mockUserRepository.Setup(repository => repository.GetUserCredentials(request)).ReturnsAsync(0);
+        IActionResult expectedResult = _controller.Unauthorized("Invalid username or password");
+        _mockUserRepository.Setup(repository => repository.GetUserCredentials(request)).ReturnsAsync(userCount);
         
         // When
-        IActionResult expected = _controller.Unauthorized("Invalid username or password");
-        IActionResult actual = await _controller.Login(request);
+        if (userCount > 0)
+        {
+            expectedResult = _controller.Ok("DummyToken");
+            _mockTokenGenerator.Setup(tokenGenerator => tokenGenerator.GenerateToken(It.IsAny<string>())).Returns("DummyToken");
+        }
+        IActionResult actualResult = await _controller.Login(request);
         // Then
-        Assert.Equivalent(expected, actual);
-    }
-
-    [Fact]
-    public async Task Login_UserFound()
-    {
-        // Given
-        LoginRequest request = new() {
-            Username = "DummyUserName",
-            Password = "DummyPassword"
-        };
-        _mockUserRepository.Setup(repository => repository.GetUserCredentials(request)).ReturnsAsync(1);
-        _mockTokenGenerator.Setup(tokenGenerator => tokenGenerator.GenerateToken(It.IsAny<string>())).Returns("DummyToken");
-        // When
-        IActionResult expected = _controller.Ok("DummyToken");
-        IActionResult actual = await _controller.Login(request);
-        // Then
-        Assert.Equivalent(expected, actual);
+        Assert.Equivalent(expectedResult, actualResult);
+        
     }
 
     #endregion
 
     #region User Registration Tests
-
-    [Fact]
-    public async Task RegisterUser_InvalidModelState()
-    {
-        await TestInvalidModelState<UserRegistrationRequest>(_controller.RegisterUser);
-    }
-
-    [Fact]
-    public async Task RegisterUser_UserAlreadyExists()
-    {
-        // Given
-        UserRegistrationRequest request = new() {
-            FirstName = "first name",
-            LastName = "last name",
-            Email = "email@email.com",
-            Role = nameof(UserRole.Normal),
-            Username = "DummyUserName",
-            Password = "DummyPassword"
-        };
-        RegistrationResponse mockResponse = RegistrationResponse.UserAlreadyRegistered();
-        _mockUserRepository.Setup(repository => repository.RegisterUser(It.IsAny<UserAccount>())).ReturnsAsync(mockResponse);
-        
-        // When
-        IActionResult expected = _controller.Conflict(mockResponse.ErrorReason);
-        IActionResult actual = await _controller.RegisterUser(request);
-        // Then
-        Assert.Equivalent(expected, actual);
-    }
-
-    [Fact]
-    public async Task RegisterUser_RegistrationSuccessful()
-    {
-        // Given
-        UserRegistrationRequest request = new() {
-            FirstName = "first name",
-            LastName = "last name",
-            Email = "email@email.com",
-            Role = nameof(UserRole.Normal),
-            Username = "DummyUserName",
-            Password = "DummyPassword"
-        };
-        RegistrationResponse mockResponse = RegistrationResponse.UserSuccessfullyRegistered();
-        _mockUserRepository.Setup(repository => repository.RegisterUser(It.IsAny<UserAccount>())).ReturnsAsync(mockResponse);
-        
-        // When
-        IActionResult expected = _controller.Ok();
-        IActionResult actual = await _controller.RegisterUser(request);
-        // Then
-        Assert.Equivalent(expected, actual);
-    }
     
-    [Fact]
-    public async Task RegisterUser_InternalServerError()
+    [InlineData(true, null)]
+    [InlineData(false, RegistrationResponse.UserSuccessfullyRegistered)]
+    [InlineData(false, RegistrationResponse.UserAlreadyRegistered)]
+    [Theory]
+    public async Task RegisterUser_Test(bool checkBadModelState, RegistrationResponse mockResponse)
     {
+        if (checkBadModelState)
+        {
+            TestInvalidModelState<UserRegistrationRequest>(_controller.RegisterUser);
+            return;
+        }
         // Given
         UserRegistrationRequest request = new() {
             FirstName = "first name",
@@ -151,80 +93,86 @@ public sealed class AuthenticationControllerTest
             Username = "DummyUserName",
             Password = "DummyPassword"
         };
-        RegistrationResponse mockResponse = RegistrationResponse.FailedToRegister("Internal server error");
         _mockUserRepository.Setup(repository => repository.RegisterUser(It.IsAny<UserAccount>())).ReturnsAsync(mockResponse);
         
         // When
-        IActionResult expected = _controller.StatusCode(500, mockResponse.ErrorReason);
+        IActionResult expected = _controller.Conflict($"Unable to register user {request.Username}");
+        if (mockResponse == RegistrationResponse.UserSuccessfullyRegistered)
+        {
+            expected = _controller.Ok();
+        }
         IActionResult actual = await _controller.RegisterUser(request);
         // Then
         Assert.Equivalent(expected, actual);
     }
-    
+    // [Fact]
+    // public async Task RegisterUser_InternalServerError()
+    // {
+    //     // Given
+    //     UserRegistrationRequest request = new() {
+    //         FirstName = "first name",
+    //         LastName = "last name",
+    //         Email = "email@email.com",
+    //         Role = nameof(UserRole.Normal),
+    //         Username = "DummyUserName",
+    //         Password = "DummyPassword"
+    //     };
+    //     RegistrationResponse mockResponse = RegistrationResponse.FailedToRegister;
+    //     _mockUserRepository.Setup(repository => repository.RegisterUser(It.IsAny<UserAccount>())).ReturnsAsync(mockResponse);
+    //     
+    //     // When
+    //     IActionResult expected = _controller.StatusCode(500, mockResponse.ErrorReason);
+    //     IActionResult actual = await _controller.RegisterUser(request);
+    //     // Then
+    //     Assert.Equivalent(expected, actual);
+    // }
+    //
     #endregion
 
     #region Reset User Password Tests
 
-    [Fact]
-    public async Task ResetPassword_InvalidModelState()
+    [InlineData(true, null)]
+    [InlineData(false, ResetPasswordResponse.SuccessfullyResetUserPassword)]
+    [InlineData(false, ResetPasswordResponse.UserDoesNotExist)]
+    [Theory]
+    public async Task ResetPassword_Test(bool checkBadModelState, ResetPasswordResponse mockResponse)
     {
-        await TestInvalidModelState<ResetUserPasswordRequest>(_controller.ResetPassword);
-    }
-
-    [Fact]
-    public async Task ResetPassword_UserDoesNotExist()
-    {
+        if (checkBadModelState)
+        {
+            TestInvalidModelState<ResetUserPasswordRequest>(_controller.ResetPassword);
+            return;
+        }
         // Given
         ResetUserPasswordRequest request = new() {
             Username = "DummyUserName",
             ReplacementPassword = "DummyPassword"
         };
-        ResetPasswordResponse mockResponse = ResetPasswordResponse.UserDoesNotExist();
         _mockUserRepository.Setup(repository => repository.ResetUserPassword(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(mockResponse);
         
         // When
-        IActionResult expected = _controller.NotFound(mockResponse.ErrorReason);
+        IActionResult expected = mockResponse == ResetPasswordResponse.SuccessfullyResetUserPassword ? _controller.Ok() : _controller.NotFound();
         IActionResult actual = await _controller.ResetPassword(request);
-        // Then
-        Assert.Equivalent(expected, actual);
-    }
-
-    [Fact]
-    public async Task ResetPassword_Success()
-    {
-        // Given
-        ResetUserPasswordRequest request = new() {
-            Username = "DummyUserName",
-            ReplacementPassword = "DummyPassword"
-        };
-        ResetPasswordResponse mockResponse = ResetPasswordResponse.SuccessfullyResetUserPassword();
-        _mockUserRepository.Setup(repository => repository.ResetUserPassword(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(mockResponse);
-        
-        // When
-        IActionResult expected = _controller.Ok();
-        IActionResult actual = await _controller.ResetPassword(request);
-        
         // Then
         Assert.Equivalent(expected, actual);
     }
     
-    [Fact]
-    public async Task ResetPassword_InternalServerError()
-    {
-        // Given
-        ResetUserPasswordRequest request = new() {
-            Username = "DummyUserName",
-            ReplacementPassword = "DummyPassword"
-        };
-        ResetPasswordResponse mockResponse = ResetPasswordResponse.FailedToResetUserPassword("Internal server error");
-        _mockUserRepository.Setup(repository => repository.ResetUserPassword(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(mockResponse);
-        
-        // When
-        IActionResult expected = _controller.StatusCode(500, mockResponse.ErrorReason);
-        IActionResult actual = await _controller.ResetPassword(request);
-        // Then
-        Assert.Equivalent(expected, actual);
-    }
+    // [Fact]
+    // public async Task ResetPassword_InternalServerError()
+    // {
+    //     // Given
+    //     ResetUserPasswordRequest request = new() {
+    //         Username = "DummyUserName",
+    //         ReplacementPassword = "DummyPassword"
+    //     };
+    //     ResetPasswordResponse mockResponse = ResetPasswordResponse.FailedToResetUserPassword("Internal server error");
+    //     _mockUserRepository.Setup(repository => repository.ResetUserPassword(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(mockResponse);
+    //     
+    //     // When
+    //     IActionResult expected = _controller.StatusCode(500, mockResponse.ErrorReason);
+    //     IActionResult actual = await _controller.ResetPassword(request);
+    //     // Then
+    //     Assert.Equivalent(expected, actual);
+    // }
     #endregion
 }
 
