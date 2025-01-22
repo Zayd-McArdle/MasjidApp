@@ -5,9 +5,9 @@ BEGIN
     SELECT COUNT(*) FROM user_details WHERE username = p_username;
 END //
 
-CREATE PROCEDURE IF NOT EXISTS get_user_credentials(IN p_username VARCHAR(200), IN p_password VARCHAR(200))
+CREATE PROCEDURE IF NOT EXISTS get_user_credentials(IN p_username VARCHAR(200))
 BEGIN
-    SELECT COUNT(*) FROM user_details WHERE username = p_username AND password = p_password;
+    SELECT username, password FROM user_details WHERE username = p_username;
 END //
 
 CREATE PROCEDURE IF NOT EXISTS register_user(IN p_first_name VARCHAR(50), IN p_last_name VARCHAR(50), IN p_role VARCHAR(50), IN p_email VARCHAR(50), IN p_username VARCHAR(200), IN p_password VARCHAR(200))

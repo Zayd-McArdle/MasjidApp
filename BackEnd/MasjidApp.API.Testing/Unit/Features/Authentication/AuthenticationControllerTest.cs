@@ -38,11 +38,11 @@ public sealed class AuthenticationControllerTest
 
     #region Login Tests
 
-    [InlineData(true, 0)]
-    [InlineData(false, 0)]
-    [InlineData(false, 1)]
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
     [Theory]
-    public async Task Login_Test(bool checkBadModelState, int userCount)
+    public async Task Login_Test(bool checkBadModelState, bool returnsModel)
     {
         if (checkBadModelState)
         {
@@ -54,11 +54,12 @@ public sealed class AuthenticationControllerTest
             Username = "DummyUserName",
             Password = "DummyPassword"
         };
+        LoginDto dto = returnsModel ? new () {Username = "username", Password = "password"}: null;
         IActionResult expectedResult = _controller.Unauthorized("Invalid username or password");
-        _mockUserRepository.Setup(repository => repository.GetUserCredentials(request)).ReturnsAsync(userCount);
+        _mockUserRepository.Setup(repository => repository.GetUserCredentials(request)).ReturnsAsync(dto);
         
         // When
-        if (userCount > 0)
+        if (dto != null)
         {
             expectedResult = _controller.Ok("DummyToken");
             _mockTokenGenerator.Setup(tokenGenerator => tokenGenerator.GenerateToken(It.IsAny<string>())).Returns("DummyToken");

@@ -2,7 +2,6 @@ using MasjidApp.API.Library.Features.Authentication;
 using MasjidApp.API.Library.Features.Authentication.Login;
 using MasjidApp.API.Library.Features.Authentication.Registration;
 using MasjidApp.API.Library.Features.Authentication.ResetPassword;
-using MasjidApp.API.Library.Features.Authentication.Security;
 using MasjidApp.API.Library.Shared.UserManagement;
 using MasjidApp.API.Restful.Handlers;
 using Microsoft.AspNetCore.Mvc;
@@ -23,9 +22,8 @@ namespace MasjidApp.API.Restful.Controllers
 
             return await DbExceptionHandler.HandleException(this, async () =>
             {
-                HashingService.HashCredentials(request);
-                int loginCount = await userRepository.GetUserCredentials(request);
-                if (loginCount == 0) 
+                LoginDto loginCount = await userRepository.GetUserCredentials(request);
+                if (loginCount == null) 
                 {
                     return Unauthorized("Invalid username or password");
                 }
@@ -64,7 +62,7 @@ namespace MasjidApp.API.Restful.Controllers
             });
         }
 
-        [HttpPatch]
+        [HttpPatch("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetUserPasswordRequest request)
         {
             if (!ModelState.IsValid)

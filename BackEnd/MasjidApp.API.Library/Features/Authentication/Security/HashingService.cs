@@ -6,9 +6,9 @@ public static class HashingService
     {
         return BCrypt.Net.BCrypt.HashPassword(credential);
     }
-    public static void HashCredentials(IUserCredentials credentials)
+
+    public static bool HashVerified(string credential, string hash)
     {
-        credentials.Username = BCrypt.Net.BCrypt.HashPassword(credentials.Username);
-        credentials.Password = BCrypt.Net.BCrypt.HashPassword(credentials.Password);
+        return BCrypt.Net.BCrypt.Verify(credential, hash);
     }
 }
