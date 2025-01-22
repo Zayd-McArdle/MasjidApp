@@ -17,7 +17,8 @@ services:
       context: .
       dockerfile: MasjidApp.API.Restful/Dockerfile
     environment:
-      ConnectionStrings__AuthenticationConnection: "Server=db;Database=masjidappdatabase;User=authenticationuser;Password=BL/6Fx$Ku!2{37GvPS9;"
+      ConnectionStrings__AnnouncementConnection: "Server=db;Database=masjidappdatabase;User=announcementsuser;Password=LzwvN6bU4y3EqmAYBMJFrn;"
+      ConnectionStrings__AuthenticationConnection: "Server=db;Database=masjidappdatabase;User=authenticationuser;Password=BL6FxKu!237GvPS9;"
       ConnectionStrings__PrayerTimesConnection: "Server=db;Database=masjidappdatabase;User=prayertimesuser;Password=HR0o8N&Rk%wvu@Ma%IBh7yaf;"
     ports:
       - "5000:8080"

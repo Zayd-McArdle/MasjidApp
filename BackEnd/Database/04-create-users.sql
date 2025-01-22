@@ -1,5 +1,5 @@
 -- Create users
-CREATE USER IF NOT EXISTS 'authenticationuser'@'%' IDENTIFIED BY 'BL/6Fx$Ku!2{37GvPS9';
+CREATE USER IF NOT EXISTS 'authenticationuser'@'%' IDENTIFIED BY 'BL6FxKu!237GvPS9';
 CREATE USER IF NOT EXISTS 'prayertimesuser'@'%' IDENTIFIED BY 'HR0o8N&Rk%wvu@Ma%IBh7yaf';
 
 -- Adjust user permissions

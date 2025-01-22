@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS user_details (
-    id INT AUTO_INCREMENT,
+    id INT NOT NULL AUTO_INCREMENT,
     first_name VARCHAR(50),
     last_name VARCHAR(50),
     role VARCHAR(50),

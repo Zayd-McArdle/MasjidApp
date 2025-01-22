@@ -10,13 +10,13 @@ public sealed class UserRepository(IDataAccessFactory dataAccessFactory) : IUser
 {
     private static async Task<bool> UserExistsInDatabase(IDataAccess connection, string username)
     {
-        int userCount = await connection.ReadRecordCountFromDatabaseAsync("get_username", new {Username = username});
+        int userCount = await connection.ReadRecordCountFromDatabaseAsync("get_username", new {p_username = username});
         return userCount > 0;
     }
     public async Task<int> GetUserCredentials(IUserCredentials credentials)
     {
         using IDataAccess connection = dataAccessFactory.EstablishDbConnection();
-        int userCount = await connection.ReadRecordCountFromDatabaseAsync<dynamic>("get_user_credentials", new { credentials.Username, credentials.Password});
+        int userCount = await connection.ReadRecordCountFromDatabaseAsync<dynamic>("get_user_credentials", new { p_username = credentials.Username, p_password = credentials.Password});
         return userCount;
     }
 
@@ -32,18 +32,19 @@ public sealed class UserRepository(IDataAccessFactory dataAccessFactory) : IUser
 
         try
         {
-            await connection.WriteToDatabaseAsync("register_user", new { newUser.FirstName, newUser.LastName, newUser.Role, newUser.Username,
-                newUser.Password});
-            for (int i = 0; i < 10 && !userExists; i++)
-            {
-                userExists = await UserExistsInDatabase(connection, newUser.Username);
-            }
-            if (!userExists)
-            {
-                return RegistrationResponse.FailedToRegister;
-            }
-
-            return RegistrationResponse.UserSuccessfullyRegistered;
+            await connection.WriteToDatabaseAsync("register_user", new { 
+                p_first_name = newUser.FirstName, 
+                p_last_name = newUser.LastName, 
+                p_role = newUser.Role, 
+                p_email = newUser.Email,
+                p_username = newUser.Username,
+                p_password = newUser.Password
+                
+            });
+            
+            userExists = await UserExistsInDatabase(connection, newUser.Username);
+            
+            return userExists ? RegistrationResponse.UserSuccessfullyRegistered : RegistrationResponse.FailedToRegister;
         }
         catch (Exception ex)
         {
@@ -61,7 +62,7 @@ public sealed class UserRepository(IDataAccessFactory dataAccessFactory) : IUser
             return ResetPasswordResponse.UserDoesNotExist;
         }
         HashingService.HashCredential(newPassword);
-        await connection.WriteToDatabaseAsync("reset_user_password", new { Username = username, Password = newPassword });
+        await connection.WriteToDatabaseAsync("reset_user_password", new { p_username = username, p_password = newPassword });
         return ResetPasswordResponse.SuccessfullyResetUserPassword;
     }
 
