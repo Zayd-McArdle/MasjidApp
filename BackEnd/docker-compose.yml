@@ -9,6 +9,12 @@ services:
       MYSQL_ROOT_PASSWORD: REGUqj1HYuci_0aFUhtNk56Vh
     volumes:
       - ./Database/data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "sh", "-c", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD | grep -v 'mysqladmin: connect to server at .localhost. failed' || exit 1"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     networks:
       - masjidapp-network
   api:
@@ -20,8 +26,12 @@ services:
       AUTHENTICATION_CONNECTION: "mysql://authenticationuser:BL6FxKu!237GvPS9@db/masjidappdatabase"
       PRAYER_TIMES_CONNECTION: "mysql://prayertimesuser:HR0o8NRkwvuMaIBh7yaf@db/masjidappdatabase"
       ANNOUNCEMENT_CONNECTION: "mysql://announcementsuser:LzwvN6bU4y3EqmAYBMJFrn@db/masjidappdatabase"
+      JWT_SECRET: "for the sake of allah! store this securely"
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
-      - "5000:8080"
+      - "5000:3000"
     networks:
       - masjidapp-network
 
