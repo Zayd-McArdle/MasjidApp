@@ -1,7 +1,7 @@
 ﻿version: '3.8'
 services:
   db:
-    image: zayd-mcardle/masjidapp-database
+    image: masjidappdatabase
     build: 
       context: .
       dockerfile: Database/Dockerfile
@@ -12,14 +12,14 @@ services:
     networks:
       - masjidapp-network
   api:
-    image: masjidapp.api.restful
+    image: masjidappapi
     build:
       context: .
-      dockerfile: MasjidApp.API.Restful/Dockerfile
+      dockerfile: api/masjid_app_api/Dockerfile
     environment:
-      ConnectionStrings__AnnouncementConnection: "Server=db;Database=masjidappdatabase;User=announcementsuser;Password=LzwvN6bU4y3EqmAYBMJFrn;"
-      ConnectionStrings__AuthenticationConnection: "Server=db;Database=masjidappdatabase;User=authenticationuser;Password=BL6FxKu!237GvPS9;"
-      ConnectionStrings__PrayerTimesConnection: "Server=db;Database=masjidappdatabase;User=prayertimesuser;Password=HR0o8N&Rk%wvu@Ma%IBh7yaf;"
+      AUTHENTICATION_CONNECTION: "mysql://authenticationuser:BL6FxKu!237GvPS9@db/masjidappdatabase"
+      PRAYER_TIMES_CONNECTION: "mysql://prayertimesuser:HR0o8NRkwvuMaIBh7yaf@db/masjidappdatabase"
+      ANNOUNCEMENT_CONNECTION: "mysql://announcementsuser:LzwvN6bU4y3EqmAYBMJFrn@db/masjidappdatabase"
     ports:
       - "5000:8080"
     networks:
