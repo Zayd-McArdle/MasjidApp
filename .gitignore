@@ -1,3 +1,8 @@
+# MySQL
+Backend/Database/data/ 
+# Rust Backend
+target/
+
 # .NET C# Backend
 ## Ignore build output and packages
 bin/

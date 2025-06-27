@@ -1,6 +1,0 @@
-@MasjidApp.API.Restful_HostAddress = http://localhost:5095
-
-GET {{MasjidApp.API.Restful_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
