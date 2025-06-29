@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS user_details (
 );
 
 CREATE TABLE IF NOT EXISTS prayer_times (
-    file_data LONGBLOB NOT NULL
+    data LONGBLOB NOT NULL,
+    hash CHAR(64) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS announcements (
