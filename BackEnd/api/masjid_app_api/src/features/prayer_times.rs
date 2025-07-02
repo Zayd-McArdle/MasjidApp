@@ -55,7 +55,10 @@ fn build_prayer_times_response(prayer_times: PrayerTimesDTO, hash: Option<&str>)
             .body(Body::from(data));
         return match response_body_result {
             Ok(response) => response,
-            Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            Err(err) => {
+                tracing::error!("unable to build response: {}", err);
+                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            }
         };
     }
     StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -115,8 +118,14 @@ impl PrayerTimesRepository for MySqlRepository {
 
         match query_response {
             Ok(prayer_times) => Ok(prayer_times),
-            Err(Error::RowNotFound) => Err(GetPrayerTimesError::PrayerTimesNotFound),
-            Err(e) => Err(GetPrayerTimesError::UnableToGetPrayerTimes),
+            Err(Error::RowNotFound) => {
+                tracing::error!("prayer times not found");
+                Err(GetPrayerTimesError::PrayerTimesNotFound)
+            }
+            Err(err) => {
+                tracing::error!("unable to get prayer times from the database: {}", err);
+                Err(GetPrayerTimesError::UnableToGetPrayerTimes)
+            }
         }
     }
 
@@ -131,11 +140,15 @@ impl PrayerTimesRepository for MySqlRepository {
             .await
             .map(|row: MySqlRow| {
                 if row.len() == 1 {
+                    tracing::debug!("prayer times hash matches request hash");
                     return PrayerTimesDTO {
                         data: None,
                         hash: row.get(0),
                     };
                 }
+                tracing::debug!(
+                    "prayer times hash does not match request hash. downloading new prayer times"
+                );
                 return PrayerTimesDTO {
                     data: row.get(0),
                     hash: row.get(1),
@@ -143,9 +156,15 @@ impl PrayerTimesRepository for MySqlRepository {
             });
         match query_response {
             Ok(prayer_times) => Ok(prayer_times),
-            Err(Error::RowNotFound) => Err(GetPrayerTimesError::PrayerTimesNotFound),
-            Err(e) => {
-                println!("{}", e);
+            Err(Error::RowNotFound) => {
+                tracing::error!("prayer times not found");
+                Err(GetPrayerTimesError::PrayerTimesNotFound)
+            }
+            Err(err) => {
+                tracing::error!(
+                    "unable to get updated prayer times from the database: {}",
+                    err
+                );
                 Err(GetPrayerTimesError::UnableToGetPrayerTimes)
             }
         }
@@ -162,8 +181,14 @@ impl PrayerTimesRepository for MySqlRepository {
             .execute(&*db_connection)
             .await;
         match query_response {
-            Ok(_) => Ok(()),
-            Err(_) => Err(UpdatePrayerTimesError::UnableToUpdatePrayerTimes),
+            Ok(_) => {
+                tracing::info!("successfully updated prayer times");
+                Ok(())
+            }
+            Err(err) => {
+                tracing::error!("unable to update prayer times: {}", err);
+                Err(UpdatePrayerTimesError::UnableToUpdatePrayerTimes)
+            }
         }
     }
 }

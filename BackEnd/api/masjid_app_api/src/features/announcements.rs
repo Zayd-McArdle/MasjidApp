@@ -83,7 +83,7 @@ pub async fn new_announcement_repository(db_type: DbType) -> Arc<dyn Announcemen
 #[async_trait]
 impl AnnouncementRepository for InMemoryRepository {
     async fn get_announcements(&self) -> Result<Vec<AnnouncementDTO>, GetAnnouncementsError> {
-        println!("Announcement In-Memory Repository not implemented");
+        tracing::warn!("Announcement In-Memory Repository not implemented");
         Err(GetAnnouncementsError::UnableToFetchAnnouncements)
     }
 
@@ -91,7 +91,7 @@ impl AnnouncementRepository for InMemoryRepository {
         &self,
         announcement: AnnouncementDTO,
     ) -> Result<(), PostAnnouncementError> {
-        println!("Announcement In-Memory Repository not implemented");
+        tracing::warn!("Announcement In-Memory Repository not implemented");
         Err(PostAnnouncementError::FailedToPostAnnouncement)
     }
 
@@ -99,7 +99,7 @@ impl AnnouncementRepository for InMemoryRepository {
         &self,
         announcement: AnnouncementDTO,
     ) -> Result<(), EditAnnouncementError> {
-        println!("Announcement In-Memory Repository not implemented");
+        tracing::warn!("Announcement In-Memory Repository not implemented");
         Err(EditAnnouncementError::FailedToEditAnnouncement)
     }
 }
@@ -127,7 +127,10 @@ impl AnnouncementRepository for MySqlRepository {
                 Ok(announcements)
             }
             Err(Error::RowNotFound) => Err(GetAnnouncementsError::AnnouncementsNotFound),
-            Err(_) => Err(GetAnnouncementsError::UnableToFetchAnnouncements),
+            Err(err) => {
+                tracing::error!("failed to get announcements: {err}");
+                Err(GetAnnouncementsError::UnableToFetchAnnouncements)
+            }
         }
     }
 
@@ -145,13 +148,15 @@ impl AnnouncementRepository for MySqlRepository {
             .await;
         match query_result {
             Ok(_) => Ok(()),
-            Err(Error::Database(error)) => {
-                if error.is_unique_violation() {
-                    return Err(PostAnnouncementError::AnnouncementAlreadyExists);
+            Err(err) => {
+                if let Error::Database(database_err) = &err {
+                    if database_err.is_unique_violation() {
+                        return Err(PostAnnouncementError::AnnouncementAlreadyExists);
+                    }
                 }
+                tracing::error!("unable to post announcement due to the following error: {err}");
                 Err(PostAnnouncementError::FailedToPostAnnouncement)
             }
-            Err(_) => Err(PostAnnouncementError::FailedToPostAnnouncement),
         }
     }
     async fn edit_announcement(
@@ -174,13 +179,15 @@ impl AnnouncementRepository for MySqlRepository {
                 }
                 Ok(())
             }
-            Err(Error::Database(error)) => {
-                if error.code() == Some(Borrowed("1644")) {
-                    return Err(EditAnnouncementError::UserDoesNotExist);
+            Err(err) => {
+                if let Error::Database(database_err) = &err {
+                    if database_err.code() == Some(Borrowed("1644")) {
+                        return Err(EditAnnouncementError::UserDoesNotExist);
+                    }
                 }
+                tracing::error!("unable to edit announcement due to the following error {err}");
                 Err(EditAnnouncementError::FailedToEditAnnouncement)
             }
-            Err(_) => Err(EditAnnouncementError::FailedToEditAnnouncement),
         }
     }
 }

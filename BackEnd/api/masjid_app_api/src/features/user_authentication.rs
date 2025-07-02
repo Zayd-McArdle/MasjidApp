@@ -33,12 +33,12 @@ pub async fn new_user_repository(db_type: DbType) -> Arc<dyn UserRepository> {
 #[async_trait]
 impl UserRepository for InMemoryRepository {
     async fn login(&self, username: &str, password: &str) -> Result<String, LoginError> {
-        println!("In-memory repository login not implemented yet");
+        tracing::warn!("In-memory repository login not implemented yet");
         Err(LoginError::UnableToLogin)
     }
 
     async fn register_user(&self, new_user: UserAccountDTO) -> Result<(), RegistrationError> {
-        println!("In-memory repository register user not implemented yet");
+        tracing::warn!("In-memory repository register user not implemented yet");
         Err(RegistrationError::FailedToRegister)
     }
 
@@ -47,7 +47,7 @@ impl UserRepository for InMemoryRepository {
         username: &str,
         new_password: &str,
     ) -> Result<(), ResetPasswordError> {
-        println!("In-memory repository reset user password not implemented yet");
+        tracing::warn!("In-memory repository reset user password not implemented yet");
         Err(ResetPasswordError::FailedToResetUserPassword)
     }
 }
@@ -69,13 +69,20 @@ impl UserRepository for MySqlRepository {
                 let hash_verified =
                     bcrypt::verify(password, &user.password).expect("unable to verify hash");
                 if hash_verified {
+                    tracing::info!("'{username}' has logged in");
                     return Ok(user.role);
                 }
+                tracing::debug!("'{username}' hashed password does not match hash in database");
                 Err(LoginError::InvalidCredentials)
             }
-            Err(Error::RowNotFound) => Err(LoginError::InvalidCredentials),
+            Err(Error::RowNotFound) => {
+                tracing::debug!("'{username}' entered the wrong credentials");
+                Err(LoginError::InvalidCredentials)
+            }
             Err(err) => {
-                println!("{}", err);
+                tracing::error!(
+                    "could not authenticate '{username}' due to the following error: {err}"
+                );
                 Err(LoginError::UnableToLogin)
             }
         }
@@ -85,19 +92,30 @@ impl UserRepository for MySqlRepository {
         let hashed_password =
             bcrypt::hash(new_user.password, 12).expect("Unable to hash the password");
         let query_result = sqlx::query("CALL register_user(?, ?, ?, ?, ?);")
-            .bind(new_user.full_name)
-            .bind(new_user.role)
-            .bind(new_user.email)
-            .bind(new_user.username)
+            .bind(&new_user.full_name)
+            .bind(&new_user.role)
+            .bind(&new_user.email)
+            .bind(&new_user.username)
             .bind(hashed_password)
             .execute(&*db_connection)
             .await;
         match query_result {
-            Ok(_) => Ok(()),
+            Ok(_) => {
+                tracing::info!("successfully registered user: '{}'", new_user.username);
+                Ok(())
+            }
             Err(Error::Database(db_err)) if db_err.is_unique_violation() => {
+                tracing::debug!("'{}' already exists", new_user.username);
                 Err(RegistrationError::UserAlreadyRegistered)
             }
-            Err(_) => Err(RegistrationError::FailedToRegister),
+            Err(err) => {
+                tracing::error!(
+                    "unable to register user '{}' due the following error: {}",
+                    new_user.username,
+                    err
+                );
+                Err(RegistrationError::FailedToRegister)
+            }
         }
     }
     async fn reset_user_password(
@@ -115,8 +133,12 @@ impl UserRepository for MySqlRepository {
         match query_result {
             Ok(result) => {
                 if result.rows_affected() == 0 {
+                    tracing::debug!(
+                        "unable to reset password of '{username}', as the user does not exist"
+                    );
                     return Err(ResetPasswordError::UserDoesNotExist);
                 }
+                tracing::debug!("successfully reset password of '{username}'");
                 Ok(())
             }
             Err(_) => Err(ResetPasswordError::FailedToResetUserPassword),
