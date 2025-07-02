@@ -66,8 +66,8 @@ async fn map_prayer_times() -> Router {
     };
     Router::new()
         .route("/", get(prayer_times::get_prayer_times))
-        .route("/", get(prayer_times::get_updated_prayer_times))
-        .route("/", patch(prayer_times::update_prayer_times))
+        .route("/update", get(prayer_times::get_updated_prayer_times))
+        .route("/update", patch(prayer_times::update_prayer_times))
         .with_state(state)
 }
 async fn map_donation() -> Router {
@@ -82,11 +82,11 @@ async fn map_classes() -> Router {
 
 async fn map_endpoints() -> Router {
     let authentication_routes = map_user_authentication().await;
-    println!("Mapped User Authentication Endpoints");
+    tracing::info!("Mapped User Authentication Endpoints");
     let prayer_times_routes = map_prayer_times().await;
-    println!("Mapped Prayer Times Endpoints");
+    tracing::info!("Mapped Prayer Times Endpoints");
     let announcements_routes = map_announcements().await;
-    println!("Mapped Announcements Endpoints");
+    tracing::info!("Mapped Announcements Endpoints");
     let router = Router::new();
     router
         .nest("/authentication", authentication_routes)
@@ -96,7 +96,9 @@ async fn map_endpoints() -> Router {
 
 #[tokio::main]
 async fn main() {
-    println!("MasjidApp Public API initialised");
+    tracing_subscriber::fmt::fmt().json().init();
+
+    tracing::info!("MasjidApp Public API initialised");
     let app = map_endpoints().await;
     let listener = tokio::net::TcpListener::bind(&"0.0.0.0:3000")
         .await
