@@ -19,6 +19,7 @@ mockall = "0.13.1"
 log = "0.4.26"
 jsonwebtoken = "9.3.1"
 testcontainers = "0.24.0"
+sha2 = "0.10.8"
 
 [[bin]]
 name = "masjid_app_api"

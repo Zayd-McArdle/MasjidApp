@@ -11,8 +11,9 @@ GRANT EXECUTE ON PROCEDURE masjidappdatabase.register_user TO 'authenticationuse
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.reset_user_password TO 'authenticationuser'@'%';
 
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'prayertimesuser'@'%';
-GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_prayer_times_file TO 'prayertimesuser'@'%';
-GRANT EXECUTE ON PROCEDURE masjidappdatabase.upsert_prayer_times_file TO 'prayertimesuser'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_prayer_times TO 'prayertimesuser'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_updated_prayer_times TO 'prayertimesuser'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.upsert_prayer_times TO 'prayertimesuser'@'%';
 
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'announcementsuser'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_announcements TO 'announcementsuser'@'%';

@@ -24,16 +24,33 @@ BEGIN
 END //
 
 -- prayer_times stored procedures
-CREATE PROCEDURE IF NOT EXISTS get_prayer_times_file()
+CREATE PROCEDURE IF NOT EXISTS get_prayer_times()
 BEGIN
-    SELECT file_data from prayer_times;
+    SELECT data, hash from prayer_times;
 END //
 
-CREATE PROCEDURE IF NOT EXISTS upsert_prayer_times_file(IN p_prayer_times_file LONGBLOB)
+CREATE PROCEDURE IF NOT EXISTS get_updated_prayer_times(IN p_hash CHAR(64))
 BEGIN
-    UPDATE prayer_times SET file_data = p_prayer_times_file;
+    DECLARE v_count INT;
+
+    SELECT COUNT(*) INTO v_count 
+    FROM prayer_times 
+    WHERE hash = p_hash;
+
+    IF v_count = 0 THEN
+        CALL get_prayer_times();
+    ELSE 
+        SELECT hash 
+        FROM prayer_times 
+        WHERE hash = p_hash;
+    END IF;
+END //
+
+CREATE PROCEDURE IF NOT EXISTS upsert_prayer_times(IN p_data LONGBLOB, IN p_hash CHAR(64))
+BEGIN
+    UPDATE prayer_times SET data = p_data, hash = p_hash;
     IF ROW_COUNT() = 0 THEN 
-        INSERT INTO prayer_times (file_data) VALUES (p_prayer_times_file);
+        INSERT INTO prayer_times (data, hash) VALUES (p_data, p_hash);
     END IF;
 END //
 

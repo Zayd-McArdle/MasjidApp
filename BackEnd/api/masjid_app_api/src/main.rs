@@ -66,6 +66,7 @@ async fn map_prayer_times() -> Router {
     };
     Router::new()
         .route("/", get(prayer_times::get_prayer_times))
+        .route("/", get(prayer_times::get_updated_prayer_times))
         .route("/", patch(prayer_times::update_prayer_times))
         .with_state(state)
 }
