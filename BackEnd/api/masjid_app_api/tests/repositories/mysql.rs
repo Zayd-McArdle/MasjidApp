@@ -1,5 +1,5 @@
 use crate::common::dummy_data::add_user_to_main_database;
-use crate::common::setup::{setup_main_database, DatabaseCredentials};
+use crate::common::setup::{setup_logging, setup_main_database, DatabaseCredentials};
 use chrono::DateTime;
 use masjid_app_api::features::announcements::{
     new_announcement_repository, AnnouncementDTO, EditAnnouncementError, GetAnnouncementsError,
@@ -15,6 +15,7 @@ use masjid_app_api::shared::app_state::DbType;
 
 #[tokio::test]
 async fn test_user_authentication() {
+    setup_logging();
     let main_database_container = setup_main_database(DatabaseCredentials {
         username: "authenticationuser".to_string(),
         password: "BL6FxKu!237GvPS9".to_string(),
@@ -67,6 +68,7 @@ async fn test_user_authentication() {
 
 #[tokio::test]
 async fn test_announcements() {
+    setup_logging();
     let main_database_container = setup_main_database(DatabaseCredentials {
         username: "announcementsuser".to_string(),
         password: "LzwvN6bU4y3EqmAYBMJFrn".to_string(),
@@ -195,6 +197,7 @@ async fn test_announcements() {
 
 #[tokio::test]
 async fn test_prayer_times() {
+    setup_logging();
     let container = setup_main_database(DatabaseCredentials {
         username: "prayertimesuser".to_string(),
         password: "HR0o8NRkwvuMaIBh7yaf".to_string(),
