@@ -1328,7 +1328,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "30bde2b3dc3671ae49d8e2e9f044c7c005836e7a023ee57cffa25ab82764bb9e"
 
 [[package]]
-name = "masjid_app_api"
+name = "masjid_app_public_api"
 version = "0.1.0"
 dependencies = [
  "async-trait",
