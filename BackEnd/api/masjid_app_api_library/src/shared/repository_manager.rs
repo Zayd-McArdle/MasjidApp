@@ -7,6 +7,7 @@ pub enum RepositoryType {
     Authentication,
     PrayerTimes,
     Announcement,
+    AskImam,
 }
 
 #[derive(PartialEq)]
@@ -38,6 +39,10 @@ impl MySqlRepository {
             RepositoryType::Announcement => {
                 tracing::info!("establishing database connection for retrieving announcements");
                 "ANNOUNCEMENT_CONNECTION"
+            }
+            RepositoryType::AskImam => {
+                tracing::info!("establishing database connection for asking imams questions");
+                "ASK_IMAM_CONNECTION"
             }
         };
         let connection_string = std::env::var(connection_string_environment_variable).unwrap();

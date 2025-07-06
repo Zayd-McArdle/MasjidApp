@@ -1,12 +1,17 @@
-use crate::shared::app_state::{AppState, DbType};
 use crate::shared::jwt::Claims;
-use crate::shared::repository_manager::{InMemoryRepository, MySqlRepository, RepositoryType};
 use async_trait::async_trait;
 use axum::body::Body;
 use axum::extract::{Path, State};
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
+use masjid_app_api_library::features::prayer_times::{
+    build_prayer_times_response, GetPrayerTimesError, PrayerTimesDTO,
+};
+use masjid_app_api_library::shared::app_state::{AppState, DbType};
+use masjid_app_api_library::shared::repository_manager::{
+    InMemoryRepository, MySqlRepository, RepositoryType,
+};
 use mockall::predicate::*;
 use mockall::*;
 use serde::{Deserialize, Serialize};
@@ -15,18 +20,6 @@ use sqlx::mysql::MySqlRow;
 use sqlx::{Error, Row};
 use std::sync::Arc;
 use validator::Validate;
-
-#[derive(sqlx::FromRow, Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub struct PrayerTimesDTO {
-    pub data: Option<Vec<u8>>,
-    pub hash: String,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum GetPrayerTimesError {
-    PrayerTimesNotFound,
-    UnableToGetPrayerTimes,
-}
 
 #[derive(Deserialize, Clone, Validate)]
 pub struct UpdatePrayerTimesRequest {
@@ -38,30 +31,6 @@ pub struct UpdatePrayerTimesRequest {
 #[derive(Clone, Debug, PartialEq)]
 pub enum UpdatePrayerTimesError {
     UnableToUpdatePrayerTimes,
-}
-
-fn build_prayer_times_response(prayer_times: PrayerTimesDTO, hash: Option<&str>) -> Response {
-    if let Some(hash_value) = hash {
-        if prayer_times.hash == hash_value.to_owned() {
-            return StatusCode::CONFLICT.into_response();
-        }
-    }
-    if let Some(data) = prayer_times.data {
-        // Create response_body_result with hash in a custom header
-        let response_body_result = Response::builder()
-            .status(StatusCode::OK)
-            .header("X-File-Hash", prayer_times.hash)
-            .header(header::CONTENT_TYPE, "application/octet-stream")
-            .body(Body::from(data));
-        return match response_body_result {
-            Ok(response) => response,
-            Err(err) => {
-                tracing::error!("unable to build response: {}", err);
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
-            }
-        };
-    }
-    StatusCode::INTERNAL_SERVER_ERROR.into_response()
 }
 
 #[automock]
@@ -84,26 +53,7 @@ pub async fn new_prayer_times_repository(db_type: DbType) -> Arc<dyn PrayerTimes
         DbType::MySql => Arc::new(MySqlRepository::new(RepositoryType::PrayerTimes).await),
     }
 }
-#[async_trait]
-impl PrayerTimesRepository for InMemoryRepository {
-    async fn get_prayer_times(&self) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
-        todo!()
-    }
 
-    async fn get_updated_prayer_times(
-        &self,
-        hash: &str,
-    ) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
-        todo!()
-    }
-
-    async fn update_prayer_times(
-        &self,
-        prayer_times_data: PrayerTimesDTO,
-    ) -> Result<(), UpdatePrayerTimesError> {
-        todo!()
-    }
-}
 #[async_trait]
 impl PrayerTimesRepository for MySqlRepository {
     async fn get_prayer_times(&self) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
@@ -166,28 +116,6 @@ impl PrayerTimesRepository for MySqlRepository {
                     err
                 );
                 Err(GetPrayerTimesError::UnableToGetPrayerTimes)
-            }
-        }
-    }
-
-    async fn update_prayer_times(
-        &self,
-        prayer_times_data: PrayerTimesDTO,
-    ) -> Result<(), UpdatePrayerTimesError> {
-        let db_connection = self.db_connection.clone();
-        let query_response = sqlx::query("CALL upsert_prayer_times(?, ?);")
-            .bind(prayer_times_data.data)
-            .bind(prayer_times_data.hash)
-            .execute(&*db_connection)
-            .await;
-        match query_response {
-            Ok(_) => {
-                tracing::info!("successfully updated prayer times");
-                Ok(())
-            }
-            Err(err) => {
-                tracing::error!("unable to update prayer times: {}", err);
-                Err(UpdatePrayerTimesError::UnableToUpdatePrayerTimes)
             }
         }
     }
@@ -298,7 +226,9 @@ pub async fn update_prayer_times(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use masjid_app_api_library::shared::app_state::AppState;
     use std::collections::HashMap;
+
     #[tokio::test]
     async fn test_get_prayer_times() {
         #[derive(Clone)]

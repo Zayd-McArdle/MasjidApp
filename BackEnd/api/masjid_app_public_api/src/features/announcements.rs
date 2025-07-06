@@ -1,12 +1,13 @@
-use crate::shared::app_state::{AppState, DbType};
-use crate::shared::jwt::Claims;
-use crate::shared::repository_manager::{InMemoryRepository, MySqlRepository, RepositoryType};
-use async_trait::async_trait;
+/*use async_trait::async_trait;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
 use chrono::{DateTime, Utc};
+use masjid_app_api_library::shared::app_state::{AppState, DbType};
+use masjid_app_api_library::shared::repository_manager::{
+    InMemoryRepository, MySqlRepository, RepositoryType,
+};
 use mockall::automock;
 use serde::{Deserialize, Serialize};
 use sqlx::{Error, Row};
@@ -46,6 +47,7 @@ pub enum PostAnnouncementError {
 #[derive(Serialize, Deserialize, Validate, Clone)]
 pub struct EditAnnouncementRequest {
     #[validate(range(min = 1))]
+    #[serde(rename(deserialize = "announcementId"))]
     announcement_id: i32,
     #[validate(length(min = 2))]
     title: String,
@@ -516,3 +518,4 @@ mod tests {
         ];
     }
 }
+*/

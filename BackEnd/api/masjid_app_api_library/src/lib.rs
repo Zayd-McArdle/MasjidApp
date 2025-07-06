@@ -1,2 +1,2 @@
-pub mod repository_manager;
-pub mod app_state;
+pub mod features;
+pub mod shared;
