@@ -1,12 +1,14 @@
-use crate::shared::app_state::{AppState, DbType};
 use crate::shared::jwt::Claims;
-use crate::shared::repository_manager::{InMemoryRepository, MySqlRepository, RepositoryType};
 use async_trait::async_trait;
 use axum::body::Body;
 use axum::extract::{Path, State};
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
+use masjid_app_api_library::app_state::{AppState, DbType};
+use masjid_app_api_library::repository_manager::{
+    InMemoryRepository, MySqlRepository, RepositoryType,
+};
 use mockall::predicate::*;
 use mockall::*;
 use serde::{Deserialize, Serialize};
@@ -298,7 +300,9 @@ pub async fn update_prayer_times(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use masjid_app_api_library::app_state::AppState;
     use std::collections::HashMap;
+
     #[tokio::test]
     async fn test_get_prayer_times() {
         #[derive(Clone)]

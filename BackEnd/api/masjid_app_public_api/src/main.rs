@@ -3,13 +3,12 @@ mod shared;
 
 use crate::features::announcements::new_announcement_repository;
 use crate::features::user_authentication::new_user_repository;
-use crate::shared::app_state::DbType;
 use axum::routing::{get, patch, post, put};
 use axum::Router;
 use features::prayer_times::new_prayer_times_repository;
 use features::user_authentication::UserRepository;
 use features::{announcements, prayer_times, user_authentication};
-use shared::app_state::AppState;
+use masjid_app_api_library::app_state::{AppState, DbType};
 use std::collections::HashMap;
 
 async fn map_user_authentication() -> Router {

@@ -11,7 +11,7 @@ use masjid_app_api::features::user_authentication;
 use masjid_app_api::features::user_authentication::{
     LoginError, ResetPasswordError, UserAccountDTO,
 };
-use masjid_app_api::shared::app_state::DbType;
+use masjid_app_api_library::app_state::DbType;
 
 #[tokio::test]
 async fn test_user_authentication() {
