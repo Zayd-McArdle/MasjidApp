@@ -1,5 +1,5 @@
 use log::LevelFilter;
-use masjid_app_api_library::repository_manager::RepositoryMode;
+use masjid_app_api_library::shared::repository_manager::RepositoryMode;
 use std::sync::Once;
 use testcontainers::core::{IntoContainerPort, WaitFor};
 use testcontainers::runners::AsyncRunner;

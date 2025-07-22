@@ -1,4 +1,4 @@
 pub mod announcements;
 pub mod prayer_times;
-mod ask_imam;
-mod donation;
+pub mod ask_imam;
+pub mod donation;

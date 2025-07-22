@@ -20,4 +20,6 @@ mockall = "0.13.1"
 jsonwebtoken = "9.3.1"
 tracing = "0.1.41"
 sha2 = "0.10.9"
-tracing-subscriber = { version = "0.3.19", features = ["json"] }
+tracing-subscriber = { version = "0.3.19", features = ["std", "fmt", "json", "env-filter"] }
+testcontainers = "0.24.0"
+log = "0.4.27"

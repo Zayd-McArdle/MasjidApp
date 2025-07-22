@@ -52,6 +52,16 @@ pub trait PrayerTimesRepository: Send + Sync {
 }
 
 #[async_trait]
+impl PrayerTimesRepository for InMemoryRepository {
+    async fn get_prayer_times(&self) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
+        tracing::warn!("In-memory database for getting prayer times not implemented");
+        Err(GetPrayerTimesError::UnableToGetPrayerTimes)
+    }
+}
+
+
+
+#[async_trait]
 impl PrayerTimesRepository for MySqlRepository {
     async fn get_prayer_times(&self) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
         let db_connection = self.db_connection.clone();
@@ -75,9 +85,10 @@ impl PrayerTimesRepository for MySqlRepository {
         }
     }
 }
-pub async fn get_prayer_times_common(
-    State(state): State<AppState<Arc<dyn PrayerTimesRepository>>>,
-) -> Response {
+pub async fn get_prayer_times_common<R>(
+    State(state): State<AppState<Arc<R>>>,
+) -> Response
+where R: PrayerTimesRepository + ?Sized {
     let mut get_prayer_times_result: Result<PrayerTimesDTO, GetPrayerTimesError> = Err(GetPrayerTimesError::UnableToGetPrayerTimes);
 
     if let Some(prayer_times_in_memory_repository) = state.repository_map.get(&DbType::InMemory) {

@@ -29,9 +29,3 @@ pub enum GetAnnouncementsError {
 pub trait AnnouncementRepository: Send + Sync {
     async fn get_announcements(&self) -> Result<Vec<AnnouncementDTO>, GetAnnouncementsError>;
 }
-pub async fn new_announcement_public_repository(db_type: DbType) -> Arc<dyn AnnouncementRepository> {
-    match db_type {
-        DbType::InMemory => Arc::new(InMemoryRepository::new(RepositoryType::Announcement).await),
-        DbType::MySql => Arc::new(MySqlRepository::new(RepositoryType::Announcement).await),
-    }
-}

@@ -22,13 +22,5 @@ pub struct QuestionDTO {
 
 #[async_trait]
 pub trait ImamQuestionsRepository: Send + Sync {
-    async fn insert_question(question: QuestionDTO);
     async fn get_questions();
-}
-
-pub async fn new_imam_questions_repository(db_type: DbType) -> Arc<dyn ImamQuestionsRepository> {
-    match db_type {
-        DbType::InMemory => Arc::new(InMemoryRepository::new(RepositoryType::AskImam).await),
-        DbType::MySql => Arc::new(MySqlRepository::new(RepositoryType::AskImam).await),
-    }
 }

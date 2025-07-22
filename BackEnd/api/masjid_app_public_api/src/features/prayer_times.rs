@@ -1,4 +1,3 @@
-use crate::shared::jwt::Claims;
 use async_trait::async_trait;
 use axum::body::Body;
 use axum::extract::{Path, State};
@@ -6,7 +5,8 @@ use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
 use masjid_app_api_library::features::prayer_times::{
-    build_prayer_times_response, GetPrayerTimesError, PrayerTimesDTO,
+    build_prayer_times_response, get_prayer_times_common, GetPrayerTimesError, PrayerTimesDTO,
+    PrayerTimesRepository,
 };
 use masjid_app_api_library::shared::app_state::{AppState, DbType};
 use masjid_app_api_library::shared::repository_manager::{
@@ -33,21 +33,15 @@ pub enum UpdatePrayerTimesError {
     UnableToUpdatePrayerTimes,
 }
 
-#[automock]
 #[async_trait]
-pub trait PrayerTimesRepository: Send + Sync {
-    async fn get_prayer_times(&self) -> Result<PrayerTimesDTO, GetPrayerTimesError>;
+pub trait PrayerTimesPublicRepository: PrayerTimesRepository {
     async fn get_updated_prayer_times(
         &self,
         hash: &str,
     ) -> Result<PrayerTimesDTO, GetPrayerTimesError>;
-    async fn update_prayer_times(
-        &self,
-        prayer_times_data: PrayerTimesDTO,
-    ) -> Result<(), UpdatePrayerTimesError>;
 }
 
-pub async fn new_prayer_times_repository(db_type: DbType) -> Arc<dyn PrayerTimesRepository> {
+pub async fn new_prayer_times_repository(db_type: DbType) -> Arc<dyn PrayerTimesPublicRepository> {
     match db_type {
         DbType::InMemory => Arc::new(InMemoryRepository::new(RepositoryType::PrayerTimes).await),
         DbType::MySql => Arc::new(MySqlRepository::new(RepositoryType::PrayerTimes).await),
@@ -55,30 +49,18 @@ pub async fn new_prayer_times_repository(db_type: DbType) -> Arc<dyn PrayerTimes
 }
 
 #[async_trait]
-impl PrayerTimesRepository for MySqlRepository {
-    async fn get_prayer_times(&self) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
-        let db_connection = self.db_connection.clone();
-        let query_response = sqlx::query("CALL get_prayer_times();")
-            .fetch_one(&*db_connection)
-            .await
-            .map(|row: MySqlRow| PrayerTimesDTO {
-                data: row.get(0),
-                hash: row.get(1),
-            });
-
-        match query_response {
-            Ok(prayer_times) => Ok(prayer_times),
-            Err(Error::RowNotFound) => {
-                tracing::error!("prayer times not found");
-                Err(GetPrayerTimesError::PrayerTimesNotFound)
-            }
-            Err(err) => {
-                tracing::error!("unable to get prayer times from the database: {}", err);
-                Err(GetPrayerTimesError::UnableToGetPrayerTimes)
-            }
-        }
+impl PrayerTimesPublicRepository for InMemoryRepository {
+    async fn get_updated_prayer_times(
+        &self,
+        hash: &str,
+    ) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
+        tracing::warn!("In-memory database for getting updated prayer times not implemented");
+        Err(GetPrayerTimesError::UnableToGetPrayerTimes)
     }
+}
 
+#[async_trait]
+impl PrayerTimesPublicRepository for MySqlRepository {
     async fn get_updated_prayer_times(
         &self,
         hash: &str,
@@ -122,33 +104,13 @@ impl PrayerTimesRepository for MySqlRepository {
 }
 
 pub async fn get_prayer_times(
-    State(state): State<AppState<Arc<dyn PrayerTimesRepository>>>,
+    State(state): State<AppState<Arc<dyn PrayerTimesPublicRepository>>>,
 ) -> Response {
-    let mut get_prayer_times_result = state
-        .repository_map
-        .get(&DbType::InMemory)
-        .unwrap()
-        .get_prayer_times()
-        .await;
-    if get_prayer_times_result.is_err() {
-        get_prayer_times_result = state
-            .repository_map
-            .get(&DbType::MySql)
-            .unwrap()
-            .get_prayer_times()
-            .await;
-    }
-    match get_prayer_times_result {
-        Ok(prayer_times) => build_prayer_times_response(prayer_times, None),
-        Err(GetPrayerTimesError::PrayerTimesNotFound) => StatusCode::NOT_FOUND.into_response(),
-        Err(GetPrayerTimesError::UnableToGetPrayerTimes) => {
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
-    }
+    get_prayer_times_common(State(state)).await
 }
 
 pub async fn get_updated_prayer_times(
-    State(state): State<AppState<Arc<dyn PrayerTimesRepository>>>,
+    State(state): State<AppState<Arc<dyn PrayerTimesPublicRepository>>>,
     hash: Path<String>,
 ) -> Response {
     if hash.len() != 64 {
@@ -180,54 +142,26 @@ pub async fn get_updated_prayer_times(
         }
     }
 }
-
-pub async fn update_prayer_times(
-    State(state): State<AppState<Arc<dyn PrayerTimesRepository>>>,
-    claims: Claims,
-    Json(request): Json<UpdatePrayerTimesRequest>,
-) -> Response {
-    if request.validate().is_err() {
-        return StatusCode::BAD_REQUEST.into_response();
-    }
-    let hashed_prayer_times = format!("{:x}", Sha256::digest(&request.prayer_times_data));
-    if request.hash != hashed_prayer_times {
-        return (
-            StatusCode::BAD_REQUEST,
-            "Verification of prayer times failed",
-        )
-            .into_response();
-    }
-    let prayer_times = PrayerTimesDTO {
-        data: Some(request.prayer_times_data),
-        hash: request.hash,
-    };
-    let mut update_prayer_times_result = state
-        .repository_map
-        .get(&DbType::InMemory)
-        .unwrap()
-        .update_prayer_times(prayer_times.clone())
-        .await;
-    if update_prayer_times_result.is_err() {
-        update_prayer_times_result = state
-            .repository_map
-            .get(&DbType::MySql)
-            .unwrap()
-            .update_prayer_times(prayer_times)
-            .await;
-    }
-    match update_prayer_times_result {
-        Ok(()) => StatusCode::OK.into_response(),
-        Err(UpdatePrayerTimesError::UnableToUpdatePrayerTimes) => {
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use masjid_app_api_library::shared::app_state::AppState;
     use std::collections::HashMap;
+
+    mock!(
+        pub PrayerTimesPublicRepository {}
+
+        // Implement the base trait
+        #[async_trait]
+        impl PrayerTimesRepository for PrayerTimesPublicRepository {
+            async fn get_prayer_times(&self) -> Result<PrayerTimesDTO, GetPrayerTimesError>;
+        }
+
+        #[async_trait]
+        impl PrayerTimesPublicRepository for PrayerTimesPublicRepository {
+            async fn get_updated_prayer_times(&self, hash: &str) -> Result<PrayerTimesDTO, GetPrayerTimesError>;
+        }
+    );
 
     #[tokio::test]
     async fn test_get_prayer_times() {
@@ -260,8 +194,8 @@ mod tests {
         ];
 
         for case in test_cases {
-            let mut mock_prayer_times_in_memory_repository = MockPrayerTimesRepository::new();
-            let mut mock_prayer_times_repository = MockPrayerTimesRepository::new();
+            let mut mock_prayer_times_in_memory_repository = MockPrayerTimesPublicRepository::new();
+            let mut mock_prayer_times_repository = MockPrayerTimesPublicRepository::new();
 
             mock_prayer_times_in_memory_repository
                 .expect_get_prayer_times()
@@ -284,79 +218,6 @@ mod tests {
 
             // Assert response matches expected status code
             assert_eq!(case.expected_response_code, actual_response.status());
-        }
-    }
-
-    #[tokio::test]
-    async fn test_update_prayer_times() {
-        #[derive(Clone)]
-        struct TestCase {
-            cached_prayer_times_data: Vec<u8>,
-            prayer_times_data: Vec<u8>,
-            expected_in_memory_db_response: Option<Result<(), UpdatePrayerTimesError>>,
-            expected_db_response: Option<Result<(), UpdatePrayerTimesError>>,
-            expected_api_response_code: StatusCode,
-            claims: Claims,
-        }
-        let test_cases = vec![
-            TestCase {
-                cached_prayer_times_data: vec![],
-                prayer_times_data: vec![],
-                expected_api_response_code: StatusCode::BAD_REQUEST,
-                expected_in_memory_db_response: None,
-                expected_db_response: None,
-                claims: Default::default(),
-            },
-            TestCase {
-                cached_prayer_times_data: vec![1, 2, 3, 4, 5],
-                prayer_times_data: vec![1, 2, 3, 4, 5],
-                expected_api_response_code: StatusCode::INTERNAL_SERVER_ERROR,
-                expected_in_memory_db_response: Some(Err(
-                    UpdatePrayerTimesError::UnableToUpdatePrayerTimes,
-                )),
-                expected_db_response: Some(Err(UpdatePrayerTimesError::UnableToUpdatePrayerTimes)),
-                claims: Default::default(),
-            },
-            TestCase {
-                cached_prayer_times_data: vec![1, 2, 3, 4, 5],
-                prayer_times_data: vec![1, 2, 3, 4, 5],
-                expected_api_response_code: StatusCode::OK,
-                expected_in_memory_db_response: Some(Ok(())),
-                expected_db_response: Some(Ok(())),
-                claims: Default::default(),
-            },
-        ];
-        for test_case in test_cases {
-            let mut mock_prayer_times_in_memory_repository = MockPrayerTimesRepository::new();
-            let mut mock_prayer_times_repository = MockPrayerTimesRepository::new();
-            if let Some(expected_in_memory_db_response) = test_case.expected_in_memory_db_response {
-                mock_prayer_times_in_memory_repository
-                    .expect_update_prayer_times()
-                    .returning(move |data| expected_in_memory_db_response.clone());
-            }
-            if let Some(expected_db_response) = test_case.expected_db_response {
-                mock_prayer_times_repository
-                    .expect_update_prayer_times()
-                    .returning(move |data| expected_db_response.clone());
-            }
-            let arc_in_memory_repository: Arc<dyn PrayerTimesRepository> =
-                Arc::new(mock_prayer_times_in_memory_repository);
-            let arc_repository: Arc<dyn PrayerTimesRepository> =
-                Arc::new(mock_prayer_times_repository);
-            let app_state: AppState<Arc<dyn PrayerTimesRepository>> = AppState {
-                repository_map: HashMap::from([
-                    (DbType::InMemory, arc_in_memory_repository),
-                    (DbType::MySql, arc_repository),
-                ]),
-            };
-            let actual_response = update_prayer_times(
-                State(app_state),
-                test_case.claims,
-                Json::from(UpdatePrayerTimesRequest {
-                    prayer_times_data: test_case.prayer_times_data.clone(),
-                    hash: "a13132143143134242".to_owned(),
-                }),
-            );
         }
     }
 }

@@ -1,4 +1,4 @@
-use masjid_app_api::features::user_authentication;
+/*use masjid_app_api::features::user_authentication;
 use masjid_app_api::features::user_authentication::UserAccountDTO;
 use masjid_app_api_library::app_state::DbType;
 
@@ -12,3 +12,4 @@ pub(crate) async fn add_user_to_main_database(new_user: UserAccountDTO) {
         .await;
     assert!(login_result.is_ok());
 }
+*/

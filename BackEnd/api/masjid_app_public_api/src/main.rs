@@ -1,7 +1,6 @@
 mod features;
 mod shared;
 
-use crate::features::announcements::new_announcement_repository;
 use axum::routing::{get, patch, post, put};
 use axum::Router;
 use features::prayer_times::new_prayer_times_repository;
@@ -9,7 +8,8 @@ use features::{announcements, prayer_times};
 use masjid_app_api_library::shared::app_state::{AppState, DbType};
 use std::collections::HashMap;
 async fn map_announcements() -> Router {
-    let state = AppState {
+    todo!();
+    /*let state = AppState {
         repository_map: HashMap::from([
             (
                 DbType::InMemory,
@@ -25,7 +25,7 @@ async fn map_announcements() -> Router {
         .route("/", get(announcements::get_announcements))
         .route("/", post(announcements::post_announcement))
         .route("/", put(announcements::edit_announcement))
-        .with_state(state)
+        .with_state(state)*/
 }
 async fn map_prayer_times() -> Router {
     let state = AppState {
@@ -43,7 +43,6 @@ async fn map_prayer_times() -> Router {
     Router::new()
         .route("/", get(prayer_times::get_prayer_times))
         .route("/update", get(prayer_times::get_updated_prayer_times))
-        .route("/update", patch(prayer_times::update_prayer_times))
         .with_state(state)
 }
 async fn map_donation() -> Router {

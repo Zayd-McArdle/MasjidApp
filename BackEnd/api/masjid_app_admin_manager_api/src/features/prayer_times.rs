@@ -37,10 +37,7 @@ pub trait PrayerTimesAdminRepository: PrayerTimesRepository {
 }
 
 pub async fn new_prayer_times_repository(db_type: DbType) -> Arc<dyn PrayerTimesAdminRepository> {
-    match db_type {
-        DbType::InMemory => Arc::new(InMemoryRepository::new(RepositoryType::PrayerTimes).await),
-        DbType::MySql => Arc::new(MySqlRepository::new(RepositoryType::PrayerTimes).await),
-    }
+     Arc::new(MySqlRepository::new(RepositoryType::PrayerTimes).await)
 }
 #[async_trait]
 impl PrayerTimesAdminRepository for MySqlRepository {
@@ -68,13 +65,13 @@ impl PrayerTimesAdminRepository for MySqlRepository {
 }
 
 pub async fn get_prayer_times(
-    State(state): State<AppState<Arc<dyn PrayerTimesRepository>>>,
+    State(state): State<AppState<Arc<dyn PrayerTimesAdminRepository>>>,
     claims: Claims,
 ) -> Response {
-    get_prayer_times_common(State(state))
+    get_prayer_times_common(State(state)).await
 }
 pub async fn update_prayer_times(
-    State(state): State<AppState<Arc<dyn PrayerTimesRepository>>>,
+    State(state): State<AppState<Arc<dyn PrayerTimesAdminRepository>>>,
     claims: Claims,
     Json(request): Json<UpdatePrayerTimesRequest>,
 ) -> Response {
@@ -176,9 +173,9 @@ mod tests {
                     .expect_update_prayer_times()
                     .returning(move |data| expected_db_response.clone());
             }
-            let arc_repository: Arc<dyn PrayerTimesRepository> =
+            let arc_repository: Arc<dyn PrayerTimesAdminRepository> =
                 Arc::new(mock_prayer_times_repository);
-            let app_state: AppState<Arc<dyn PrayerTimesRepository>> = AppState {
+            let app_state: AppState<Arc<dyn PrayerTimesAdminRepository>> = AppState {
                 repository_map: HashMap::from([
                     (DbType::MySql, arc_repository),
                 ]),
