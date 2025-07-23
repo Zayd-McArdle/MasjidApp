@@ -194,7 +194,7 @@ async fn test_announcements() {
 async fn test_prayer_times() {
     setup_logging();
     let container = setup_main_database(DatabaseCredentials {
-        username: "prayertimesuser".to_string(),
+        username: "prayertimesadmin".to_string(),
         password: "HR0o8NRkwvuMaIBh7yaf".to_string(),
         environment_variable: "PRAYER_TIMES_CONNECTION".to_string(),
     })
