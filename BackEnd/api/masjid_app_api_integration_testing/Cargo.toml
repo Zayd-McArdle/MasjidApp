@@ -1,0 +1,6 @@
+[package]
+name = "masjid_app_api_integration_testing"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
