@@ -4,5 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+masjid_app_api_library = { path = "../masjid_app_api_library" }
+masjid_app_public_api = { path = "../masjid_app_public_api" }
+masjid_app_admin_manager_api = { path = "../masjid_app_admin_manager_api" }
 tracing-subscriber = { version = "0.3.19", features = ["std", "fmt", "json", "env-filter"] }
 tracing = "0.1.41"
+testcontainers = "0.24.0"
+async-trait = "0.1.88"
+tokio = "1.46.1"
