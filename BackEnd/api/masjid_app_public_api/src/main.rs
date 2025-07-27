@@ -58,12 +58,11 @@ async fn map_classes() -> Router {
 async fn map_endpoints() -> Router {
     let prayer_times_routes = map_prayer_times().await;
     tracing::info!("Mapped Prayer Times Endpoints");
-    let announcements_routes = map_announcements().await;
+    //let announcements_routes = map_announcements().await;
     tracing::info!("Mapped Announcements Endpoints");
     let router = Router::new();
-    router
-        .nest("/prayer-times", prayer_times_routes)
-        .nest("/announcements", announcements_routes)
+    router.nest("/prayer-times", prayer_times_routes)
+    // .nest("/announcements", announcements_routes)
 }
 
 #[tokio::main]
