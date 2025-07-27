@@ -4,7 +4,7 @@ mod shared;
 use crate::features::user_authentication::new_user_repository;
 use axum::routing::{get, patch, post, put};
 use axum::Router;
-use features::prayer_times::new_prayer_times_repository;
+use features::prayer_times::new_prayer_times_admin_repository;
 use features::user_authentication::UserRepository;
 use features::{announcements, prayer_times, user_authentication};
 use masjid_app_api_library::shared::app_state::{AppState, DbType};
@@ -50,11 +50,11 @@ async fn map_prayer_times() -> Router {
         repository_map: HashMap::from([
             (
                 DbType::InMemory,
-                new_prayer_times_repository(DbType::InMemory).await,
+                new_prayer_times_admin_repository(DbType::InMemory).await,
             ),
             (
                 DbType::MySql,
-                new_prayer_times_repository(DbType::MySql).await,
+                new_prayer_times_admin_repository(DbType::MySql).await,
             ),
         ]),
     };
