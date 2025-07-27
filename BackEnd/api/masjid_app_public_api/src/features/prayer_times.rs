@@ -41,7 +41,9 @@ pub trait PrayerTimesPublicRepository: PrayerTimesRepository {
     ) -> Result<PrayerTimesDTO, GetPrayerTimesError>;
 }
 
-pub async fn new_prayer_times_repository(db_type: DbType) -> Arc<dyn PrayerTimesPublicRepository> {
+pub async fn new_prayer_times_public_repository(
+    db_type: DbType,
+) -> Arc<dyn PrayerTimesPublicRepository> {
     match db_type {
         DbType::InMemory => Arc::new(InMemoryRepository::new(RepositoryType::PrayerTimes).await),
         DbType::MySql => Arc::new(MySqlRepository::new(RepositoryType::PrayerTimes).await),
