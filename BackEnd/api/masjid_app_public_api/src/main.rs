@@ -3,7 +3,7 @@ mod shared;
 
 use axum::routing::{get, patch, post, put};
 use axum::Router;
-use features::prayer_times::new_prayer_times_repository;
+use features::prayer_times::new_prayer_times_public_repository;
 use features::{announcements, prayer_times};
 use masjid_app_api_library::shared::app_state::{AppState, DbType};
 use std::collections::HashMap;
@@ -32,11 +32,11 @@ async fn map_prayer_times() -> Router {
         repository_map: HashMap::from([
             (
                 DbType::InMemory,
-                new_prayer_times_repository(DbType::InMemory).await,
+                new_prayer_times_public_repository(DbType::InMemory).await,
             ),
             (
                 DbType::MySql,
-                new_prayer_times_repository(DbType::MySql).await,
+                new_prayer_times_public_repository(DbType::MySql).await,
             ),
         ]),
     };
