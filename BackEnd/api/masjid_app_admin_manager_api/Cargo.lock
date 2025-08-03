@@ -1350,6 +1350,7 @@ dependencies = [
  "sqlx",
  "tokio",
  "tracing",
+ "validator",
 ]
 
 [[package]]
