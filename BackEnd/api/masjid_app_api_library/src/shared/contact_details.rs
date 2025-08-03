@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, FromRow)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 pub struct ContactDetails {
     #[serde(rename(serialize = "fullName", deserialize = "fullName"))]
     pub full_name: String,

@@ -1,6 +1,6 @@
 use std::fmt::Display;
 use serde::{Deserialize, Serialize};
-use validator::{Validate, ValidationError};
+use validator::{Validate, ValidationError, ValidationErrors};
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 pub struct AgeRange {
     #[serde(rename(serialize = "minimumAge", deserialize = "minimumAge"))]
@@ -9,8 +9,11 @@ pub struct AgeRange {
     pub maximum_age:u8,
 }
 impl Validate for AgeRange {
-    fn validate(&self) -> bool {
-        self.minimum_age <= self.maximum_age || (self.minimum_age!=0 && self.maximum_age != 0)
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        if self.minimum_age <= self.maximum_age || (self.minimum_age!=0 && self.maximum_age != 0) {
+            return Ok(());
+        }
+        Err(ValidationErrors::new())
     }
 }
 impl Display for AgeRange {

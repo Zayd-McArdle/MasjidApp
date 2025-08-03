@@ -13,3 +13,4 @@ mockall = "0.13.1"
 axum = "0.8.4"
 async-trait = "0.1.88"
 chrono = { version = "0.4.41", features = ["serde"] }
+validator = { version = "0.20.0", features = ["derive"] }
