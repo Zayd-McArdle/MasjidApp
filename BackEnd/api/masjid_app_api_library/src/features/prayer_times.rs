@@ -1,4 +1,8 @@
-use std::sync::Arc;
+use crate::shared::data_access::db_type::DbType;
+use crate::shared::data_access::repository_manager::{
+    InMemoryRepository, MySqlRepository, RepositoryType,
+};
+use crate::shared::types::app_state::AppState;
 use async_trait::async_trait;
 use axum::body::Body;
 use axum::extract::State;
@@ -6,10 +10,9 @@ use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
 use mockall::automock;
 use serde::{Deserialize, Serialize};
-use sqlx::{Error, Row};
 use sqlx::mysql::MySqlRow;
-use crate::shared::app_state::{AppState, DbType};
-use crate::shared::repository_manager::{InMemoryRepository, MySqlRepository, RepositoryType};
+use sqlx::{Error, Row};
+use std::sync::Arc;
 
 #[derive(sqlx::FromRow, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct PrayerTimesDTO {
@@ -59,8 +62,6 @@ impl PrayerTimesRepository for InMemoryRepository {
     }
 }
 
-
-
 #[async_trait]
 impl PrayerTimesRepository for MySqlRepository {
     async fn get_prayer_times(&self) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
@@ -75,9 +76,7 @@ impl PrayerTimesRepository for MySqlRepository {
 
         match query_response {
             Ok(prayer_times) => Ok(prayer_times),
-            Err(Error::RowNotFound) => {
-                Err(GetPrayerTimesError::PrayerTimesNotFound)
-            }
+            Err(Error::RowNotFound) => Err(GetPrayerTimesError::PrayerTimesNotFound),
             Err(err) => {
                 tracing::error!("unable to get prayer times from the database: {}", err);
                 Err(GetPrayerTimesError::UnableToGetPrayerTimes)
@@ -85,11 +84,12 @@ impl PrayerTimesRepository for MySqlRepository {
         }
     }
 }
-pub async fn get_prayer_times_common<R>(
-    State(state): State<AppState<Arc<R>>>,
-) -> Response
-where R: PrayerTimesRepository + ?Sized {
-    let mut get_prayer_times_result: Result<PrayerTimesDTO, GetPrayerTimesError> = Err(GetPrayerTimesError::UnableToGetPrayerTimes);
+pub async fn get_prayer_times_common<R>(State(state): State<AppState<Arc<R>>>) -> Response
+where
+    R: PrayerTimesRepository + ?Sized,
+{
+    let mut get_prayer_times_result: Result<PrayerTimesDTO, GetPrayerTimesError> =
+        Err(GetPrayerTimesError::UnableToGetPrayerTimes);
 
     if let Some(prayer_times_in_memory_repository) = state.repository_map.get(&DbType::InMemory) {
         get_prayer_times_result = prayer_times_in_memory_repository.get_prayer_times().await;
@@ -114,7 +114,7 @@ where R: PrayerTimesRepository + ?Sized {
 
 mod test {
     use super::*;
-    use crate::shared::app_state::AppState;
+    use crate::shared::types::app_state::AppState;
     use std::collections::HashMap;
 
     #[tokio::test]
@@ -174,5 +174,4 @@ mod test {
             assert_eq!(case.expected_response_code, actual_response.status());
         }
     }
-
 }

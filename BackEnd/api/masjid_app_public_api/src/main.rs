@@ -5,8 +5,10 @@ use axum::routing::{get, patch, post, put};
 use axum::Router;
 use features::prayer_times::new_prayer_times_public_repository;
 use features::{announcements, prayer_times};
-use masjid_app_api_library::shared::app_state::{AppState, DbType};
+use masjid_app_api_library::shared::data_access::db_type::DbType;
+use masjid_app_api_library::shared::types::app_state::AppState;
 use std::collections::HashMap;
+
 async fn map_announcements() -> Router {
     todo!();
     /*let state = AppState {

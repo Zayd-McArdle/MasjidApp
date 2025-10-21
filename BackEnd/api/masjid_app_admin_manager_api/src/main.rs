@@ -7,14 +7,13 @@ use axum::Router;
 use features::prayer_times::new_prayer_times_admin_repository;
 use features::user_authentication::UserRepository;
 use features::{announcements, prayer_times, user_authentication};
-use masjid_app_api_library::shared::app_state::{AppState, DbType};
+use masjid_app_api_library::shared::data_access::db_type::DbType;
+use masjid_app_api_library::shared::types::app_state::AppState;
 use std::collections::HashMap;
 
 async fn map_user_authentication() -> Router {
     let state = AppState {
-        repository_map: HashMap::from([
-            (DbType::MySql, new_user_repository().await),
-        ]),
+        repository_map: HashMap::from([(DbType::MySql, new_user_repository().await)]),
     };
 
     Router::new()
@@ -84,7 +83,7 @@ async fn map_endpoints() -> Router {
     router
         .nest("/authentication", authentication_routes)
         .nest("/prayer-times", prayer_times_routes)
-        //.nest("/announcements", announcements_routes)
+    //.nest("/announcements", announcements_routes)
 }
 
 #[tokio::main]

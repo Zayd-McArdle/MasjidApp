@@ -1,10 +1,7 @@
-use std::sync::Arc;
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use mockall::automock;
 use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Utc};
-use crate::shared::app_state::DbType;
-use crate::shared::repository_manager::{InMemoryRepository, MySqlRepository, RepositoryType};
 
 #[derive(sqlx::FromRow, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct AnnouncementDTO {

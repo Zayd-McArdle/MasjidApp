@@ -5,10 +5,11 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
 use bcrypt;
-use masjid_app_api_library::shared::app_state::{AppState, DbType};
-use masjid_app_api_library::shared::repository_manager::{
-    InMemoryRepository, MySqlRepository, RepositoryType,
+use masjid_app_api_library::shared::data_access::db_type::DbType;
+use masjid_app_api_library::shared::data_access::repository_manager::{
+    MySqlRepository, RepositoryType,
 };
+use masjid_app_api_library::shared::types::app_state::AppState;
 use mockall::automock;
 use serde::Deserialize;
 use sqlx::{Error, Row};
@@ -345,9 +346,8 @@ mod tests {
                     .returning(move |username, password| expected_db_response.clone());
             }
             let arc_repository: Arc<dyn UserRepository> = Arc::new(mock_repository);
-            let repository_map: HashMap<DbType, Arc<dyn UserRepository>> = HashMap::from([
-                (DbType::MySql, arc_repository),
-            ]);
+            let repository_map: HashMap<DbType, Arc<dyn UserRepository>> =
+                HashMap::from([(DbType::MySql, arc_repository)]);
             let app_state: AppState<Arc<dyn UserRepository>> = AppState { repository_map };
             let actual_response = login(State(app_state), Json(test_case.request)).await;
             assert_eq!(test_case.expected_status_code, actual_response.status());
@@ -400,9 +400,7 @@ mod tests {
             }
             let arc_repository: Arc<dyn UserRepository> = Arc::new(mock_user_repository);
             let app_state: AppState<Arc<dyn UserRepository>> = AppState {
-                repository_map: HashMap::from([
-                    (DbType::MySql, arc_repository),
-                ]),
+                repository_map: HashMap::from([(DbType::MySql, arc_repository)]),
             };
             let actual_response = register_user(State(app_state), Json(test_case.request)).await;
             assert_eq!(test_case.expected_status_code, actual_response.status());
@@ -449,9 +447,7 @@ mod tests {
             }
             let arc_repository: Arc<dyn UserRepository> = Arc::new(mock_user_repository);
             let app_state: AppState<Arc<dyn UserRepository>> = AppState {
-                repository_map: HashMap::from([
-                    (DbType::MySql, arc_repository),
-                ]),
+                repository_map: HashMap::from([(DbType::MySql, arc_repository)]),
             };
             let actual_response = reset_user_password(State(app_state), Json(test_case.request));
         }

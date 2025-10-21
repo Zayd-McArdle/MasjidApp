@@ -5,6 +5,15 @@ use axum::extract::{Path, State};
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
+use masjid_app_api_library::features::prayer_times::{
+    build_prayer_times_response, get_prayer_times_common, GetPrayerTimesError, PrayerTimesDTO,
+    PrayerTimesRepository,
+};
+use masjid_app_api_library::shared::data_access::db_type::DbType;
+use masjid_app_api_library::shared::data_access::repository_manager::{
+    MySqlRepository, RepositoryType,
+};
+use masjid_app_api_library::shared::types::app_state::AppState;
 use mockall::predicate::*;
 use mockall::*;
 use serde::{Deserialize, Serialize};
@@ -12,9 +21,6 @@ use sha2::{Digest, Sha256};
 use sqlx::mysql::MySqlRow;
 use sqlx::{Error, Row};
 use std::sync::Arc;
-use masjid_app_api_library::features::prayer_times::{build_prayer_times_response, get_prayer_times_common, GetPrayerTimesError, PrayerTimesDTO, PrayerTimesRepository};
-use masjid_app_api_library::shared::app_state::{AppState, DbType};
-use masjid_app_api_library::shared::repository_manager::{InMemoryRepository, MySqlRepository, RepositoryType};
 use validator::Validate;
 
 #[derive(Deserialize, Clone, Validate)]
@@ -36,8 +42,10 @@ pub trait PrayerTimesAdminRepository: PrayerTimesRepository {
     ) -> Result<(), UpdatePrayerTimesError>;
 }
 
-pub async fn new_prayer_times_admin_repository(db_type: DbType) -> Arc<dyn PrayerTimesAdminRepository> {
-     Arc::new(MySqlRepository::new(RepositoryType::PrayerTimes).await)
+pub async fn new_prayer_times_admin_repository(
+    db_type: DbType,
+) -> Arc<dyn PrayerTimesAdminRepository> {
+    Arc::new(MySqlRepository::new(RepositoryType::PrayerTimes).await)
 }
 #[async_trait]
 impl PrayerTimesAdminRepository for MySqlRepository {
@@ -107,9 +115,7 @@ pub async fn update_prayer_times(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use masjid_app_api_library::shared::app_state::AppState;
     use std::collections::HashMap;
-    use masjid_app_api_library::features::prayer_times::MockPrayerTimesRepository;
 
     mock! {
         pub PrayerTimesAdminRepository {}
@@ -176,9 +182,7 @@ mod tests {
             let arc_repository: Arc<dyn PrayerTimesAdminRepository> =
                 Arc::new(mock_prayer_times_repository);
             let app_state: AppState<Arc<dyn PrayerTimesAdminRepository>> = AppState {
-                repository_map: HashMap::from([
-                    (DbType::MySql, arc_repository),
-                ]),
+                repository_map: HashMap::from([(DbType::MySql, arc_repository)]),
             };
             let actual_response = update_prayer_times(
                 State(app_state),
