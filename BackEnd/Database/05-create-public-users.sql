@@ -1,6 +1,7 @@
 -- Create users
 CREATE USER IF NOT EXISTS 'prayertimesuser'@'%' IDENTIFIED BY 'HR0o8NRkwvuMaIBh7yaf';
 CREATE USER IF NOT EXISTS 'announcementsuser'@'%' IDENTIFIED BY 'LzwvN6bU4y3EqmAYBMJFrn';
+CREATE USER IF NOT EXISTS 'eventsuser'@'%' IDENTIFIED BY 'changeme';
 
 -- Adjust user permissions
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'prayertimesuser'@'%';
@@ -9,3 +10,7 @@ GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_updated_prayer_times TO 'prayer
 
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'announcementsuser'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_announcements TO 'announcementsuser'@'%';
+
+REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'eventsuser'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_events TO 'eventsuser'@'%';
+
