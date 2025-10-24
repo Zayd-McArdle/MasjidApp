@@ -2,6 +2,7 @@
 CREATE USER IF NOT EXISTS 'authenticationuser'@'%' IDENTIFIED BY 'BL6FxKu!237GvPS9';
 CREATE USER IF NOT EXISTS 'prayertimesadmin'@'%' IDENTIFIED BY 'HR0o8NRkwvuMaIBh7yaf';
 CREATE USER IF NOT EXISTS 'announcementsadmin'@'%' IDENTIFIED BY 'LzwvN6bU4y3EqmAYBMJFrn';
+CREATE USER IF NOT EXISTS 'eventsadmin'@'%' IDENTIFIED BY 'changeme';
 
 -- Adjust user permissions
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'authenticationuser'@'%';
@@ -19,3 +20,9 @@ REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'announcementsadmin'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_announcements TO 'announcementsadmin'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.post_announcement TO 'announcementsadmin'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.edit_announcement TO 'announcementsadmin'@'%';
+
+REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'eventsadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_events TO 'eventsadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.upsert_event TO 'eventsadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.retrieve_image_url_by_event_id TO 'eventsadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.delete_event_by_id TO 'eventsadmin'@'%';
