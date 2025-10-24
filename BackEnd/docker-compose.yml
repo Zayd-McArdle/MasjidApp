@@ -25,6 +25,7 @@ services:
     environment:
       PRAYER_TIMES_CONNECTION: "mysql://prayertimesuser:HR0o8NRkwvuMaIBh7yaf@db/masjidappdatabase"
       ANNOUNCEMENT_CONNECTION: "mysql://announcementsuser:LzwvN6bU4y3EqmAYBMJFrn@db/masjidappdatabase"
+      EVENTS_CONNECTION: "mysql://eventsuser:changeme@db/masjidappdatabase"
       JWT_SECRET: "for the sake of allah! store this securely"
     depends_on:
       db:
@@ -42,6 +43,7 @@ services:
       AUTHENTICATION_CONNECTION: "mysql://authenticationuser:BL6FxKu!237GvPS9@db/masjidappdatabase"
       PRAYER_TIMES_CONNECTION: "mysql://prayertimesuser:HR0o8NRkwvuMaIBh7yaf@db/masjidappdatabase"
       ANNOUNCEMENT_CONNECTION: "mysql://announcementsuser:LzwvN6bU4y3EqmAYBMJFrn@db/masjidappdatabase"
+      EVENTS_CONNECTION: "mysql://eventsadmin:changeme@db/masjidappdatabase"
       JWT_SECRET: "for the sake of allah! store this securely"
     depends_on:
       db:

@@ -1,8 +1,11 @@
 mod features;
 mod shared;
 
+use crate::features::events::{
+    delete_event, get_events, new_events_admin_repository, upsert_events,
+};
 use crate::features::user_authentication::new_user_repository;
-use axum::routing::{get, patch, post, put};
+use axum::routing::{delete, get, patch, post, put};
 use axum::Router;
 use features::prayer_times::new_prayer_times_admin_repository;
 use features::user_authentication::UserRepository;
@@ -66,23 +69,36 @@ async fn map_donation() -> Router {
     panic!("Implement donation controller")
 }
 async fn map_events() -> Router {
-    panic!("Implement events controller")
+    let state = AppState {
+        repository_map: HashMap::from([
+            (
+                DbType::InMemory,
+                new_events_admin_repository(DbType::InMemory).await,
+            ),
+            (
+                DbType::MySql,
+                new_events_admin_repository(DbType::MySql).await,
+            ),
+        ]),
+    };
+    Router::new()
+        .route("/", get(get_events))
+        .route("/", put(upsert_events))
+        .route("/{id}", delete(delete_event))
+        .with_state(state)
 }
-async fn map_classes() -> Router {
-    panic!("Implement classes controller")
-}
-
 async fn map_endpoints() -> Router {
     let authentication_routes = map_user_authentication().await;
     tracing::info!("Mapped User Authentication Endpoints");
     let prayer_times_routes = map_prayer_times().await;
     tracing::info!("Mapped Prayer Times Endpoints");
-    //let announcements_routes = map_announcements().await;
-    //tracing::info!("Mapped Announcements Endpoints");
+    let events_routes = map_events().await;
+    tracing::info!("Mapped Events Routes");
     let router = Router::new();
     router
         .nest("/authentication", authentication_routes)
         .nest("/prayer-times", prayer_times_routes)
+        .nest("/events", events_routes)
     //.nest("/announcements", announcements_routes)
 }
 

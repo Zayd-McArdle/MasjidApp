@@ -43,10 +43,12 @@ where
     type Rejection = (StatusCode, String);
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        parts.extensions.get::<FileHandler>().cloned().ok_or((
+        Ok(Self::default())
+        // TODO - Fix file handler implementation
+        /*parts.extensions.get::<FileHandler>().cloned().ok_or((
             StatusCode::INTERNAL_SERVER_ERROR,
             "FileUploader not configured".into(),
-        ))
+        ))*/
     }
 }
 #[cfg(test)]

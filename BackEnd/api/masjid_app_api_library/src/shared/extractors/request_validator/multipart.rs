@@ -7,9 +7,9 @@ use serde::de::DeserializeOwned;
 use validator::Validate;
 
 pub struct ValidatedMultipartRequest<T> {
-    pub metadata: T,      // Validated metadata (e.g., title, description)
-    pub file_data: Bytes, // Raw binary file content
-    pub filename: String, // Original filename if provided
+    pub json: T,                  // Validated metadata (e.g., title, description)
+    pub file_data: Option<Bytes>, // Raw binary file content
+    pub filename: Option<String>, // Original filename if provided
 }
 
 impl<T, S> FromRequest<S> for ValidatedMultipartRequest<T>
@@ -30,7 +30,7 @@ where
         })?;
 
         // 3b. FIELD TRACKING
-        let mut metadata_str = None;
+        let mut json = None;
         let mut file_data = None;
         let mut filename = None;
 
@@ -43,13 +43,10 @@ where
             )
         })? {
             match field.name() {
-                // 4a. METADATA HANDLING
-                Some("metadata") => {
-                    metadata_str = Some(field.text().await.map_err(|e| {
-                        (
-                            StatusCode::BAD_REQUEST,
-                            format!("Metadata text error: {}", e),
-                        )
+                // 4a. JSON HANDLING
+                Some("json") => {
+                    json = Some(field.text().await.map_err(|e| {
+                        (StatusCode::BAD_REQUEST, format!("json text error: {}", e))
                     })?);
                 }
 
@@ -72,12 +69,10 @@ where
         // 5. VALIDATION PIPELINE
 
         // 5a. Check metadata exists
-        let metadata_str =
-            metadata_str.ok_or((StatusCode::BAD_REQUEST, "Missing metadata field".to_owned()))?;
-        let filename = filename.ok_or((StatusCode::BAD_REQUEST, "Missing filename".to_owned()))?;
+        let json = json.ok_or((StatusCode::BAD_REQUEST, "Missing json field".to_owned()))?;
 
         // 5b. Deserialize JSON
-        let metadata: T = serde_json::from_str(&metadata_str)
+        let metadata: T = serde_json::from_str(&json)
             .map_err(|e| (StatusCode::BAD_REQUEST, format!("JSON parse error: {}", e)))?;
 
         // 5c. Validate struct
@@ -88,13 +83,9 @@ where
             )
         })?;
 
-        // 5d. Check file exists
-        let file_data =
-            file_data.ok_or((StatusCode::BAD_REQUEST, "Missing file field".to_owned()))?;
-
         // 6. SUCCESSFUL RESULT
         Ok(Self {
-            metadata,
+            json: metadata,
             file_data,
             filename,
         })
@@ -180,7 +171,7 @@ mod tests {
         ];
 
         for case in test_cases {
-            println!("Running test case: {}", case.name);
+            eprintln!("Running test case: {}", case.name);
             // Create multipart body
             let boundary = "TESTBOUNDARY";
             let mut body = Vec::new();
@@ -223,10 +214,10 @@ mod tests {
 
             match (result, case.expected_status, case.expected_error) {
                 (Ok(actual), StatusCode::OK, None) => {
-                    assert_eq!(actual.metadata.name, "test");
+                    assert_eq!(actual.json.name, "test");
                     if case.file.is_some() {
-                        assert_eq!(actual.file_data, Bytes::from("content"));
-                        assert_eq!(actual.filename, "test.txt");
+                        assert_eq!(actual.file_data, Some(Bytes::from("content")));
+                        assert_eq!(actual.filename, Some("test.txt".to_owned()));
                     }
                 }
                 (Err((status, msg)), expected_status, Some(expected_error)) => {
