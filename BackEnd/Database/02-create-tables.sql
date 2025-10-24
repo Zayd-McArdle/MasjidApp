@@ -25,3 +25,23 @@ CREATE TABLE IF NOT EXISTS announcements (
     CONSTRAINT uc_announcement UNIQUE (title, description, user_id),
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES user_details(id) ON DELETE CASCADE
 );
+
+
+CREATE TABLE IF NOT EXISTS events (
+    id INT NOT NULL AUTO_INCREMENT,
+    title VARCHAR(50) NOT NULL,
+    description VARCHAR(250) NULL,
+    date TIMESTAMP NOT NULL,
+    -- Event Details
+    type VARCHAR(10),
+    recurrence VARCHAR(15),
+    status VARCHAR(15),
+    minimum_age TINYINT UNSIGNED,
+    maximum_age TINYINT UNSIGNED,
+    image_url VARCHAR(2083),
+    -- Contact Details
+    full_name VARCHAR(100),
+    phone_number VARCHAR(15),
+    email VARCHAR(50),
+    PRIMARY KEY (id)
+);
