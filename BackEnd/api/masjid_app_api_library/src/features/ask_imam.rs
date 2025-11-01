@@ -17,7 +17,12 @@ pub struct QuestionDTO {
     pub answer: Option<Answer>,
 }
 
+pub enum GetAnsweredQuestionsError {
+    AnsweredQuestionsNotFound,
+    UnableToGetAnsweredQuestions,
+}
+
 #[async_trait]
 pub trait ImamQuestionsRepository: Send + Sync {
-    async fn get_questions();
+    async fn get_answered_questions() -> Result<Vec<QuestionDTO>, GetAnsweredQuestionsError>;
 }
