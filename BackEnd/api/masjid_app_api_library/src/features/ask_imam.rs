@@ -3,14 +3,19 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 #[derive(Debug, Deserialize, Serialize, Validate)]
 pub struct Reference {
+    #[validate(length(min = 5))]
     source: String,
+
+    #[validate(url)]
     url: String,
 }
 #[derive(Debug, Deserialize, Serialize, Validate)]
 pub struct Answer {
     #[serde(rename = "imamName")]
     pub imam_name: String,
+
     pub text: String,
+
     pub reference: Option<Vec<Reference>>,
 }
 
