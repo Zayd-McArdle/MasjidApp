@@ -1,12 +1,13 @@
-use std::sync::Arc;
+use crate::features::prayer_times::errors::GetPrayerTimesError;
+use crate::features::prayer_times::models::PrayerTimesDTO;
+use crate::features::prayer_times::repository::PrayerTimesRepository;
+use crate::shared::data_access::db_type::DbType;
+use crate::shared::types::app_state::AppState;
 use axum::body::Body;
 use axum::extract::State;
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
-use crate::features::prayer_times::errors::GetPrayerTimesError;
-use crate::features::prayer_times::models::PrayerTimesDTO;
-use crate::shared::data_access::db_type::DbType;
-use crate::shared::types::app_state::AppState;
+use std::sync::Arc;
 
 pub fn build_prayer_times_response(prayer_times: PrayerTimesDTO, hash: Option<&str>) -> Response {
     if let Some(hash_value) = hash {
@@ -62,13 +63,14 @@ where
 
 mod test {
     use super::*;
+    use crate::features::prayer_times::errors::GetPrayerTimesError;
+    use crate::features::prayer_times::repository::MockPrayerTimesRepository;
+    use crate::shared::data_access::db_type::DbType;
     use crate::shared::types::app_state::AppState;
-    use std::collections::HashMap;
-    use std::sync::Arc;
     use axum::extract::State;
     use axum::http::StatusCode;
-    use crate::features::prayer_times::errors::GetPrayerTimesError;
-    use crate::shared::data_access::db_type::DbType;
+    use std::collections::HashMap;
+    use std::sync::Arc;
 
     #[tokio::test]
     async fn test_get_prayer_times() {

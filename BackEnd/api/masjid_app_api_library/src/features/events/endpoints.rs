@@ -1,25 +1,20 @@
+use crate::features::events::errors::GetEventsError;
+use crate::features::events::models::EventDTO;
+use crate::features::events::repository::EventsRepository;
 use crate::shared::data_access::db_type::DbType;
-use crate::shared::data_access::repository_manager::{InMemoryRepository, MySqlRepository};
 use crate::shared::types::age_range::AgeRange;
 use crate::shared::types::app_state::AppState;
 use crate::shared::types::contact_details::ContactDetails;
-use async_trait::async_trait;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
-use chrono::{DateTime, Utc};
-use mockall::automock;
-use mockall::predicate::ge;
 use serde::{Deserialize, Serialize};
-use sqlx::mysql::MySqlRow;
-use sqlx::{Error, Row};
+use sqlx::Row;
 use std::fmt::Display;
 use std::str::FromStr;
 use std::sync::Arc;
 use validator::Validate;
-use crate::features::events::errors::GetEventsError;
-use crate::features::events::models::EventDTO;
 
 pub async fn get_events_common<R>(State(state): State<AppState<Arc<R>>>) -> Response
 where
@@ -48,9 +43,10 @@ where
 }
 mod test {
     use super::*;
+    use crate::features::events::models::{EventDetails, EventRecurrence, EventStatus, EventType};
+    use crate::features::events::repository::{EventsRepository, MockEventsRepository};
     use crate::shared::types::app_state::AppState;
     use std::collections::HashMap;
-    use crate::features::events::models::{EventDetails, EventRecurrence, EventStatus, EventType};
 
     #[tokio::test]
     async fn test_get_events_common() {
