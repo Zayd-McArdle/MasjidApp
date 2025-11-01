@@ -5,6 +5,7 @@ pub struct Reference {
     url: String,
 }
 pub struct Answer {
+    pub imam_name: String,
     pub text: String,
     pub reference: Option<Vec<Reference>>,
 }
