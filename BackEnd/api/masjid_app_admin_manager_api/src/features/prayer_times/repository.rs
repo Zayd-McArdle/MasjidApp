@@ -1,3 +1,13 @@
+use crate::features::prayer_times::errors::UpdatePrayerTimesError;
+use async_trait::async_trait;
+use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
+use masjid_app_api_library::features::prayer_times::repository::PrayerTimesRepository;
+use masjid_app_api_library::shared::data_access::db_type::DbType;
+use masjid_app_api_library::shared::data_access::repository_manager::{
+    MySqlRepository, RepositoryType,
+};
+use std::sync::Arc;
+
 #[async_trait]
 pub trait PrayerTimesAdminRepository: PrayerTimesRepository {
     async fn update_prayer_times(

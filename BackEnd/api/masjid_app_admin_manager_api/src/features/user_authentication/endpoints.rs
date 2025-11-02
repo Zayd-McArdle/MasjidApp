@@ -1,3 +1,20 @@
+use crate::features::user_authentication::errors::{
+    LoginError, RegistrationError, ResetPasswordError,
+};
+use crate::features::user_authentication::models::{
+    LoginRequest, RegistrationRequest, ResetUserPasswordRequest, UserAccountDTO,
+};
+use crate::features::user_authentication::repository::UserRepository;
+use crate::shared::jwt;
+use axum::extract::State;
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use axum::Json;
+use masjid_app_api_library::shared::data_access::db_type::DbType;
+use masjid_app_api_library::shared::types::app_state::AppState;
+use std::sync::Arc;
+use validator::Validate;
+
 pub(crate) async fn login(
     State(state): State<AppState<Arc<dyn UserRepository>>>,
     Json(request): Json<LoginRequest>,
@@ -83,6 +100,7 @@ pub(crate) async fn reset_user_password(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::features::user_authentication::repository::MockUserRepository;
     use std::collections::HashMap;
 
     #[derive(Clone)]

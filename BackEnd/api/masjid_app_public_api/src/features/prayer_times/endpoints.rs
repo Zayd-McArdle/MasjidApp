@@ -1,3 +1,15 @@
+use crate::features::prayer_times::repository::PrayerTimesPublicRepository;
+use axum::extract::{Path, State};
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use masjid_app_api_library::features::prayer_times::endpoints::{
+    build_prayer_times_response, get_prayer_times_common,
+};
+use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesError;
+use masjid_app_api_library::shared::data_access::db_type::DbType;
+use masjid_app_api_library::shared::types::app_state::AppState;
+use std::sync::Arc;
+
 pub async fn get_prayer_times(
     State(state): State<AppState<Arc<dyn PrayerTimesPublicRepository>>>,
 ) -> Response {
@@ -40,7 +52,11 @@ pub async fn get_updated_prayer_times(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use async_trait::async_trait;
+    use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
+    use masjid_app_api_library::features::prayer_times::repository::PrayerTimesRepository;
     use masjid_app_api_library::shared::types::app_state::AppState;
+    use mockall::mock;
     use std::collections::HashMap;
 
     mock!(

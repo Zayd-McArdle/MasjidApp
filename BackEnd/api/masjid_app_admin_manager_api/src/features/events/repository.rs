@@ -1,3 +1,14 @@
+use crate::features::events::errors::{DeleteEventError, UpsertEventError};
+use async_trait::async_trait;
+use masjid_app_api_library::features::events::models::Event;
+use masjid_app_api_library::features::events::repository::EventsRepository;
+use masjid_app_api_library::shared::data_access::db_type::DbType;
+use masjid_app_api_library::shared::data_access::repository_manager::{
+    MySqlRepository, RepositoryType,
+};
+use sqlx::Row;
+use std::sync::Arc;
+
 #[async_trait]
 pub trait EventsAdminRepository: EventsRepository {
     async fn upsert_event(&self, event: Event) -> Result<(), UpsertEventError>;
@@ -67,4 +78,3 @@ impl EventsAdminRepository for MySqlRepository {
 pub async fn new_events_admin_repository(db_type: DbType) -> Arc<dyn EventsAdminRepository> {
     Arc::new(MySqlRepository::new(RepositoryType::Events).await)
 }
-

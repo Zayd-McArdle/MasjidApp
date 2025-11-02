@@ -1,3 +1,19 @@
+use crate::features::prayer_times::errors::UpdatePrayerTimesError;
+use crate::features::prayer_times::models::UpdatePrayerTimesRequest;
+use crate::features::prayer_times::repository::PrayerTimesAdminRepository;
+use crate::shared::jwt::Claims;
+use axum::extract::State;
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use axum::Json;
+use masjid_app_api_library::features::prayer_times::endpoints::get_prayer_times_common;
+use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
+use masjid_app_api_library::shared::data_access::db_type::DbType;
+use masjid_app_api_library::shared::types::app_state::AppState;
+use sha2::{Digest, Sha256};
+use std::sync::Arc;
+use validator::Validate;
+
 pub async fn get_prayer_times(
     State(state): State<AppState<Arc<dyn PrayerTimesAdminRepository>>>,
     claims: Claims,
@@ -41,6 +57,10 @@ pub async fn update_prayer_times(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use async_trait::async_trait;
+    use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesError;
+    use masjid_app_api_library::features::prayer_times::repository::PrayerTimesRepository;
+    use mockall::mock;
     use std::collections::HashMap;
 
     mock! {

@@ -1,7 +1,8 @@
-use masjid_app_admin_manager_api::features::prayer_times::new_prayer_times_admin_repository;
-use masjid_app_api_library::features::prayer_times::{GetPrayerTimesError, PrayerTimesDTO};
+use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesError;
+use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
-use masjid_app_public_api::features::prayer_times::new_prayer_times_public_repository;
+use masjid_app_public_api::features::prayer_times::repository::new_prayer_times_public_repository;
+use masjid_app_admin_manager_api::features::prayer_times::repository::new_prayer_times_admin_repository;
 use crate::common::data_access_layer;
 use crate::common::data_access_layer::DatabaseCredentials;
 use crate::common::logging::setup_logging;

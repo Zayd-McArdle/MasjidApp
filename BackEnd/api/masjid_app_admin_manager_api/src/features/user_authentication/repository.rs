@@ -1,3 +1,15 @@
+use crate::features::user_authentication::errors::{
+    LoginError, RegistrationError, ResetPasswordError,
+};
+use crate::features::user_authentication::models::{LoginDTO, UserAccountDTO};
+use async_trait::async_trait;
+use masjid_app_api_library::shared::data_access::repository_manager::{
+    MySqlRepository, RepositoryType,
+};
+use mockall::automock;
+use sqlx::{Error, Row};
+use std::sync::Arc;
+
 #[automock]
 #[async_trait]
 pub trait UserRepository: Send + Sync {

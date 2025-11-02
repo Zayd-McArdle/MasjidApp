@@ -1,3 +1,6 @@
+use serde::Deserialize;
+use validator::{Validate, ValidationError};
+
 #[derive(Deserialize, Validate, Clone)]
 pub struct LoginRequest {
     #[validate(length(min = 2))]
@@ -49,8 +52,7 @@ fn validate_role(role: &str) -> Result<(), ValidationError> {
 #[derive(Deserialize, Validate, Clone)]
 pub struct ResetUserPasswordRequest {
     #[validate(length(min = 2))]
-    username: String,
+    pub username: String,
     #[validate(length(min = 16))]
-    replacement_password: String,
+    pub replacement_password: String,
 }
-

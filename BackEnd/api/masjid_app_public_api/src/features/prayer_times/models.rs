@@ -1,3 +1,6 @@
+use serde::Deserialize;
+use validator::Validate;
+
 #[derive(Deserialize, Clone, Validate)]
 pub struct UpdatePrayerTimesRequest {
     #[serde(rename = "prayerTimesData")]

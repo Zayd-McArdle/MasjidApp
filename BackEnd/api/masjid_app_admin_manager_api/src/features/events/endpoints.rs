@@ -1,3 +1,18 @@
+use crate::features::events::errors::{DeleteEventError, UpsertEventError};
+use crate::features::events::repository::EventsAdminRepository;
+use crate::shared::jwt::Claims;
+use axum::extract::{Path, State};
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use masjid_app_api_library::features::events::endpoints::get_events_common;
+use masjid_app_api_library::features::events::models::{Event, EventDTO};
+use masjid_app_api_library::shared::data_access::db_type::DbType;
+use masjid_app_api_library::shared::extractors::file_handler::FileHandler;
+use masjid_app_api_library::shared::extractors::request_validator::multipart::ValidatedMultipartRequest;
+use masjid_app_api_library::shared::types::app_state::AppState;
+use std::sync::Arc;
+use validator::Validate;
+
 pub async fn get_events(State(state): State<AppState<Arc<dyn EventsAdminRepository>>>) -> Response {
     get_events_common(State(state)).await
 }
@@ -140,18 +155,20 @@ pub async fn delete_event(
     }
 }
 mod test {
-    use crate::features::events::{delete_event, upsert_events};
-    use crate::features::events::{DeleteEventError, EventsAdminRepository, UpsertEventError};
-    use crate::features::prayer_times::PrayerTimesAdminRepository;
+    use crate::features::events::endpoints::{delete_event, upsert_events};
+    use crate::features::events::errors::{DeleteEventError, UpsertEventError};
+    use crate::features::events::repository::EventsAdminRepository;
     use crate::shared::jwt::Claims;
     use async_trait::async_trait;
     use axum::body::Bytes;
     use axum::extract::State;
     use axum::http::StatusCode;
-    use masjid_app_api_library::features::events::{
-        Event, EventDTO, EventDetails, EventRecurrence, EventStatus, EventType, EventsRepository,
-        GetEventsError,
+    use masjid_app_api_library::features::events::errors::GetEventsError;
+    use masjid_app_api_library::features::events::models::Event;
+    use masjid_app_api_library::features::events::models::{
+        EventDTO, EventDetails, EventRecurrence, EventStatus, EventType,
     };
+    use masjid_app_api_library::features::events::repository::EventsRepository;
     use masjid_app_api_library::shared::data_access::db_type::DbType;
     use masjid_app_api_library::shared::extractors::file_handler::FileHandler;
     use masjid_app_api_library::shared::extractors::request_validator::multipart::ValidatedMultipartRequest;
@@ -292,7 +309,7 @@ mod test {
                 Claims::default(),
                 test_case.request,
             )
-                .await;
+            .await;
             assert_eq!(test_case.expected_status, actual_response.status());
         }
     }
@@ -371,7 +388,7 @@ mod test {
                 Claims::default(),
                 axum::extract::Path(test_case.delete_event_request_id),
             )
-                .await;
+            .await;
             assert_eq!(test_case.expected_status, actual_response.status());
         }
     }
