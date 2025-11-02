@@ -1,9 +1,7 @@
 mod features;
 mod shared;
 
-use crate::features::events::{
-    delete_event, get_events, new_events_admin_repository, upsert_events,
-};
+use crate::features::events;
 use crate::features::user_authentication::new_user_repository;
 use axum::routing::{delete, get, patch, post, put};
 use axum::Router;
@@ -13,6 +11,8 @@ use features::{announcements, prayer_times, user_authentication};
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::types::app_state::AppState;
 use std::collections::HashMap;
+use crate::features::events::endpoints::{delete_event, get_events, upsert_events};
+use crate::features::events::repository::new_events_admin_repository;
 
 async fn map_user_authentication() -> Router {
     let state = AppState {
