@@ -5,7 +5,7 @@ use crate::features::events;
 use crate::features::user_authentication::repository::new_user_repository;
 use axum::routing::{delete, get, patch, post, put};
 use axum::Router;
-use features::prayer_times::new_prayer_times_admin_repository;
+use features::prayer_times::repository::new_prayer_times_admin_repository;
 use features::user_authentication::repository::UserRepository;
 use features::user_authentication::endpoints;
 use features::{announcements, prayer_times, user_authentication};
@@ -62,8 +62,8 @@ async fn map_prayer_times() -> Router {
         ]),
     };
     Router::new()
-        .route("/", get(prayer_times::get_prayer_times))
-        .route("/", patch(prayer_times::update_prayer_times))
+        .route("/", get(prayer_times::endpoints::get_prayer_times))
+        .route("/", patch(prayer_times::endpoints::update_prayer_times))
         .with_state(state)
 }
 async fn map_donation() -> Router {
