@@ -2,11 +2,12 @@ mod features;
 mod shared;
 
 use crate::features::events;
-use crate::features::user_authentication::new_user_repository;
+use crate::features::user_authentication::repository::new_user_repository;
 use axum::routing::{delete, get, patch, post, put};
 use axum::Router;
 use features::prayer_times::new_prayer_times_admin_repository;
-use features::user_authentication::UserRepository;
+use features::user_authentication::repository::UserRepository;
+use features::user_authentication::endpoints;
 use features::{announcements, prayer_times, user_authentication};
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::types::app_state::AppState;
@@ -20,11 +21,11 @@ async fn map_user_authentication() -> Router {
     };
 
     Router::new()
-        .route("/login", post(user_authentication::login))
-        .route("/register-user", post(user_authentication::register_user))
+        .route("/login", post(user_authentication::endpoints::login))
+        .route("/register-user", post(user_authentication::endpoints::register_user))
         .route(
             "/reset-password",
-            patch(user_authentication::reset_user_password),
+            patch(user_authentication::endpoints::reset_user_password),
         )
         .with_state(state)
 }
