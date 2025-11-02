@@ -1,0 +1,71 @@
+#[async_trait]
+pub trait PrayerTimesPublicRepository: PrayerTimesRepository {
+    async fn get_updated_prayer_times(
+        &self,
+        hash: &str,
+    ) -> Result<PrayerTimesDTO, GetPrayerTimesError>;
+}
+
+pub async fn new_prayer_times_public_repository(
+    db_type: DbType,
+) -> Arc<dyn PrayerTimesPublicRepository> {
+    match db_type {
+        DbType::InMemory => Arc::new(InMemoryRepository::new(RepositoryType::PrayerTimes).await),
+        DbType::MySql => Arc::new(MySqlRepository::new(RepositoryType::PrayerTimes).await),
+    }
+}
+
+#[async_trait]
+impl PrayerTimesPublicRepository for InMemoryRepository {
+    async fn get_updated_prayer_times(
+        &self,
+        hash: &str,
+    ) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
+        tracing::warn!("In-memory database for getting updated prayer times not implemented");
+        Err(GetPrayerTimesError::UnableToGetPrayerTimes)
+    }
+}
+
+#[async_trait]
+impl PrayerTimesPublicRepository for MySqlRepository {
+    async fn get_updated_prayer_times(
+        &self,
+        hash: &str,
+    ) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
+        let db_connection = self.db_connection.clone();
+        let query_response = sqlx::query("CALL get_updated_prayer_times(?);")
+            .bind(hash)
+            .fetch_one(&*db_connection)
+            .await
+            .map(|row: MySqlRow| {
+                if row.len() == 1 {
+                    tracing::debug!("prayer times hash matches request hash");
+                    return PrayerTimesDTO {
+                        data: None,
+                        hash: row.get(0),
+                    };
+                }
+                tracing::debug!(
+                    "prayer times hash does not match request hash. downloading new prayer times"
+                );
+                return PrayerTimesDTO {
+                    data: row.get(0),
+                    hash: row.get(1),
+                };
+            });
+        match query_response {
+            Ok(prayer_times) => Ok(prayer_times),
+            Err(Error::RowNotFound) => {
+                tracing::error!("prayer times not found");
+                Err(GetPrayerTimesError::PrayerTimesNotFound)
+            }
+            Err(err) => {
+                tracing::error!(
+                    "unable to get updated prayer times from the database: {}",
+                    err
+                );
+                Err(GetPrayerTimesError::UnableToGetPrayerTimes)
+            }
+        }
+    }
+}
