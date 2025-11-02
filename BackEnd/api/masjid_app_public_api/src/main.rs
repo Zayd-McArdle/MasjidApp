@@ -1,11 +1,12 @@
 mod features;
 mod shared;
 
-use crate::features::events::new_events_public_repository;
+use crate::features::events;
+use crate::features::events::repository::new_events_public_repository;
 use axum::routing::{get, patch, post, put};
 use axum::Router;
 use features::prayer_times::new_prayer_times_public_repository;
-use features::{announcements, events, prayer_times};
+use features::{announcements, prayer_times};
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::types::app_state::AppState;
 use std::collections::HashMap;
@@ -65,7 +66,7 @@ async fn map_events() -> Router {
         ]),
     };
     Router::new()
-        .route("/", get(events::get_events))
+        .route("/", get(events::endpoints::get_events))
         .with_state(state)
 }
 async fn map_classes() -> Router {
