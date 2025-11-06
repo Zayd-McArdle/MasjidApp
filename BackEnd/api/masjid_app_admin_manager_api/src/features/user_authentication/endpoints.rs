@@ -1,151 +1,20 @@
+use crate::features::user_authentication::errors::{
+    LoginError, RegistrationError, ResetPasswordError,
+};
+use crate::features::user_authentication::models::{
+    LoginRequest, RegistrationRequest, ResetUserPasswordRequest, UserAccountDTO,
+};
+use crate::features::user_authentication::repository::UserRepository;
 use crate::shared::jwt;
-use async_trait::async_trait;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
-use bcrypt;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
-use masjid_app_api_library::shared::data_access::repository_manager::{
-    MySqlRepository, RepositoryType,
-};
 use masjid_app_api_library::shared::types::app_state::AppState;
-use mockall::automock;
-use serde::Deserialize;
-use sqlx::{Error, Row};
 use std::sync::Arc;
-use validator::{Validate, ValidationError};
+use validator::Validate;
 
-#[automock]
-#[async_trait]
-pub trait UserRepository: Send + Sync {
-    async fn login(&self, username: &str, password: &str) -> Result<String, LoginError>;
-    async fn register_user(&self, new_user: UserAccountDTO) -> Result<(), RegistrationError>;
-    async fn reset_user_password(
-        &self,
-        username: &str,
-        new_password: &str,
-    ) -> Result<(), ResetPasswordError>;
-}
-pub async fn new_user_repository() -> Arc<dyn UserRepository> {
-    Arc::new(MySqlRepository::new(RepositoryType::Authentication).await)
-}
-
-#[async_trait]
-impl UserRepository for MySqlRepository {
-    async fn login(&self, username: &str, password: &str) -> Result<String, LoginError> {
-        let db_connection = self.db_connection.clone();
-        let query_result = sqlx::query("CALL get_user_credentials(?)")
-            .bind(username)
-            .map(|row: sqlx::mysql::MySqlRow| LoginDTO {
-                username: row.get(0),
-                password: row.get(1),
-                role: row.get(2),
-            })
-            .fetch_one(&*db_connection)
-            .await;
-        match query_result {
-            Ok(user) => {
-                let hash_verified =
-                    bcrypt::verify(password, &user.password).expect("unable to verify hash");
-                if hash_verified {
-                    tracing::info!("'{username}' has logged in");
-                    return Ok(user.role);
-                }
-                tracing::debug!("'{username}' hashed password does not match hash in database");
-                Err(LoginError::InvalidCredentials)
-            }
-            Err(Error::RowNotFound) => {
-                tracing::debug!("'{username}' entered the wrong credentials");
-                Err(LoginError::InvalidCredentials)
-            }
-            Err(err) => {
-                tracing::error!(
-                    "could not authenticate '{username}' due to the following error: {err}"
-                );
-                Err(LoginError::UnableToLogin)
-            }
-        }
-    }
-    async fn register_user(&self, new_user: UserAccountDTO) -> Result<(), RegistrationError> {
-        let db_connection = self.db_connection.clone();
-        let hashed_password =
-            bcrypt::hash(new_user.password, 12).expect("Unable to hash the password");
-        let query_result = sqlx::query("CALL register_user(?, ?, ?, ?, ?);")
-            .bind(&new_user.full_name)
-            .bind(&new_user.role)
-            .bind(&new_user.email)
-            .bind(&new_user.username)
-            .bind(hashed_password)
-            .execute(&*db_connection)
-            .await;
-        match query_result {
-            Ok(_) => {
-                tracing::info!("successfully registered user: '{}'", new_user.username);
-                Ok(())
-            }
-            Err(Error::Database(db_err)) if db_err.is_unique_violation() => {
-                tracing::debug!("'{}' already exists", new_user.username);
-                Err(RegistrationError::UserAlreadyRegistered)
-            }
-            Err(err) => {
-                tracing::error!(
-                    "unable to register user '{}' due the following error: {}",
-                    new_user.username,
-                    err
-                );
-                Err(RegistrationError::FailedToRegister)
-            }
-        }
-    }
-    async fn reset_user_password(
-        &self,
-        username: &str,
-        new_password: &str,
-    ) -> Result<(), ResetPasswordError> {
-        let db_connection = self.db_connection.clone();
-        let hashed_password = bcrypt::hash(new_password, 12).expect("Unable to hash the password");
-        let query_result = sqlx::query("CALL reset_user_password(?, ?);")
-            .bind(username)
-            .bind(hashed_password)
-            .execute(&*db_connection)
-            .await;
-        match query_result {
-            Ok(result) => {
-                if result.rows_affected() == 0 {
-                    tracing::debug!(
-                        "unable to reset password of '{username}', as the user does not exist"
-                    );
-                    return Err(ResetPasswordError::UserDoesNotExist);
-                }
-                tracing::debug!("successfully reset password of '{username}'");
-                Ok(())
-            }
-            Err(_) => Err(ResetPasswordError::FailedToResetUserPassword),
-        }
-    }
-}
-//Login
-#[derive(Deserialize, Validate, Clone)]
-pub struct LoginRequest {
-    #[validate(length(min = 2))]
-    pub username: String,
-    #[validate(length(min = 2))]
-    pub password: String,
-}
-
-#[derive(sqlx::FromRow, Clone)]
-pub struct LoginDTO {
-    pub username: String,
-    pub password: String,
-    pub role: String,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum LoginError {
-    InvalidCredentials,
-    UnableToLogin,
-}
 pub(crate) async fn login(
     State(state): State<AppState<Arc<dyn UserRepository>>>,
     Json(request): Json<LoginRequest>,
@@ -177,44 +46,6 @@ pub(crate) async fn login(
     }
 }
 
-//Registration
-#[derive(Deserialize, Validate, Clone)]
-pub struct RegistrationRequest {
-    #[validate(length(min = 2, message = "First name cannot be empty"))]
-    #[serde(rename(deserialize = "fullName"))]
-    pub full_name: String,
-    #[validate(email)]
-    pub email: String,
-    #[validate(custom(function = "validate_role"))]
-    pub role: String,
-    #[validate(length(min = 2, message = "Please enter a valid username"))]
-    pub username: String,
-    #[validate(length(
-        min = 16,
-        message = "Password length must be a minimum of 16 characters"
-    ))]
-    pub password: String,
-}
-
-#[derive(sqlx::FromRow, Clone)]
-pub struct UserAccountDTO {
-    pub full_name: String,
-    pub email: String,
-    pub role: String,
-    pub username: String,
-    pub password: String,
-}
-fn validate_role(role: &str) -> Result<(), ValidationError> {
-    if role == "Admin" || role == "Imam" {
-        return Ok(());
-    }
-    Err(ValidationError::new("Invalid role"))
-}
-#[derive(Clone)]
-pub enum RegistrationError {
-    UserAlreadyRegistered,
-    FailedToRegister,
-}
 pub(crate) async fn register_user(
     State(state): State<AppState<Arc<dyn UserRepository>>>,
     Json(request): Json<RegistrationRequest>,
@@ -244,20 +75,6 @@ pub(crate) async fn register_user(
     }
 }
 
-//Password Reset
-#[derive(Deserialize, Validate, Clone)]
-pub struct ResetUserPasswordRequest {
-    #[validate(length(min = 2))]
-    username: String,
-    #[validate(length(min = 16))]
-    replacement_password: String,
-}
-#[derive(Clone, PartialEq, Debug)]
-pub enum ResetPasswordError {
-    UserDoesNotExist,
-    FailedToResetUserPassword,
-}
-
 pub(crate) async fn reset_user_password(
     State(state): State<AppState<Arc<dyn UserRepository>>>,
     Json(request): Json<ResetUserPasswordRequest>,
@@ -283,6 +100,7 @@ pub(crate) async fn reset_user_password(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::features::user_authentication::repository::MockUserRepository;
     use std::collections::HashMap;
 
     #[derive(Clone)]

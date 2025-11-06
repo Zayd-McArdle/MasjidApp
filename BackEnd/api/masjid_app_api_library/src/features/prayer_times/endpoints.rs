@@ -1,30 +1,14 @@
+use crate::features::prayer_times::errors::GetPrayerTimesError;
+use crate::features::prayer_times::models::PrayerTimesDTO;
+use crate::features::prayer_times::repository::PrayerTimesRepository;
 use crate::shared::data_access::db_type::DbType;
-use crate::shared::data_access::repository_manager::{
-    InMemoryRepository, MySqlRepository, RepositoryType,
-};
 use crate::shared::types::app_state::AppState;
-use async_trait::async_trait;
 use axum::body::Body;
 use axum::extract::State;
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
-use mockall::automock;
-use serde::{Deserialize, Serialize};
-use sqlx::mysql::MySqlRow;
-use sqlx::{Error, Row};
 use std::sync::Arc;
 
-#[derive(sqlx::FromRow, Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub struct PrayerTimesDTO {
-    pub data: Option<Vec<u8>>,
-    pub hash: String,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum GetPrayerTimesError {
-    PrayerTimesNotFound,
-    UnableToGetPrayerTimes,
-}
 pub fn build_prayer_times_response(prayer_times: PrayerTimesDTO, hash: Option<&str>) -> Response {
     if let Some(hash_value) = hash {
         if prayer_times.hash == hash_value.to_owned() {
@@ -48,42 +32,7 @@ pub fn build_prayer_times_response(prayer_times: PrayerTimesDTO, hash: Option<&s
     }
     StatusCode::INTERNAL_SERVER_ERROR.into_response()
 }
-#[automock]
-#[async_trait]
-pub trait PrayerTimesRepository: Send + Sync {
-    async fn get_prayer_times(&self) -> Result<PrayerTimesDTO, GetPrayerTimesError>;
-}
 
-#[async_trait]
-impl PrayerTimesRepository for InMemoryRepository {
-    async fn get_prayer_times(&self) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
-        tracing::warn!("In-memory database for getting prayer times not implemented");
-        Err(GetPrayerTimesError::UnableToGetPrayerTimes)
-    }
-}
-
-#[async_trait]
-impl PrayerTimesRepository for MySqlRepository {
-    async fn get_prayer_times(&self) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
-        let db_connection = self.db_connection.clone();
-        let query_response = sqlx::query("CALL get_prayer_times();")
-            .fetch_one(&*db_connection)
-            .await
-            .map(|row: MySqlRow| PrayerTimesDTO {
-                data: row.get(0),
-                hash: row.get(1),
-            });
-
-        match query_response {
-            Ok(prayer_times) => Ok(prayer_times),
-            Err(Error::RowNotFound) => Err(GetPrayerTimesError::PrayerTimesNotFound),
-            Err(err) => {
-                tracing::error!("unable to get prayer times from the database: {}", err);
-                Err(GetPrayerTimesError::UnableToGetPrayerTimes)
-            }
-        }
-    }
-}
 pub async fn get_prayer_times_common<R>(State(state): State<AppState<Arc<R>>>) -> Response
 where
     R: PrayerTimesRepository + ?Sized,
@@ -114,8 +63,14 @@ where
 
 mod test {
     use super::*;
+    use crate::features::prayer_times::errors::GetPrayerTimesError;
+    use crate::features::prayer_times::repository::MockPrayerTimesRepository;
+    use crate::shared::data_access::db_type::DbType;
     use crate::shared::types::app_state::AppState;
+    use axum::extract::State;
+    use axum::http::StatusCode;
     use std::collections::HashMap;
+    use std::sync::Arc;
 
     #[tokio::test]
     async fn test_get_prayer_times() {

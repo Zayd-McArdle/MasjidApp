@@ -1,100 +1,17 @@
+use crate::features::events::errors::{DeleteEventError, UpsertEventError};
+use crate::features::events::repository::EventsAdminRepository;
 use crate::shared::jwt::Claims;
-use async_trait::async_trait;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use axum::Json;
-use masjid_app_api_library::features::events::{
-    get_events_common, Event, EventDTO, EventsRepository,
-};
+use masjid_app_api_library::features::events::endpoints::get_events_common;
+use masjid_app_api_library::features::events::models::{Event, EventDTO};
 use masjid_app_api_library::shared::data_access::db_type::DbType;
-use masjid_app_api_library::shared::data_access::repository_manager::{
-    MySqlRepository, RepositoryType,
-};
 use masjid_app_api_library::shared::extractors::file_handler::FileHandler;
 use masjid_app_api_library::shared::extractors::request_validator::multipart::ValidatedMultipartRequest;
 use masjid_app_api_library::shared::types::app_state::AppState;
-use sqlx::{Error, Row};
 use std::sync::Arc;
 use validator::Validate;
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum UpsertEventError {
-    UnableToUpsertEvent,
-}
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum DeleteEventError {
-    UnableToDeleteEvent,
-    EventNotFound,
-}
-#[async_trait]
-pub trait EventsAdminRepository: EventsRepository {
-    async fn upsert_event(&self, event: Event) -> Result<(), UpsertEventError>;
-    async fn delete_event_by_id(&self, event_id: &i32) -> Result<Option<String>, DeleteEventError>;
-}
-#[async_trait]
-impl EventsAdminRepository for MySqlRepository {
-    async fn upsert_event(&self, event: Event) -> Result<(), UpsertEventError> {
-        let db_connection = self.db_connection.clone();
-        sqlx::query("CALL upsert_event(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-            .bind(&event.id)
-            .bind(&event.title)
-            .bind(&event.description)
-            .bind(&event.date)
-            .bind(&event.r#type)
-            .bind(&event.recurrence)
-            .bind(&event.status)
-            .bind(&event.minimum_age)
-            .bind(&event.maximum_age)
-            .bind(&event.image_url)
-            .bind(&event.full_name)
-            .bind(&event.phone_number)
-            .bind(&event.email)
-            .execute(&*db_connection)
-            .await
-            .map_err(|err| {
-                tracing::error!("Unable to upsert event due to the following error: {}", err);
-                UpsertEventError::UnableToUpsertEvent
-            })?;
-        Ok(())
-    }
-
-    async fn delete_event_by_id(&self, event_id: &i32) -> Result<Option<String>, DeleteEventError> {
-        let db_connection = self.db_connection.clone();
-        let mut image_url: Option<String> = None;
-
-        match sqlx::query("CALL retrieve_image_url_by_event_id(?)")
-            .bind(&event_id)
-            .fetch_optional(&*db_connection)
-            .await
-        {
-            Ok(url) => image_url = url.and_then(|row| row.get(0)),
-            Err(err) => {
-                tracing::error!(
-                    "unable to retrieve image url for event id {}, due to the following error: {}",
-                    event_id,
-                    err
-                )
-            }
-        }
-
-        let query_result = sqlx::query("CALL delete_event_by_id(?)")
-            .bind(&event_id)
-            .execute(&*db_connection)
-            .await
-            .map_err(|err| {
-                tracing::error!("failed to delete event due to the following error: {}", err);
-                DeleteEventError::UnableToDeleteEvent
-            })?;
-        if query_result.rows_affected() == 0 {
-            tracing::debug!("event id {} not found in the database", event_id);
-            return Err(DeleteEventError::EventNotFound);
-        }
-        Ok(image_url)
-    }
-}
-pub async fn new_events_admin_repository(db_type: DbType) -> Arc<dyn EventsAdminRepository> {
-    Arc::new(MySqlRepository::new(RepositoryType::Events).await)
-}
 
 pub async fn get_events(State(state): State<AppState<Arc<dyn EventsAdminRepository>>>) -> Response {
     get_events_common(State(state)).await
@@ -238,18 +155,20 @@ pub async fn delete_event(
     }
 }
 mod test {
-    use crate::features::events::{delete_event, upsert_events};
-    use crate::features::events::{DeleteEventError, EventsAdminRepository, UpsertEventError};
-    use crate::features::prayer_times::PrayerTimesAdminRepository;
+    use crate::features::events::endpoints::{delete_event, upsert_events};
+    use crate::features::events::errors::{DeleteEventError, UpsertEventError};
+    use crate::features::events::repository::EventsAdminRepository;
     use crate::shared::jwt::Claims;
     use async_trait::async_trait;
     use axum::body::Bytes;
     use axum::extract::State;
     use axum::http::StatusCode;
-    use masjid_app_api_library::features::events::{
-        Event, EventDTO, EventDetails, EventRecurrence, EventStatus, EventType, EventsRepository,
-        GetEventsError,
+    use masjid_app_api_library::features::events::errors::GetEventsError;
+    use masjid_app_api_library::features::events::models::Event;
+    use masjid_app_api_library::features::events::models::{
+        EventDTO, EventDetails, EventRecurrence, EventStatus, EventType,
     };
+    use masjid_app_api_library::features::events::repository::EventsRepository;
     use masjid_app_api_library::shared::data_access::db_type::DbType;
     use masjid_app_api_library::shared::extractors::file_handler::FileHandler;
     use masjid_app_api_library::shared::extractors::request_validator::multipart::ValidatedMultipartRequest;

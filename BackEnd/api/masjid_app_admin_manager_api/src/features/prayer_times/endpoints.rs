@@ -1,76 +1,18 @@
+use crate::features::prayer_times::errors::UpdatePrayerTimesError;
+use crate::features::prayer_times::models::UpdatePrayerTimesRequest;
+use crate::features::prayer_times::repository::PrayerTimesAdminRepository;
 use crate::shared::jwt::Claims;
-use async_trait::async_trait;
-use axum::body::Body;
-use axum::extract::{Path, State};
-use axum::http::{header, StatusCode};
+use axum::extract::State;
+use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
-use masjid_app_api_library::features::prayer_times::{
-    build_prayer_times_response, get_prayer_times_common, GetPrayerTimesError, PrayerTimesDTO,
-    PrayerTimesRepository,
-};
+use masjid_app_api_library::features::prayer_times::endpoints::get_prayer_times_common;
+use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
-use masjid_app_api_library::shared::data_access::repository_manager::{
-    MySqlRepository, RepositoryType,
-};
 use masjid_app_api_library::shared::types::app_state::AppState;
-use mockall::predicate::*;
-use mockall::*;
-use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use sqlx::mysql::MySqlRow;
-use sqlx::{Error, Row};
 use std::sync::Arc;
 use validator::Validate;
-
-#[derive(Deserialize, Clone, Validate)]
-pub struct UpdatePrayerTimesRequest {
-    #[serde(rename = "prayerTimesData")]
-    pub prayer_times_data: Vec<u8>,
-    #[validate(length(equal = 64))]
-    pub hash: String,
-}
-#[derive(Clone, Debug, PartialEq)]
-pub enum UpdatePrayerTimesError {
-    UnableToUpdatePrayerTimes,
-}
-#[async_trait]
-pub trait PrayerTimesAdminRepository: PrayerTimesRepository {
-    async fn update_prayer_times(
-        &self,
-        prayer_times_data: PrayerTimesDTO,
-    ) -> Result<(), UpdatePrayerTimesError>;
-}
-
-pub async fn new_prayer_times_admin_repository(
-    db_type: DbType,
-) -> Arc<dyn PrayerTimesAdminRepository> {
-    Arc::new(MySqlRepository::new(RepositoryType::PrayerTimes).await)
-}
-#[async_trait]
-impl PrayerTimesAdminRepository for MySqlRepository {
-    async fn update_prayer_times(
-        &self,
-        prayer_times_data: PrayerTimesDTO,
-    ) -> Result<(), UpdatePrayerTimesError> {
-        let db_connection = self.db_connection.clone();
-        let query_response = sqlx::query("CALL upsert_prayer_times(?, ?);")
-            .bind(prayer_times_data.data)
-            .bind(prayer_times_data.hash)
-            .execute(&*db_connection)
-            .await;
-        match query_response {
-            Ok(_) => {
-                tracing::info!("successfully updated prayer times");
-                Ok(())
-            }
-            Err(err) => {
-                tracing::error!("unable to update prayer times: {}", err);
-                Err(UpdatePrayerTimesError::UnableToUpdatePrayerTimes)
-            }
-        }
-    }
-}
 
 pub async fn get_prayer_times(
     State(state): State<AppState<Arc<dyn PrayerTimesAdminRepository>>>,
@@ -115,6 +57,10 @@ pub async fn update_prayer_times(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use async_trait::async_trait;
+    use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesError;
+    use masjid_app_api_library::features::prayer_times::repository::PrayerTimesRepository;
+    use mockall::mock;
     use std::collections::HashMap;
 
     mock! {

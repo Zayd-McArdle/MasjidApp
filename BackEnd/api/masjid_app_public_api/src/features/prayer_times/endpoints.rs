@@ -1,110 +1,14 @@
-use async_trait::async_trait;
-use axum::body::Body;
+use crate::features::prayer_times::repository::PrayerTimesPublicRepository;
 use axum::extract::{Path, State};
-use axum::http::{header, StatusCode};
+use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use axum::Json;
-use masjid_app_api_library::features::prayer_times::{
-    build_prayer_times_response, get_prayer_times_common, GetPrayerTimesError, PrayerTimesDTO,
-    PrayerTimesRepository,
+use masjid_app_api_library::features::prayer_times::endpoints::{
+    build_prayer_times_response, get_prayer_times_common,
 };
+use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesError;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
-use masjid_app_api_library::shared::data_access::repository_manager::{
-    InMemoryRepository, MySqlRepository, RepositoryType,
-};
 use masjid_app_api_library::shared::types::app_state::AppState;
-use mockall::predicate::*;
-use mockall::*;
-use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
-use sqlx::mysql::MySqlRow;
-use sqlx::{Error, Row};
 use std::sync::Arc;
-use validator::Validate;
-
-#[derive(Deserialize, Clone, Validate)]
-pub struct UpdatePrayerTimesRequest {
-    #[serde(rename = "prayerTimesData")]
-    pub prayer_times_data: Vec<u8>,
-    #[validate(length(equal = 64))]
-    pub hash: String,
-}
-#[derive(Clone, Debug, PartialEq)]
-pub enum UpdatePrayerTimesError {
-    UnableToUpdatePrayerTimes,
-}
-
-#[async_trait]
-pub trait PrayerTimesPublicRepository: PrayerTimesRepository {
-    async fn get_updated_prayer_times(
-        &self,
-        hash: &str,
-    ) -> Result<PrayerTimesDTO, GetPrayerTimesError>;
-}
-
-pub async fn new_prayer_times_public_repository(
-    db_type: DbType,
-) -> Arc<dyn PrayerTimesPublicRepository> {
-    match db_type {
-        DbType::InMemory => Arc::new(InMemoryRepository::new(RepositoryType::PrayerTimes).await),
-        DbType::MySql => Arc::new(MySqlRepository::new(RepositoryType::PrayerTimes).await),
-    }
-}
-
-#[async_trait]
-impl PrayerTimesPublicRepository for InMemoryRepository {
-    async fn get_updated_prayer_times(
-        &self,
-        hash: &str,
-    ) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
-        tracing::warn!("In-memory database for getting updated prayer times not implemented");
-        Err(GetPrayerTimesError::UnableToGetPrayerTimes)
-    }
-}
-
-#[async_trait]
-impl PrayerTimesPublicRepository for MySqlRepository {
-    async fn get_updated_prayer_times(
-        &self,
-        hash: &str,
-    ) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
-        let db_connection = self.db_connection.clone();
-        let query_response = sqlx::query("CALL get_updated_prayer_times(?);")
-            .bind(hash)
-            .fetch_one(&*db_connection)
-            .await
-            .map(|row: MySqlRow| {
-                if row.len() == 1 {
-                    tracing::debug!("prayer times hash matches request hash");
-                    return PrayerTimesDTO {
-                        data: None,
-                        hash: row.get(0),
-                    };
-                }
-                tracing::debug!(
-                    "prayer times hash does not match request hash. downloading new prayer times"
-                );
-                return PrayerTimesDTO {
-                    data: row.get(0),
-                    hash: row.get(1),
-                };
-            });
-        match query_response {
-            Ok(prayer_times) => Ok(prayer_times),
-            Err(Error::RowNotFound) => {
-                tracing::error!("prayer times not found");
-                Err(GetPrayerTimesError::PrayerTimesNotFound)
-            }
-            Err(err) => {
-                tracing::error!(
-                    "unable to get updated prayer times from the database: {}",
-                    err
-                );
-                Err(GetPrayerTimesError::UnableToGetPrayerTimes)
-            }
-        }
-    }
-}
 
 pub async fn get_prayer_times(
     State(state): State<AppState<Arc<dyn PrayerTimesPublicRepository>>>,
@@ -148,7 +52,11 @@ pub async fn get_updated_prayer_times(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use async_trait::async_trait;
+    use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
+    use masjid_app_api_library::features::prayer_times::repository::PrayerTimesRepository;
     use masjid_app_api_library::shared::types::app_state::AppState;
+    use mockall::mock;
     use std::collections::HashMap;
 
     mock!(
