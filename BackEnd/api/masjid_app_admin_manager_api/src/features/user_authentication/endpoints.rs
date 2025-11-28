@@ -4,7 +4,7 @@ use crate::features::user_authentication::errors::{
 use crate::features::user_authentication::models::{
     LoginRequest, RegistrationRequest, ResetUserPasswordRequest, UserAccountDTO,
 };
-use crate::features::user_authentication::repository::UserRepository;
+use crate::features::user_authentication::repositories::UserRepository;
 use crate::shared::jwt;
 use axum::extract::State;
 use axum::http::StatusCode;
@@ -100,7 +100,7 @@ pub(crate) async fn reset_user_password(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::features::user_authentication::repository::MockUserRepository;
+    use crate::features::user_authentication::repositories::MockUserRepository;
     use std::collections::HashMap;
 
     #[derive(Clone)]
