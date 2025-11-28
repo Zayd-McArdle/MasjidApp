@@ -5,32 +5,12 @@ use crate::features::events;
 use crate::features::events::repositories::new_events_public_repository;
 use axum::routing::{get, patch, post, put};
 use axum::Router;
+use features::prayer_times;
 use features::prayer_times::repositories::new_prayer_times_public_repository;
-use features::{announcements, prayer_times};
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::types::app_state::AppState;
 use std::collections::HashMap;
 
-async fn map_announcements() -> Router {
-    todo!();
-    /*let state = AppState {
-        repository_map: HashMap::from([
-            (
-                DbType::InMemory,
-                new_announcement_repository(DbType::InMemory).await,
-            ),
-            (
-                DbType::MySql,
-                new_announcement_repository(DbType::MySql).await,
-            ),
-        ]),
-    };
-    Router::new()
-        .route("/", get(announcements::get_announcements))
-        .route("/", post(announcements::post_announcement))
-        .route("/", put(announcements::edit_announcement))
-        .with_state(state)*/
-}
 async fn map_prayer_times() -> Router {
     let state = AppState {
         repository_map: HashMap::from([
@@ -81,13 +61,10 @@ async fn map_endpoints() -> Router {
     tracing::info!("Mapped Prayer Times Endpoints");
     let event_routes = map_events().await;
     tracing::info!("Mapped Events Endpoints");
-    //let announcements_routes = map_announcements().await;
-    tracing::info!("Mapped Announcements Endpoints");
     let router = Router::new();
     router
         .nest("/prayer-times", prayer_times_routes)
         .nest("/events", event_routes)
-    // .nest("/announcements", announcements_routes)
 }
 
 #[tokio::main]

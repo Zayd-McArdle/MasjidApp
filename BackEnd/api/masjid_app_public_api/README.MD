@@ -1,6 +1,6 @@
 # MasjidApp Public API
 
-This API is retrieving the events, prayer times, announcements, classes data for use by the frontend. This API is also
+This API is retrieving the events, prayer times, classes data for use by the frontend. This API is also
 used for sending questions and donation data from users as well.
 
 ## Building the  API

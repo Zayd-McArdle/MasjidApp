@@ -14,19 +14,6 @@ CREATE TABLE IF NOT EXISTS prayer_times (
     hash CHAR(64) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS announcements (
-    id INT NOT NULL AUTO_INCREMENT,
-    title VARCHAR(50) NOT NULL,
-    description VARCHAR(50) NULL,
-    image LONGBLOB NULL,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    user_id INT NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT uc_announcement UNIQUE (title, description, user_id),
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES user_details(id) ON DELETE CASCADE
-);
-
-
 CREATE TABLE IF NOT EXISTS events (
     id INT NOT NULL AUTO_INCREMENT,
     title VARCHAR(50) NOT NULL,

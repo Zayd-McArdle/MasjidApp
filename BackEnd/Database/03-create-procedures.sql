@@ -56,53 +56,6 @@ BEGIN
     END IF;
 END //
 
--- announcements stored procedures
-
-CREATE PROCEDURE IF NOT EXISTS get_announcements()
-BEGIN
-    SELECT a.id, a.title, a.description, a.last_updated, a.image, u.full_name
-    FROM announcements a
-    JOIN user_details u ON a.user_id = u.id;
-END //
-
-CREATE PROCEDURE IF NOT EXISTS post_announcement(IN p_title VARCHAR(50), IN p_description VARCHAR(50), IN p_image LONGBLOB, IN p_username VARCHAR(200))
-BEGIN
-    DECLARE v_user_id INT;
-    -- Retrieve user ID based on username
-    SELECT id INTO v_user_id 
-    FROM user_details 
-    WHERE username = p_username
-    LIMIT 1;
-
-    IF v_user_id IS NOT NULL THEN 
-        INSERT INTO announcements (title, description, image, user_id)
-        VALUES (p_title, p_description, p_image, v_user_id);
-        SELECT LAST_INSERT_ID();
-    ELSE
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'User not found';
-    END IF;
-END //
-
-CREATE PROCEDURE IF NOT EXISTS edit_announcement(IN p_id INT, IN p_username VARCHAR(200), IN p_title VARCHAR(50), IN p_description VARCHAR(50), IN p_image LONGBLOB)
-BEGIN 
-    DECLARE v_user_id INT;
-    -- Retrieve user ID based on username
-    SELECT id INTO v_user_id
-    FROM user_details
-    WHERE username = p_username
-    LIMIT 1;
-
-    IF v_user_id IS NOT NULL THEN
-        UPDATE announcements 
-        SET title = p_title, description = p_description, image = p_image 
-        WHERE id = p_id;
-    ELSE
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'User not found';
-    END IF;
-END //
-
 -- events stored procedures
 
 CREATE PROCEDURE IF NOT EXISTS get_events()

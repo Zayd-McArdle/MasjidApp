@@ -6,7 +6,6 @@ use std::sync::Arc;
 pub enum RepositoryType {
     Authentication,
     PrayerTimes,
-    Announcement,
     AskImam,
     Events,
 }
@@ -36,10 +35,6 @@ impl MySqlRepository {
             RepositoryType::PrayerTimes => {
                 tracing::info!("establishing database connection for retrieving prayer times");
                 "PRAYER_TIMES_CONNECTION"
-            }
-            RepositoryType::Announcement => {
-                tracing::info!("establishing database connection for retrieving announcements");
-                "ANNOUNCEMENT_CONNECTION"
             }
             RepositoryType::AskImam => {
                 tracing::info!("establishing database connection for asking imams questions");
