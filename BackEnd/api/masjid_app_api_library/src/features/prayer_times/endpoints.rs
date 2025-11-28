@@ -1,6 +1,6 @@
 use crate::features::prayer_times::errors::GetPrayerTimesError;
 use crate::features::prayer_times::models::PrayerTimesDTO;
-use crate::features::prayer_times::repository::PrayerTimesRepository;
+use crate::features::prayer_times::repositories::PrayerTimesRepository;
 use crate::shared::data_access::db_type::DbType;
 use crate::shared::types::app_state::AppState;
 use axum::body::Body;
@@ -64,7 +64,7 @@ where
 mod test {
     use super::*;
     use crate::features::prayer_times::errors::GetPrayerTimesError;
-    use crate::features::prayer_times::repository::MockPrayerTimesRepository;
+    use crate::features::prayer_times::repositories::MockPrayerTimesRepository;
     use crate::shared::data_access::db_type::DbType;
     use crate::shared::types::app_state::AppState;
     use axum::extract::State;

@@ -1,5 +1,4 @@
+pub mod endpoints;
 pub mod errors;
 pub mod models;
-pub mod repository;
-pub mod endpoints;
-
+pub mod repositories;

@@ -5,7 +5,7 @@ use crate::features::events;
 use crate::features::events::repositories::new_events_public_repository;
 use axum::routing::{get, patch, post, put};
 use axum::Router;
-use features::prayer_times::repository::new_prayer_times_public_repository;
+use features::prayer_times::repositories::new_prayer_times_public_repository;
 use features::{announcements, prayer_times};
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::types::app_state::AppState;

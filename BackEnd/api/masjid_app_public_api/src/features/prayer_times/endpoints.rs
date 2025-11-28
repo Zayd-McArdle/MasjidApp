@@ -1,4 +1,4 @@
-use crate::features::prayer_times::repository::PrayerTimesPublicRepository;
+use crate::features::prayer_times::repositories::PrayerTimesPublicRepository;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -54,7 +54,7 @@ mod tests {
     use super::*;
     use async_trait::async_trait;
     use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
-    use masjid_app_api_library::features::prayer_times::repository::PrayerTimesRepository;
+    use masjid_app_api_library::features::prayer_times::repositories::PrayerTimesRepository;
     use masjid_app_api_library::shared::types::app_state::AppState;
     use mockall::mock;
     use std::collections::HashMap;

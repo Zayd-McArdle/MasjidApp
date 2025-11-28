@@ -7,7 +7,7 @@ use crate::features::events::repositories::new_events_admin_repository;
 use crate::features::user_authentication::repository::new_user_repository;
 use axum::routing::{delete, get, patch, post, put};
 use axum::Router;
-use features::prayer_times::repository::new_prayer_times_admin_repository;
+use features::prayer_times::repositories::new_prayer_times_admin_repository;
 use features::user_authentication::endpoints;
 use features::user_authentication::repository::UserRepository;
 use features::{announcements, prayer_times, user_authentication};

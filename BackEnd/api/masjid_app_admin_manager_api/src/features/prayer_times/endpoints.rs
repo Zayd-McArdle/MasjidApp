@@ -1,6 +1,6 @@
 use crate::features::prayer_times::errors::UpdatePrayerTimesError;
 use crate::features::prayer_times::models::UpdatePrayerTimesRequest;
-use crate::features::prayer_times::repository::PrayerTimesAdminRepository;
+use crate::features::prayer_times::repositories::PrayerTimesAdminRepository;
 use crate::shared::jwt::Claims;
 use axum::extract::State;
 use axum::http::StatusCode;
@@ -59,7 +59,7 @@ mod tests {
     use super::*;
     use async_trait::async_trait;
     use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesError;
-    use masjid_app_api_library::features::prayer_times::repository::PrayerTimesRepository;
+    use masjid_app_api_library::features::prayer_times::repositories::PrayerTimesRepository;
     use mockall::mock;
     use std::collections::HashMap;
 

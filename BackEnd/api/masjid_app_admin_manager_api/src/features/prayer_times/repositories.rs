@@ -1,7 +1,7 @@
 use crate::features::prayer_times::errors::UpdatePrayerTimesError;
 use async_trait::async_trait;
 use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
-use masjid_app_api_library::features::prayer_times::repository::PrayerTimesRepository;
+use masjid_app_api_library::features::prayer_times::repositories::PrayerTimesRepository;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::data_access::repository_manager::{
     MySqlRepository, RepositoryType,
