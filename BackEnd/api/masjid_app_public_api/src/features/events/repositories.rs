@@ -1,4 +1,4 @@
-use masjid_app_api_library::features::events::repository::EventsRepository;
+use masjid_app_api_library::features::events::repositories::EventsRepository;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::data_access::repository_manager::{
     InMemoryRepository, MySqlRepository, RepositoryType,

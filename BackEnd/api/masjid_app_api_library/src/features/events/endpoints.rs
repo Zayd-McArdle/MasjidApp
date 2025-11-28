@@ -1,6 +1,6 @@
 use crate::features::events::errors::GetEventsError;
 use crate::features::events::models::EventDTO;
-use crate::features::events::repository::EventsRepository;
+use crate::features::events::repositories::EventsRepository;
 use crate::shared::data_access::db_type::DbType;
 use crate::shared::types::age_range::AgeRange;
 use crate::shared::types::app_state::AppState;
@@ -44,7 +44,7 @@ where
 mod test {
     use super::*;
     use crate::features::events::models::{EventDetails, EventRecurrence, EventStatus, EventType};
-    use crate::features::events::repository::{EventsRepository, MockEventsRepository};
+    use crate::features::events::repositories::{EventsRepository, MockEventsRepository};
     use crate::shared::types::app_state::AppState;
     use std::collections::HashMap;
 

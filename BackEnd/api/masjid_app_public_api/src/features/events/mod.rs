@@ -1,2 +1,2 @@
-pub mod repository;
 pub mod endpoints;
+pub mod repositories;

@@ -1,5 +1,5 @@
 use crate::features::events::errors::{DeleteEventError, UpsertEventError};
-use crate::features::events::repository::EventsAdminRepository;
+use crate::features::events::repositories::EventsAdminRepository;
 use crate::shared::jwt::Claims;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
@@ -157,7 +157,7 @@ pub async fn delete_event(
 mod test {
     use crate::features::events::endpoints::{delete_event, upsert_events};
     use crate::features::events::errors::{DeleteEventError, UpsertEventError};
-    use crate::features::events::repository::EventsAdminRepository;
+    use crate::features::events::repositories::EventsAdminRepository;
     use crate::shared::jwt::Claims;
     use async_trait::async_trait;
     use axum::body::Bytes;
@@ -168,7 +168,7 @@ mod test {
     use masjid_app_api_library::features::events::models::{
         EventDTO, EventDetails, EventRecurrence, EventStatus, EventType,
     };
-    use masjid_app_api_library::features::events::repository::EventsRepository;
+    use masjid_app_api_library::features::events::repositories::EventsRepository;
     use masjid_app_api_library::shared::data_access::db_type::DbType;
     use masjid_app_api_library::shared::extractors::file_handler::FileHandler;
     use masjid_app_api_library::shared::extractors::request_validator::multipart::ValidatedMultipartRequest;

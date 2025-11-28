@@ -1,9 +1,9 @@
 use masjid_app_admin_manager_api::features::events::errors::DeleteEventError;
-use masjid_app_admin_manager_api::features::events::repository::new_events_admin_repository;
+use masjid_app_admin_manager_api::features::events::repositories::new_events_admin_repository;
 use masjid_app_api_library::features::events::errors::GetEventsError;
 use masjid_app_api_library::features::events::models::{Event, EventDTO, EventRecurrence, EventStatus, EventType};
 use masjid_app_api_library::shared::data_access::db_type::DbType;
-use masjid_app_public_api::features::events::repository::new_events_public_repository;
+use masjid_app_public_api::features::events::repositories::new_events_public_repository;
 use crate::common::data_access_layer;
 use crate::common::data_access_layer::DatabaseCredentials;
 use crate::common::logging::setup_logging;
