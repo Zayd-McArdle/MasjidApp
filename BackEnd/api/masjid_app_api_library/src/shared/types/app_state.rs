@@ -6,3 +6,8 @@ pub struct AppState<T> {
     //This field allows you to write data to any database
     pub repository_map: HashMap<DbType, T>,
 }
+
+#[derive(Clone)]
+pub struct ServiceAppState<T> {
+    pub service: T,
+}

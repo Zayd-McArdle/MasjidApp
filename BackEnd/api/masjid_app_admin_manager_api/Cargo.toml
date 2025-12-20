@@ -21,3 +21,4 @@ jsonwebtoken = { version = "10.2.0", features = ["aws_lc_rs"] }
 tracing = "0.1.44"
 sha2 = "0.10.9"
 tracing-subscriber = { version = "0.3.22", features = ["std", "fmt", "json", "env-filter"] }
+enum_stringify = "0.6.4"

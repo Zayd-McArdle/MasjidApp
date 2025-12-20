@@ -141,4 +141,88 @@ CREATE PROCEDURE IF NOT EXISTS delete_event_by_id(IN p_id INT)
 BEGIN
     DELETE FROM events WHERE id = p_id;
 END //
+
+-- imam_question stored procedures
+
+CREATE PROCEDURE IF NOT EXISTS get_all_imam_questions()
+BEGIN
+    SELECT * FROM imam_question;
+END //
+
+CREATE PROCEDURE IF NOT EXISTS get_unanswered_imam_questions()
+BEGIN
+    SELECT * FROM imam_question WHERE answer IS NULL;
+END //
+
+CREATE PROCEDURE IF NOT EXISTS get_unanswered_imam_questions_by_topic(IN p_topic VARCHAR(20))
+BEGIN
+    SELECT * FROM imam_question WHERE answer IS NULL AND topic = p_topic;
+END //
+
+CREATE PROCEDURE IF NOT EXISTS get_unanswered_imam_questions_by_school_of_thought(IN p_school_of_thought VARCHAR(7))
+BEGIN
+    SELECT * FROM imam_question WHERE answer IS NULL AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
+END //
+
+CREATE PROCEDURE IF NOT EXISTS get_unanswered_imam_questions_by_topic_and_school_of_thought(IN p_topic VARCHAR(20), IN p_school_of_thought VARCHAR(7))
+BEGIN
+    SELECT * FROM imam_question WHERE answer IS NULL AND topic = p_topic AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
+END //
+
+CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions()
+BEGIN
+    SELECT * FROM imam_question WHERE answer IS NOT NULL;
+END //
+
+CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions_by_topic(IN p_topic VARCHAR(20))
+BEGIN
+    SELECT * FROM imam_question WHERE answer IS NOT NULL AND topic = p_topic;
+END //
+
+CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions_by_school_of_thought(IN p_school_of_thought VARCHAR(7))
+BEGIN
+    SELECT * FROM imam_question WHERE answer IS NOT NULL AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
+END //
+
+CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions_by_topic_and_school_of_thought(IN p_topic VARCHAR(20), IN p_school_of_thought VARCHAR(7))
+BEGIN
+    SELECT * FROM imam_question WHERE answer IS NOT NULL AND topic = p_topic AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
+END //
+
+CREATE PROCEDURE IF NOT EXISTS insert_question_for_imam(IN p_title VARCHAR(50),
+                                                        IN p_topic VARCHAR(20),
+                                                        IN p_school_of_thought VARCHAR(7),
+                                                        IN p_description VARCHAR(250),
+                                                        IN p_date TIMESTAMP)
+BEGIN
+    INSERT INTO imam_question (title,
+        topic,
+        school_of_thought,
+        description,
+        date) 
+    VALUES (p_title,
+        p_topic,
+        p_school_of_thought,
+        p_description,
+        p_date);
+END //
+
+
+CREATE PROCEDURE IF NOT EXISTS upsert_imam_answer_to_question(IN p_imam_name VARCHAR(50), 
+                                                              IN p_answer VARCHAR(250),
+                                                              IN p_date_answered TIMESTAMP,
+                                                              IN p_id INT)
+BEGIN
+    UPDATE imam_question 
+    SET imam_name = p_imam_name, 
+        answer = p_answer, 
+        date_answered = p_date_answered
+    WHERE id = p_id;
+END //
+
+CREATE PROCEDURE IF NOT EXISTS delete_imam_question_by_id(IN p_id INT)
+BEGIN
+    DELETE FROM imam_question WHERE id = p_id;
+END //
+
 DELIMITER ;

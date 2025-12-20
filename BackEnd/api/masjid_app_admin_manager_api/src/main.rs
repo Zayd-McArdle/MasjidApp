@@ -1,19 +1,24 @@
 mod features;
 mod shared;
 
-use crate::features::events;
+use crate::features::ask_imam::repositories::new_imam_questions_admin_repository;
 use crate::features::events::endpoints::{delete_event, get_events, upsert_events};
 use crate::features::events::repositories::new_events_admin_repository;
+use crate::features::prayer_times::repositories::new_prayer_times_admin_repository;
 use crate::features::user_authentication::repositories::new_user_repository;
+use crate::features::{prayer_times, user_authentication};
+
+use crate::features::ask_imam::endpoints::{
+    delete_imam_question, get_imam_questions, provide_answer_for_imam_question,
+};
+use crate::features::ask_imam::services::{new_ask_imam_admin_service, AskImamAdminService};
 use axum::routing::{delete, get, patch, post, put};
 use axum::Router;
-use features::prayer_times::repositories::new_prayer_times_admin_repository;
-use features::user_authentication::endpoints;
-use features::user_authentication::repositories::UserRepository;
-use features::{prayer_times, user_authentication};
 use masjid_app_api_library::shared::data_access::db_type::DbType;
-use masjid_app_api_library::shared::types::app_state::AppState;
+use masjid_app_api_library::shared::logging::logging;
+use masjid_app_api_library::shared::types::app_state::{AppState, ServiceAppState};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 async fn map_user_authentication() -> Router {
     let state = AppState {
@@ -72,6 +77,19 @@ async fn map_events() -> Router {
         .route("/{id}", delete(delete_event))
         .with_state(state)
 }
+async fn map_ask_imam() -> Router {
+    let state = ServiceAppState::<Arc<dyn AskImamAdminService>> {
+        service: new_ask_imam_admin_service(
+            new_imam_questions_admin_repository(DbType::MySql).await,
+            new_imam_questions_admin_repository(DbType::InMemory).await,
+        ),
+    };
+    Router::new()
+        .route("/", get(get_imam_questions))
+        .route("/", put(provide_answer_for_imam_question))
+        .route("/{question_id}", delete(delete_imam_question))
+        .with_state(state)
+}
 async fn map_endpoints() -> Router {
     let authentication_routes = map_user_authentication().await;
     tracing::info!("Mapped User Authentication Endpoints");
@@ -79,17 +97,19 @@ async fn map_endpoints() -> Router {
     tracing::info!("Mapped Prayer Times Endpoints");
     let events_routes = map_events().await;
     tracing::info!("Mapped Events Routes");
+    let ask_imam_routes = map_ask_imam().await;
+    tracing::info!("Mapped Ask Imam Routes");
     let router = Router::new();
     router
         .nest("/authentication", authentication_routes)
         .nest("/prayer-times", prayer_times_routes)
         .nest("/events", events_routes)
+        .nest("/ask-imam", ask_imam_routes)
 }
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt::fmt().json().init();
-
+    logging::setup();
     tracing::info!("MasjidApp Admin Manager API starting up");
     let app = map_endpoints().await;
     let listener = tokio::net::TcpListener::bind(&"0.0.0.0:3000")
