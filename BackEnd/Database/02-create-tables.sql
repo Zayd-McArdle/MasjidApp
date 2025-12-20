@@ -32,3 +32,20 @@ CREATE TABLE IF NOT EXISTS events (
     email VARCHAR(50),
     PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS imam_question (
+    id INT NOT NULL AUTO_INCREMENT,
+    title VARCHAR(50) NOT NULL,
+    topic VARCHAR(20) NOT NULL,
+    school_of_thought VARCHAR(7) NULL CHECK (school_of_thought IN ('Hanafi', 'Shaafi', 'Maliki', 'Hanbali')),
+    description VARCHAR(250),
+    date TIMESTAMP NOT NULL,
+    imam_name VARCHAR(50) NULL,
+    answer VARCHAR(250) NULL,
+    date_answered TIMESTAMP NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT chk_question_is_answered_or_not CHECK (
+        (imam_name IS NULL AND answer IS NULL AND date_answered IS NULL) OR
+        (imam_name IS NOT NULL AND answer IS NOT NULL AND date_answered IS NOT NULL)
+    )
+);
