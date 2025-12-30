@@ -1,5 +1,4 @@
 use sqlx::mysql::{MySqlPool, MySqlPoolOptions};
-use sqlx::{Error, MySql, Pool};
 use std::sync::Arc;
 
 #[derive(Hash, Eq, PartialEq)]
@@ -25,27 +24,29 @@ impl InMemoryRepository {
 pub struct MySqlRepository {
     pub db_connection: Arc<MySqlPool>,
 }
+fn get_connection_string(repository_type: RepositoryType) -> &'static str {
+    match repository_type {
+        RepositoryType::Authentication => {
+            tracing::info!("establishing database connection for authenticating users");
+            "AUTHENTICATION_CONNECTION"
+        }
+        RepositoryType::PrayerTimes => {
+            tracing::info!("establishing database connection for retrieving prayer times");
+            "PRAYER_TIMES_CONNECTION"
+        }
+        RepositoryType::AskImam => {
+            tracing::info!("establishing database connection for asking imams questions");
+            "ASK_IMAM_CONNECTION"
+        }
+        RepositoryType::Events => {
+            tracing::info!("establishing database connection for retrieving events");
+            "EVENTS_CONNECTION"
+        }
+    }
+}
 impl MySqlRepository {
     pub async fn new(repository_type: RepositoryType) -> Self {
-        let connection_string_environment_variable = match repository_type {
-            RepositoryType::Authentication => {
-                tracing::info!("establishing database connection for authenticating users");
-                "AUTHENTICATION_CONNECTION"
-            }
-            RepositoryType::PrayerTimes => {
-                tracing::info!("establishing database connection for retrieving prayer times");
-                "PRAYER_TIMES_CONNECTION"
-            }
-            RepositoryType::AskImam => {
-                tracing::info!("establishing database connection for asking imams questions");
-                "ASK_IMAM_CONNECTION"
-            }
-            RepositoryType::Events => {
-                tracing::info!("establishing database connection for retrieving events");
-                "EVENTS_CONNECTION"
-            }
-        };
-        let connection_string = std::env::var(connection_string_environment_variable).unwrap();
+        let connection_string = std::env::var(get_connection_string(repository_type)).unwrap();
         let db_connection_result = MySqlPoolOptions::new()
             .max_connections(10)
             .connect(&connection_string)
