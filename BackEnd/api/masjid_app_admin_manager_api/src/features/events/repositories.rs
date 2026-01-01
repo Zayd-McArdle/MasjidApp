@@ -4,7 +4,7 @@ use masjid_app_api_library::features::events::models::Event;
 use masjid_app_api_library::features::events::repositories::EventsRepository;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::data_access::repository_manager::{
-    MySqlRepository, RepositoryType,
+    InMemoryRepository, MySqlRepository, RepositoryType,
 };
 use sqlx::Row;
 use std::sync::Arc;
@@ -14,6 +14,20 @@ pub trait EventsAdminRepository: EventsRepository {
     async fn upsert_event(&self, event: Event) -> Result<(), UpsertEventError>;
     async fn delete_event_by_id(&self, event_id: &i32) -> Result<Option<String>, DeleteEventError>;
 }
+
+#[async_trait]
+impl EventsAdminRepository for InMemoryRepository {
+    async fn upsert_event(&self, event: Event) -> Result<(), UpsertEventError> {
+        tracing::warn!("in-memory database for upserting event not implemented");
+        Err(UpsertEventError::UnableToUpsertEvent)
+    }
+
+    async fn delete_event_by_id(&self, event_id: &i32) -> Result<Option<String>, DeleteEventError> {
+        tracing::warn!("in-memory database for deleting event not implemented");
+        Err(DeleteEventError::UnableToDeleteEvent)
+    }
+}
+
 #[async_trait]
 impl EventsAdminRepository for MySqlRepository {
     async fn upsert_event(&self, event: Event) -> Result<(), UpsertEventError> {
@@ -76,5 +90,8 @@ impl EventsAdminRepository for MySqlRepository {
     }
 }
 pub async fn new_events_admin_repository(db_type: DbType) -> Arc<dyn EventsAdminRepository> {
-    Arc::new(MySqlRepository::new(RepositoryType::Events).await)
+    match db_type {
+        DbType::InMemory => Arc::new(InMemoryRepository::new(RepositoryType::Events).await),
+        DbType::MySql => Arc::new(MySqlRepository::new(RepositoryType::Events).await),
+    }
 }
