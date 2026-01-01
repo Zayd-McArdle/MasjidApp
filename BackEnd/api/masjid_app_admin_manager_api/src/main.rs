@@ -40,14 +40,8 @@ async fn map_user_authentication() -> Router {
 async fn map_prayer_times() -> Router {
     let state = AppState {
         repository_map: HashMap::from([
-            (
-                DbType::InMemory,
-                new_prayer_times_admin_repository(DbType::InMemory).await,
-            ),
-            (
-                DbType::MySql,
-                new_prayer_times_admin_repository(DbType::MySql).await,
-            ),
+            (DbType::InMemory, new_prayer_times_admin_repository().await),
+            (DbType::MySql, new_prayer_times_admin_repository().await),
         ]),
     };
     Router::new()

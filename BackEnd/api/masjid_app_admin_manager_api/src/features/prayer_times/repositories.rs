@@ -16,9 +16,7 @@ pub trait PrayerTimesAdminRepository: PrayerTimesRepository {
     ) -> Result<(), UpdatePrayerTimesError>;
 }
 
-pub async fn new_prayer_times_admin_repository(
-    db_type: DbType,
-) -> Arc<dyn PrayerTimesAdminRepository> {
+pub async fn new_prayer_times_admin_repository() -> Arc<dyn PrayerTimesAdminRepository> {
     Arc::new(MySqlRepository::new(RepositoryType::PrayerTimes).await)
 }
 #[async_trait]

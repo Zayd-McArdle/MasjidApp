@@ -17,7 +17,7 @@ async fn test_prayer_times() {
         .await;
 
     let public_repository = new_prayer_times_public_repository(DbType::MySql).await;
-    let admin_repository = new_prayer_times_admin_repository(DbType::MySql).await;
+    let admin_repository = new_prayer_times_admin_repository().await;
 
     //Given no prayer times exist, I should receive an error
     let get_prayer_times_result = public_repository.get_prayer_times().await.unwrap_err();
