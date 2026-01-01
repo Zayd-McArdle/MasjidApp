@@ -29,7 +29,7 @@ pub async fn new_user_repository() -> Arc<dyn UserRepository> {
 impl UserRepository for MySqlRepository {
     async fn login(&self, username: &str, password: &str) -> Result<String, LoginError> {
         let db_connection = self.db_connection.clone();
-        let query_result = sqlx::query("CALL get_user_credentials(?)")
+        let user = sqlx::query("CALL get_user_credentials(?)")
             .bind(username)
             .map(|row: sqlx::mysql::MySqlRow| LoginDTO {
                 username: row.get(0),
@@ -37,60 +37,73 @@ impl UserRepository for MySqlRepository {
                 role: row.get(2),
             })
             .fetch_one(&*db_connection)
-            .await;
-        match query_result {
-            Ok(user) => {
-                let hash_verified =
-                    bcrypt::verify(password, &user.password).expect("unable to verify hash");
-                if hash_verified {
-                    tracing::info!("'{username}' has logged in");
-                    return Ok(user.role);
+            .await
+            .map_err(|err| {
+                if matches!(err, Error::RowNotFound) {
+                    tracing::debug!(
+                        username = username,
+                        error = err.to_string(),
+                        "user entered the wrong credentials"
+                    );
+                    return LoginError::InvalidCredentials;
                 }
-                tracing::debug!("'{username}' hashed password does not match hash in database");
-                Err(LoginError::InvalidCredentials)
-            }
-            Err(Error::RowNotFound) => {
-                tracing::debug!("'{username}' entered the wrong credentials");
-                Err(LoginError::InvalidCredentials)
-            }
-            Err(err) => {
                 tracing::error!(
-                    "could not authenticate '{username}' due to the following error: {err}"
+                    username = username,
+                    error = err.to_string(),
+                    "an error occurred whilst registering new user",
                 );
-                Err(LoginError::UnableToLogin)
-            }
+                LoginError::UnableToLogin
+            })?;
+        let hash_verified = bcrypt::verify(password, &user.password).map_err(|err| {
+            tracing::error!(
+                error = err.to_string(),
+                "unable to verify hash due to the following error"
+            );
+            LoginError::UnableToLogin
+        })?;
+        if hash_verified {
+            tracing::info!(username = username, "logged in");
+            return Ok(user.role);
         }
+        tracing::debug!(
+            username = username,
+            "hashed password does not match hash in database"
+        );
+        Err(LoginError::InvalidCredentials)
     }
     async fn register_user(&self, new_user: UserAccountDTO) -> Result<(), RegistrationError> {
         let db_connection = self.db_connection.clone();
-        let hashed_password =
-            bcrypt::hash(new_user.password, 12).expect("Unable to hash the password");
-        let query_result = sqlx::query("CALL register_user(?, ?, ?, ?, ?);")
+        let hashed_password = bcrypt::hash(new_user.password, 12).map_err(|err| {
+            tracing::error!(
+                error = err.to_string(),
+                "an error occurred when hashing the password"
+            );
+            RegistrationError::FailedToRegister
+        })?;
+        sqlx::query("CALL register_user(?, ?, ?, ?, ?);")
             .bind(&new_user.full_name)
             .bind(&new_user.role)
             .bind(&new_user.email)
             .bind(&new_user.username)
             .bind(hashed_password)
             .execute(&*db_connection)
-            .await;
-        match query_result {
-            Ok(_) => {
-                tracing::info!("successfully registered user: '{}'", new_user.username);
-                Ok(())
-            }
-            Err(Error::Database(db_err)) if db_err.is_unique_violation() => {
-                tracing::debug!("'{}' already exists", new_user.username);
-                Err(RegistrationError::UserAlreadyRegistered)
-            }
-            Err(err) => {
+            .await
+            .map_err(|err| {
+                if let Error::Database(ref db_err) = err
+                    && db_err.is_unique_violation()
+                {
+                    tracing::debug!(username = new_user.username, "user already exists");
+                    return RegistrationError::UserAlreadyRegistered;
+                }
                 tracing::error!(
-                    "unable to register user '{}' due the following error: {}",
-                    new_user.username,
-                    err
+                    username = new_user.username,
+                    error = err.to_string(),
+                    "an error occurred whilst registering user",
                 );
-                Err(RegistrationError::FailedToRegister)
-            }
-        }
+                RegistrationError::FailedToRegister
+            })?;
+        tracing::info!(username = new_user.username, "user successfully registered");
+        Ok(())
     }
     async fn reset_user_password(
         &self,
@@ -98,24 +111,24 @@ impl UserRepository for MySqlRepository {
         new_password: &str,
     ) -> Result<(), ResetPasswordError> {
         let db_connection = self.db_connection.clone();
-        let hashed_password = bcrypt::hash(new_password, 12).expect("Unable to hash the password");
+        let hashed_password = bcrypt::hash(new_password, 12).map_err(|err| {
+            tracing::error!(
+                error = err.to_string(),
+                "an error occurred when hashing the password"
+            );
+            ResetPasswordError::FailedToResetUserPassword
+        })?;
         let query_result = sqlx::query("CALL reset_user_password(?, ?);")
             .bind(username)
             .bind(hashed_password)
             .execute(&*db_connection)
-            .await;
-        match query_result {
-            Ok(result) => {
-                if result.rows_affected() == 0 {
-                    tracing::debug!(
-                        "unable to reset password of '{username}', as the user does not exist"
-                    );
-                    return Err(ResetPasswordError::UserDoesNotExist);
-                }
-                tracing::debug!("successfully reset password of '{username}'");
-                Ok(())
-            }
-            Err(_) => Err(ResetPasswordError::FailedToResetUserPassword),
+            .await
+            .map_err(|_| ResetPasswordError::FailedToResetUserPassword)?;
+        if query_result.rows_affected() == 0 {
+            tracing::debug!(username = username, "user does not exist");
+            return Err(ResetPasswordError::UserDoesNotExist);
         }
+        tracing::debug!(username = username, "successfully reset password");
+        Ok(())
     }
 }
