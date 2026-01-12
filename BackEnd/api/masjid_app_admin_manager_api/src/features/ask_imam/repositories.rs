@@ -7,9 +7,10 @@ use masjid_app_api_library::features::ask_imam::models::{
 use masjid_app_api_library::features::ask_imam::repositories::{
     get_imam_questions_common, ImamQuestionsRepository,
 };
+use masjid_app_api_library::new_repository;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::data_access::repository_manager::{
-    InMemoryRepository, MySqlRepository, RepositoryType,
+    InMemoryRepository, MySqlRepository, RepositoryMode, RepositoryType,
 };
 use std::sync::Arc;
 
@@ -223,10 +224,7 @@ impl ImamQuestionsAdminRepository for MySqlRepository {
 }
 
 pub async fn new_imam_questions_admin_repository(
-    db_type: DbType,
+    repository_mode: RepositoryMode,
 ) -> Arc<dyn ImamQuestionsAdminRepository> {
-    match db_type {
-        DbType::InMemory => Arc::new(InMemoryRepository::new(RepositoryType::AskImam).await),
-        DbType::MySql => Arc::new(MySqlRepository::new(RepositoryType::AskImam).await),
-    }
+    new_repository!(repository_mode, RepositoryType::AskImam)
 }
