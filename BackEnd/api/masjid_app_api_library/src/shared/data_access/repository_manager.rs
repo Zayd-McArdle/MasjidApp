@@ -64,3 +64,12 @@ impl MySqlRepository {
         }
     }
 }
+#[macro_export]
+macro_rules! new_repository {
+    ($repository_mode:expr, $repository_type:expr) => {
+        match $repository_mode {
+            RepositoryMode::InMemory => Arc::new(InMemoryRepository::new($repository_type).await),
+            RepositoryMode::Normal => Arc::new(MySqlRepository::new($repository_type).await),
+        }
+    };
+}
