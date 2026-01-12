@@ -2,9 +2,10 @@ use async_trait::async_trait;
 use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesError;
 use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
 use masjid_app_api_library::features::prayer_times::repositories::PrayerTimesRepository;
+use masjid_app_api_library::new_repository;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::data_access::repository_manager::{
-    InMemoryRepository, MySqlRepository, RepositoryType,
+    InMemoryRepository, MySqlRepository, RepositoryMode, RepositoryType,
 };
 use sqlx::mysql::MySqlRow;
 use sqlx::{Error, Row};
@@ -19,12 +20,9 @@ pub trait PrayerTimesPublicRepository: PrayerTimesRepository {
 }
 
 pub async fn new_prayer_times_public_repository(
-    db_type: DbType,
+    repository_mode: RepositoryMode,
 ) -> Arc<dyn PrayerTimesPublicRepository> {
-    match db_type {
-        DbType::InMemory => Arc::new(InMemoryRepository::new(RepositoryType::PrayerTimes).await),
-        DbType::MySql => Arc::new(MySqlRepository::new(RepositoryType::PrayerTimes).await),
-    }
+    new_repository!(repository_mode, RepositoryType::PrayerTimes)
 }
 
 #[async_trait]

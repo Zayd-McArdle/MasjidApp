@@ -21,11 +21,11 @@ async fn map_prayer_times() -> Router {
         repository_map: HashMap::from([
             (
                 DbType::InMemory,
-                new_prayer_times_public_repository(DbType::InMemory).await,
+                new_prayer_times_public_repository(RepositoryMode::InMemory).await,
             ),
             (
                 DbType::MySql,
-                new_prayer_times_public_repository(DbType::MySql).await,
+                new_prayer_times_public_repository(RepositoryMode::Normal).await,
             ),
         ]),
     };
