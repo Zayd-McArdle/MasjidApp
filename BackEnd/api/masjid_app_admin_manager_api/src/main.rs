@@ -58,11 +58,11 @@ async fn map_events() -> Router {
         repository_map: HashMap::from([
             (
                 DbType::InMemory,
-                new_events_admin_repository(DbType::InMemory).await,
+                new_events_admin_repository(RepositoryMode::InMemory).await,
             ),
             (
                 DbType::MySql,
-                new_events_admin_repository(DbType::MySql).await,
+                new_events_admin_repository(RepositoryMode::Normal).await,
             ),
         ]),
     };
