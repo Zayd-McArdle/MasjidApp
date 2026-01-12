@@ -3,12 +3,13 @@ use async_trait::async_trait;
 use masjid_app_api_library::features::ask_imam::errors::GetQuestionsError;
 use masjid_app_api_library::features::ask_imam::models::ImamQuestion;
 use masjid_app_api_library::features::ask_imam::repositories::ImamQuestionsRepository;
+use masjid_app_api_library::new_repository;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::data_access::repository_manager::{
-    InMemoryRepository, MySqlRepository, RepositoryType,
+    InMemoryRepository, MySqlRepository, RepositoryMode, RepositoryType,
 };
-use std::sync::Arc;
 use sqlx::Error;
+use std::sync::Arc;
 
 #[async_trait]
 pub trait ImamQuestionsPublicRepository: ImamQuestionsRepository {
@@ -59,10 +60,7 @@ impl ImamQuestionsPublicRepository for MySqlRepository {
 }
 
 pub async fn new_imam_questions_public_repository(
-    db_type: DbType,
+    repository_mode: RepositoryMode,
 ) -> Arc<dyn ImamQuestionsPublicRepository> {
-    match db_type {
-        DbType::InMemory => Arc::new(InMemoryRepository::new(RepositoryType::AskImam).await),
-        DbType::MySql => Arc::new(MySqlRepository::new(RepositoryType::AskImam).await),
-    }
+    new_repository!(repository_mode, RepositoryType::AskImam)
 }

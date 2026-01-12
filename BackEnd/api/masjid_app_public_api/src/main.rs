@@ -11,6 +11,7 @@ use axum::Router;
 use features::prayer_times;
 use features::prayer_times::repositories::new_prayer_times_public_repository;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
+use masjid_app_api_library::shared::data_access::repository_manager::RepositoryMode;
 use masjid_app_api_library::shared::logging::logging;
 use masjid_app_api_library::shared::types::app_state::{AppState, ServiceAppState};
 use std::collections::HashMap;
@@ -59,8 +60,8 @@ async fn map_events() -> Router {
 async fn map_ask_imam() -> Router {
     let state = ServiceAppState {
         service: new_ask_imam_public_service(
-            new_imam_questions_public_repository(DbType::MySql).await,
-            new_imam_questions_public_repository(DbType::InMemory).await,
+            new_imam_questions_public_repository(RepositoryMode::Normal).await,
+            new_imam_questions_public_repository(RepositoryMode::InMemory).await,
         ),
     };
     Router::new()
