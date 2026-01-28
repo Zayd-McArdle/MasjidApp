@@ -10,6 +10,7 @@ pub enum Recurrence {
     Weekly,
     Fortnightly,
     Monthly,
+    Annually,
 }
 impl Display for Recurrence {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -19,6 +20,7 @@ impl Display for Recurrence {
             Recurrence::Weekly => "weekly".to_owned(),
             Recurrence::Fortnightly => "fortnightly".to_owned(),
             Recurrence::Monthly => "monthly".to_owned(),
+            Recurrence::Annually => "annually".to_owned(),
         };
         write!(f, "{}", recurrence)
     }
