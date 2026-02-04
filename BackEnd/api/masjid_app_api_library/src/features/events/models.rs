@@ -1,9 +1,9 @@
-use std::str::FromStr;
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use validator::Validate;
 use crate::shared::types::age_range::AgeRange;
 use crate::shared::types::contact_details::ContactDetails;
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use std::str::FromStr;
+use validator::Validate;
 
 #[derive(Serialize, Deserialize, Debug, sqlx::Type, Clone, PartialEq, Eq)]
 #[sqlx(type_name = "varchar")]
@@ -202,6 +202,7 @@ impl From<Event> for EventDTO {
                 image_url: event.image_url,
                 contact_details: ContactDetails {
                     full_name: event.full_name,
+                    title: None,
                     phone_number: event.phone_number,
                     email: event.email,
                 },

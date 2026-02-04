@@ -66,6 +66,7 @@ mod test {
                 image_url: None,
                 contact_details: ContactDetails {
                     full_name: "John Smith".to_owned(),
+                    title: None,
                     phone_number: "07127665431".to_owned(),
                     email: Some("johns.smith@masjidapp.com".to_owned()),
                 },

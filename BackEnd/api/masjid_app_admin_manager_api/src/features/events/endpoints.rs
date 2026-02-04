@@ -203,6 +203,7 @@ mod test {
                     image_url: None,
                     contact_details: ContactDetails {
                         full_name: "John Smith".to_owned(),
+                        title: None,
                         phone_number: "07787395729".to_owned(),
                         email: Some("johnsmith@test.com".to_owned()),
                     },
@@ -251,6 +252,7 @@ mod test {
                             image_url: None,
                             contact_details: ContactDetails {
                                 full_name: "".to_owned(),
+                                title: None,
                                 phone_number: "".to_owned(),
                                 email: None,
                             },
