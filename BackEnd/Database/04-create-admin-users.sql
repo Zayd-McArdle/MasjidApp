@@ -3,6 +3,7 @@ CREATE USER IF NOT EXISTS 'authenticationuser'@'%' IDENTIFIED BY 'BL6FxKu!237GvP
 CREATE USER IF NOT EXISTS 'prayertimesadmin'@'%' IDENTIFIED BY 'HR0o8NRkwvuMaIBh7yaf';
 CREATE USER IF NOT EXISTS 'eventsadmin'@'%' IDENTIFIED BY 'changeme';
 CREATE USER IF NOT EXISTS 'askimamadmin'@'%' IDENTIFIED BY 'changeme';
+CREATE USER IF NOT EXISTS 'donationadmin'@'%' IDENTIFIED BY 'changeme';
 
 -- Adjust user permissions
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'authenticationuser'@'%';
@@ -35,3 +36,19 @@ GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_answered_imam_questions_by_topi
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.insert_question_for_imam TO 'askimamadmin'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.upsert_imam_answer_to_question TO 'askimamadmin'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.delete_imam_question_by_id TO 'askimamadmin'@'%';
+
+REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_donation_transactions TO 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_donation_transactions_group_by_cause TO 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_donation_transactions_order_by_cause TO 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_donation_transactions_group_by_intention TO 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_donation_transactions_order_by_intention TO 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_donation_transactions_group_by_amount TO 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_donation_transactions_order_by_amount TO 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_donation_transactions_group_by_gift_aid TO 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_donation_transactions_order_by_gift_aid TO 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_donation_transactions_group_by_frequency TO 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_donation_transactions_order_by_frequency TO 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_donation_transactions_group_by_transaction_status TO 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_donation_transactions_order_by_transaction_status TO 'donationadmin'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.insert_donation_transaction TO 'donationadmin'@'%';

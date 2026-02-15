@@ -2,6 +2,7 @@
 CREATE USER IF NOT EXISTS 'prayertimesuser'@'%' IDENTIFIED BY 'HR0o8NRkwvuMaIBh7yaf';
 CREATE USER IF NOT EXISTS 'eventsuser'@'%' IDENTIFIED BY 'changeme';
 CREATE USER IF NOT EXISTS 'askimamuser'@'%' IDENTIFIED BY 'changeme';
+CREATE USER IF NOT EXISTS 'donationuser'@'%' IDENTIFIED BY 'changeme';
 
 -- Adjust user permissions
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'prayertimesuser'@'%';
@@ -18,3 +19,5 @@ GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_answered_imam_questions_by_scho
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_answered_imam_questions_by_topic_and_school_of_thought TO 'askimamuser'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.insert_question_for_imam TO 'askimamuser'@'%';
 
+REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'donationuser'@'%';
+GRANT EXECUTE ON PROCEDURE masjidappdatabase.insert_donation_transaction TO 'donationuser'@'%';

@@ -2,7 +2,7 @@ use crate::shared::types::personal_title::PersonalTitle;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Validate, Eq)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Validate, Eq, Default)]
 pub struct ContactDetails {
     #[validate(length(min = 3))]
     #[serde(rename(serialize = "fullName", deserialize = "fullName"))]

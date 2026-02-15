@@ -14,6 +14,11 @@ use crate::features::ask_imam::endpoints::{
     delete_imam_question, get_imam_questions, provide_answer_for_imam_question,
 };
 use crate::features::ask_imam::services::{AskImamAdminService, new_ask_imam_admin_service};
+use crate::features::donation::endpoints::get_donation_history::get_donation_history;
+use crate::features::donation::endpoints::get_grouped_donation_history::get_grouped_donation_history;
+use crate::features::donation::endpoints::get_grouped_donation_history_count::get_grouped_donation_history_count;
+use crate::features::donation::repositories::donation_history_admin_repository::new_donation_history_admin_repository;
+use crate::features::donation::services::new_donation_history_service;
 use crate::features::events::endpoints::delete_event::delete_event;
 use crate::features::events::endpoints::get_events::get_events;
 use crate::features::events::endpoints::publish_event::upsert_events;
@@ -105,7 +110,20 @@ async fn map_prayer_times() -> Router {
         .with_state(update_prayer_times_app_state)
 }
 async fn map_donation() -> Router {
-    panic!("Implement donation controller")
+    let repository =
+        new_donation_history_admin_repository(RepositoryMode::Normal(NormalDbProvider::MySql))
+            .await;
+    let in_memory_repository =
+        new_donation_history_admin_repository(RepositoryMode::InMemory(InMemoryDbProvider::Redis))
+            .await;
+    let state = ServiceAppState {
+        service: new_donation_history_service(repository, in_memory_repository).await,
+    };
+    Router::new()
+        .route("/", get(get_donation_history))
+        .route("/grouped", get(get_grouped_donation_history))
+        .route("/grouped-count", get(get_grouped_donation_history_count))
+        .with_state(state)
 }
 async fn map_events() -> Router {
     let get_events_app_state = ServiceAppState::<Arc<dyn EventRetrievalService>> {
@@ -163,11 +181,14 @@ async fn map_endpoints() -> Router {
     let ask_imam_routes = map_ask_imam().await;
     tracing::info!("Mapped Ask Imam Routes");
     let router = Router::new();
+    let donation_routes = map_donation().await;
+    tracing::info!("Mapped Donation Routes");
     router
         .nest("/authentication", authentication_routes)
         .nest("/prayer-times", prayer_times_routes)
         .nest("/events", events_routes)
         .nest("/ask-imam", ask_imam_routes)
+        .nest("/donation", donation_routes)
 }
 
 #[tokio::main]
