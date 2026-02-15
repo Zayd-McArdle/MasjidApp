@@ -1,0 +1,101 @@
+﻿cause,donation_intention,donor_full_name,donor_title,phone_number,email,address_line_1,address_line_2,address_city,address_region,address_country,address_postal,amount,is_gift_aid,donation_frequency,transaction_status
+Emergency Relief,Zakat,Ahmed Khan,Mr,07123 456789,ahmed.khan@email.com,123 High Street,,London,Greater London,UK,SW1A 1AA,500,true,Monthly,Approved
+Education Fund,Lillah,Fatima Ali,Mrs,07123 456790,fatima.ali@email.com,456 Park Road,Flat 3,Birmingham,West Midlands,UK,B1 1BB,250,false,one-off,Approved
+Healthcare Support,Sadaqah,Omar Hassan,Mr,020 1234 5678,,789 Queen Street,,Manchester,Greater Manchester,UK,M1 2CC,1000,true,Weekly,Declined because insufficient funds
+Food Program,Zakat,Aisha Rahman,Ms,07123 456791,aisha.rahman@email.com,321 Church Lane,Floor 2,Leicester,East Midlands,UK,LE1 3DD,75,true,Monthly,Approved
+Water Well Project,Lillah,Yusuf Ahmed,Mr,020 8765 4321,yusuf.ahmed@email.com,654 Victoria Road,,Bradford,West Yorkshire,UK,BD1 4EE,2000,false,Annually,Declined because card expired
+Orphan Sponsorship,Sadaqah,Bilal Hussain,Mr,07123 456792,bilal.hussain@email.com,987 Green Lane,,Glasgow,Scotland,Scotland,G1 5FF,350,true,Monthly,Approved
+Mosque Construction,Lillah,Zainab Malik,Mrs,020 3456 7890,,147 Mill Lane,Apt 5,Cardiff,Wales,Wales,CF10 6GG,5000,true,one-off,Declined because suspected fraud
+Winter Appeal,Zakat,Ali Qureshi,Mr,07123 456793,ali.qureshi@email.com,258 Station Road,,Edinburgh,Scotland,Scotland,EH1 7HH,150,false,Weekly,Declined because insufficient funds
+Emergency Relief,Sadaqah,Maryam Begum,Mrs,020 9876 5432,maryam.begum@email.com,369 Church Street,,Liverpool,Merseyside,UK,L1 8II,300,true,one-off,Approved
+Emergency Relief,Lillah,Ibrahim Patel,Mr,07123 456794,ibrahim.patel@email.com,741 King Street,Suite 1,Bristol,South West,UK,BS1 9JJ,800,false,Monthly,Approved
+Education Fund,Sadaqah,Khadija Begum,Ms,07123 456801,khadija.begum@email.com,12 Oak Avenue,,London,Greater London,UK,NW1 2AB,150,true,Monthly,Approved
+Healthcare Support,Zakat,Hassan Malik,Mr,020 1234 5679,,34 Elm Street,Garden Flat,Birmingham,West Midlands,UK,B2 3CD,750,false,one-off,Approved
+Food Program,Lillah,Safiya Rahman,Mrs,07123 456802,safiya.rahman@email.com,56 Maple Road,,Manchester,Greater Manchester,UK,M2 4EF,120,true,Weekly,Declined because insufficient funds
+Water Well Project,Sadaqah,Amina Hussain,Mrs,020 8765 4322,amina.hussain@email.com,78 Cedar Lane,,Leicester,East Midlands,UK,LE2 5GH,3000,true,Annually,Approved
+Orphan Sponsorship,Zakat,Yusuf Ali,Mr,07123 456803,yusuf.ali@email.com,90 Birch Grove,Top Floor,Bradford,West Yorkshire,UK,BD2 6IJ,450,false,Monthly,Declined because card expired
+Mosque Construction,Lillah,Zainab Khan,Mrs,020 3456 7891,,23 Willow Way,,Glasgow,Scotland,Scotland,G2 7KL,3500,true,one-off,Approved
+Winter Appeal,Sadaqah,Layla Qureshi,Mrs,07123 456804,layla.qureshi@email.com,45 Pine Close,,Cardiff,Wales,Wales,CF11 8MN,90,true,Weekly,Declined because suspected fraud
+Emergency Relief,Zakat,Ismail Ahmed,Mr,020 9876 5433,ismail.ahmed@email.com,67 Ash Court,Flat 8,Edinburgh,Scotland,Scotland,EH2 9OP,600,false,Monthly,Declined because insufficient funds
+Education Fund,Lillah,Nadia Patel,Ms,07123 456805,nadia.patel@email.com,89 Beech Avenue,,Liverpool,Merseyside,UK,L2 0QR,180,true,one-off,Approved
+Healthcare Support,Sadaqah,Rashid Mahmood,Mr,020 1234 5680,,12 Sycamore Street,,Bristol,South West,UK,BS2 1ST,900,false,Monthly,Approved
+Emergency Relief,Zakat,Tariq Bashir,Mr,07123 456806,tariq.bashir@email.com,34 Holly Road,,London,Greater London,UK,SW2 2UV,550,true,one-off,Approved
+Emergency Relief,Lillah,Samira Akhtar,Mrs,020 8765 4323,samira.akhtar@email.com,56 Ivy Lane,Flat 12,Birmingham,West Midlands,UK,B3 3WX,700,false,Monthly,Approved
+Emergency Relief,Sadaqah,Farooq Siddiqui,Mr,07123 456807,,78 Rowan Gardens,,Manchester,Greater Manchester,UK,M3 4YZ,450,true,Weekly,Declined because insufficient funds
+Education Fund,Zakat,Rabia Choudhry,Ms,020 3456 7892,rabia.choudhry@email.com,90 Laurel Drive,,Leicester,East Midlands,UK,LE3 5AB,300,true,Annually,Approved
+Food Program,Lillah,Imran Hassan,Mr,07123 456808,imran.hassan@email.com,12 Hazel Crescent,Basement,Bradford,West Yorkshire,UK,BD3 6CD,85,false,one-off,Declined because card expired
+Water Well Project,Sadaqah,Nasreen Malik,Mrs,020 9876 5434,,34 Elm Gardens,,Glasgow,Scotland,Scotland,G3 7DE,1500,true,Monthly,Approved
+Orphan Sponsorship,Zakat,Hamza Ali,Mr,07123 456809,hamza.ali@email.com,56 Oakfield Road,,Cardiff,Wales,Wales,CF12 8FG,400,false,Weekly,Declined because suspected fraud
+Mosque Construction,Lillah,Salma Begum,Mrs,020 1234 5681,salma.begum@email.com,78 Park View,Flat 3B,Edinburgh,Scotland,Scotland,EH3 9GH,2500,true,one-off,Approved
+Winter Appeal,Sadaqah,Faisal Khan,Mr,07123 456810,,90 Queens Road,,Liverpool,Merseyside,UK,L3 1HJ,110,true,Monthly,Declined because insufficient funds
+Emergency Relief,Zakat,Asma Hussain,Mrs,020 8765 4324,asma.hussain@email.com,12 Kings Road,,Bristol,South West,UK,BS3 2JK,650,false,Annually,Approved
+Education Fund,Sadaqah,Tahira Rahman,Ms,07123 456811,tahira.rahman@email.com,34 Church Road,,London,Greater London,UK,SW3 3KL,220,true,one-off,Approved
+Healthcare Support,Zakat,Javed Akhtar,Mr,020 3456 7893,,56 Station Road,Flat 7,Birmingham,West Midlands,UK,B4 4MN,850,false,Monthly,Approved
+Food Program,Lillah,Shabnam Qureshi,Mrs,07123 456812,shabnam.qureshi@email.com,78 Victoria Street,,Manchester,Greater Manchester,UK,M4 5OP,95,true,Weekly,Declined because insufficient funds
+Water Well Project,Sadaqah,Saeed Mahmood,Mr,020 9876 5435,saeed.mahmood@email.com,90 Green Lane,,Leicester,East Midlands,UK,LE4 6QR,1200,true,Annually,Approved
+Orphan Sponsorship,Zakat,Nadeem Ali,Mr,07123 456813,nadeem.ali@email.com,12 Mill Road,Ground Floor,Bradford,West Yorkshire,UK,BD4 7ST,380,false,Monthly,Declined because card expired
+Mosque Construction,Lillah,Ruqayya Khan,Mrs,020 1234 5682,,34 Park Lane,,Glasgow,Scotland,Scotland,G4 8UV,4200,true,one-off,Approved
+Winter Appeal,Sadaqah,Haleema Begum,Mrs,07123 456814,haleema.begum@email.com,56 King Street,,Cardiff,Wales,Wales,CF13 9WX,130,true,Weekly,Declined because suspected fraud
+Emergency Relief,Zakat,Zubair Ahmed,Mr,020 8765 4325,zubair.ahmed@email.com,78 Queen Street,Flat 15,Edinburgh,Scotland,Scotland,EH4 0YZ,580,false,Monthly,Declined because insufficient funds
+Education Fund,Lillah,Anisa Patel,Ms,07123 456815,anisa.patel@email.com,90 High Road,,Liverpool,Merseyside,UK,L4 1AB,270,true,one-off,Approved
+Healthcare Support,Sadaqah,Kamran Siddiqui,Mr,020 3456 7894,,12 Church Avenue,,Bristol,South West,UK,BS4 3CD,950,false,Monthly,Approved
+Emergency Relief,Zakat,Farzana Khan,Mrs,07123 456816,farzana.khan@email.com,34 Manor Road,,London,Greater London,UK,SW4 4EF,520,true,Weekly,Approved
+Education Fund,Sadaqah,Shahid Ali,Mr,020 1234 5683,shahid.ali@email.com,56 The Avenue,Flat 4,Birmingham,West Midlands,UK,B5 5GH,190,false,Monthly,Declined because insufficient funds
+Healthcare Support,Lillah,Noreen Begum,Mrs,07123 456817,,78 Western Road,,Manchester,Greater Manchester,UK,M5 6IJ,880,true,one-off,Approved
+Food Program,Zakat,Adil Hussain,Mr,020 8765 4326,adil.hussain@email.com,90 Brighton Road,,Leicester,East Midlands,UK,LE5 7KL,65,false,Annually,Approved
+Water Well Project,Lillah,Yasmin Qureshi,Mrs,07123 456818,yasmin.qureshi@email.com,12 Portland Street,Flat 9,Bradford,West Yorkshire,UK,BD5 8MN,1800,true,Monthly,Declined because card expired
+Orphan Sponsorship,Sadaqah,Raheel Ahmed,Mr,020 3456 7895,,34 Windsor Road,,Glasgow,Scotland,Scotland,G5 9OP,420,false,Weekly,Approved
+Mosque Construction,Zakat,Saima Malik,Mrs,07123 456819,saima.malik@email.com,56 Albert Road,,Cardiff,Wales,Wales,CF14 0QR,2800,true,one-off,Declined because insufficient funds
+Winter Appeal,Lillah,Waqas Mahmood,Mr,020 9876 5436,waqas.mahmood@email.com,78 Victoria Avenue,Suite 2,Edinburgh,Scotland,Scotland,EH5 1ST,140,true,Monthly,Approved
+Emergency Relief,Sadaqah,Kulsum Patel,Ms,07123 456820,,90 Stanley Road,,Liverpool,Merseyside,UK,L5 2UV,380,false,one-off,Approved
+Education Fund,Zakat,Irfan Siddiqui,Mr,020 1234 5684,irfan.siddiqui@email.com,12 York Road,,Bristol,South West,UK,BS5 3WX,240,true,Weekly,Declined because suspected fraud
+Healthcare Support,Zakat,Shazia Akhtar,Mrs,07123 456821,shazia.akhtar@email.com,34 Lancaster Road,,London,Greater London,UK,SW5 5YZ,720,false,Monthly,Approved
+Food Program,Sadaqah,Tauseef Hassan,Mr,020 8765 4327,,56 Oxford Road,Ground Floor,Birmingham,West Midlands,UK,B6 6AB,105,true,one-off,Declined because insufficient funds
+Water Well Project,Lillah,Nasir Choudhry,Mr,07123 456822,nasir.choudhry@email.com,78 Cambridge Road,,Manchester,Greater Manchester,UK,M6 7CD,2200,true,Annually,Approved
+Orphan Sponsorship,Zakat,Rubina Ali,Mrs,020 3456 7896,rubina.ali@email.com,90 Derby Road,Flat 11,Leicester,East Midlands,UK,LE6 8EF,360,false,Monthly,Approved
+Mosque Construction,Sadaqah,Junaid Khan,Mr,07123 456823,,12 Durham Road,,Bradford,West Yorkshire,UK,BD6 9GH,3800,true,one-off,Declined because card expired
+Winter Appeal,Zakat,Ghazala Begum,Mrs,020 9876 5437,ghazala.begum@email.com,34 Exeter Road,,Glasgow,Scotland,Scotland,G6 0IJ,160,true,Weekly,Approved
+Emergency Relief,Lillah,Sohail Qureshi,Mr,07123 456824,sohail.qureshi@email.com,56 Gloucester Road,Flat 14,Cardiff,Wales,Wales,CF15 1KL,490,false,Monthly,Declined because insufficient funds
+Education Fund,Sadaqah,Nazia Ahmed,Mrs,020 1234 5685,,78 Hereford Road,,Edinburgh,Scotland,Scotland,EH6 2MN,200,true,one-off,Approved
+Healthcare Support,Zakat,Fauzia Malik,Mrs,07123 456825,fauzia.malik@email.com,90 Ipswich Road,,Liverpool,Merseyside,UK,L6 3OP,670,true,Weekly,Declined because suspected fraud
+Food Program,Lillah,Kashif Patel,Mr,020 8765 4328,kashif.patel@email.com,12 Kettering Road,,Bristol,South West,UK,BS6 4QR,80,false,Monthly,Approved
+Emergency Relief,Sadaqah,Najma Hussain,Mrs,07123 456826,najma.hussain@email.com,34 Leicester Road,,London,Greater London,UK,SW6 6ST,410,true,Annually,Approved
+Education Fund,Lillah,Parvez Ali,Mr,020 3456 7897,,56 Manchester Road,Flat 2,Birmingham,West Midlands,UK,B7 7UV,170,false,one-off,Declined because insufficient funds
+Healthcare Support,Zakat,Shaista Begum,Ms,07123 456827,shaista.begum@email.com,78 Newcastle Road,,Manchester,Greater Manchester,UK,M7 8WX,920,true,Monthly,Approved
+Water Well Project,Sadaqah,Atif Khan,Mr,020 9876 5438,atif.khan@email.com,90 Northampton Road,,Leicester,East Midlands,UK,LE7 9YZ,1600,true,Weekly,Declined because card expired
+Orphan Sponsorship,Lillah,Saba Qureshi,Mrs,07123 456828,,12 Oxford Road,Flat 6,Bradford,West Yorkshire,UK,BD7 0AB,340,false,Monthly,Approved
+Mosque Construction,Zakat,Tahir Mahmood,Mr,020 1234 5686,tahir.mahmood@email.com,34 Peterborough Road,,Glasgow,Scotland,Scotland,G7 1CD,3100,true,one-off,Approved
+Winter Appeal,Sadaqah,Rukhsana Ahmed,Mrs,07123 456829,rukhsana.ahmed@email.com,56 Reading Road,,Cardiff,Wales,Wales,CF16 2EF,125,true,Weekly,Declined because insufficient funds
+Emergency Relief,Zakat,Saleem Siddiqui,Mr,020 8765 4329,,78 Salisbury Road,Suite 3,Edinburgh,Scotland,Scotland,EH7 3GH,560,false,Monthly,Approved
+Education Fund,Sadaqah,Azhar Choudhry,Mr,07123 456830,azhar.choudhry@email.com,90 Sheffield Road,,Liverpool,Merseyside,UK,L7 4IJ,210,true,Annually,Declined because suspected fraud
+Healthcare Support,Lillah,Farah Akhtar,Mrs,020 3456 7898,farah.akhtar@email.com,12 Stoke Road,,Bristol,South West,UK,BS7 5KL,890,true,one-off,Approved
+Food Program,Zakat,Aamir Hassan,Mr,07123 456831,,34 Sunderland Road,Ground Floor,London,Greater London,UK,SW7 7MN,70,false,Monthly,Approved
+Water Well Project,Lillah,Danish Ali,Mr,020 9876 5439,danish.ali@email.com,56 Swindon Road,,Birmingham,West Midlands,UK,B8 8OP,1900,true,Weekly,Declined because insufficient funds
+Orphan Sponsorship,Sadaqah,Shama Khan,Mrs,07123 456832,shama.khan@email.com,78 Telford Road,Flat 18,Manchester,Greater Manchester,UK,M8 9QR,390,true,Monthly,Approved
+Mosque Construction,Zakat,Rafiq Begum,Mr,020 1234 5687,,90 Torquay Road,,Leicester,East Midlands,UK,LE8 0ST,2900,false,one-off,Declined because card expired
+Winter Appeal,Lillah,Asifa Qureshi,Mrs,07123 456833,asifa.qureshi@email.com,12 Truro Road,,Bradford,West Yorkshire,UK,BD8 1UV,115,true,Weekly,Approved
+Emergency Relief,Sadaqah,Adnan Malik,Mr,020 8765 4330,adnan.malik@email.com,34 Uxbridge Road,,Glasgow,Scotland,Scotland,G8 2WX,470,false,Monthly,Declined because insufficient funds
+Education Fund,Zakat,Shazad Ahmed,Mr,07123 456834,,56 Wakefield Road,Flat 10,Cardiff,Wales,Wales,CF17 3YZ,230,true,Annually,Approved
+Healthcare Support,Lillah,Naheed Patel,Mrs,020 3456 7899,naheed.patel@email.com,78 Walsall Road,,Edinburgh,Scotland,Scotland,EH8 4AB,840,true,one-off,Declined because suspected fraud
+Food Program,Sadaqah,Fouzia Mahmood,Ms,07123 456835,fouzia.mahmood@email.com,90 Watford Road,,Liverpool,Merseyside,UK,L8 5CD,60,false,Monthly,Approved
+Water Well Project,Zakat,Arshad Hussain,Mr,020 9876 4340,arshad.hussain@email.com,12 Wembley Road,,Bristol,South West,UK,BS8 6EF,1700,true,Weekly,Approved
+Emergency Relief,Lillah,Abida Khan,Mrs,07123 456836,abida.khan@email.com,34 West Road,Flat 13,London,Greater London,UK,SW8 8GH,440,true,Monthly,Declined because insufficient funds
+Education Fund,Sadaqah,Khalid Ali,Mr,020 1234 5688,,56 Whitby Road,,Birmingham,West Midlands,UK,B9 9IJ,160,false,one-off,Approved
+Healthcare Support,Zakat,Najat Begum,Mrs,07123 456837,najat.begum@email.com,78 Wigan Road,Ground Floor,Manchester,Greater Manchester,UK,M9 0KL,760,true,Weekly,Approved
+Food Program,Lillah,Zafar Choudhry,Mr,020 8765 4341,zafar.choudhry@email.com,90 Windsor Road,,Leicester,East Midlands,UK,LE9 1MN,90,true,Monthly,Declined because card expired
+Orphan Sponsorship,Sadaqah,Owais Akhtar,Mr,07123 456838,,12 Witney Road,,Bradford,West Yorkshire,UK,BD9 2OP,370,false,Annually,Approved
+Mosque Construction,Zakat,Sidra Qureshi,Mrs,020 3456 7900,sidra.qureshi@email.com,34 Woking Road,Flat 8,Glasgow,Scotland,Scotland,G9 3QR,2600,true,one-off,Approved
+Winter Appeal,Lillah,Atif Siddiqui,Mr,07123 456839,atif.siddiqui@email.com,56 Woodford Road,,Cardiff,Wales,Wales,CF18 4ST,135,true,Weekly,Declined because insufficient funds
+Emergency Relief,Sadaqah,Seema Ahmed,Mrs,020 9876 4342,,78 Woolwich Road,Suite 4,Edinburgh,Scotland,Scotland,EH9 5UV,510,false,Monthly,Approved
+Education Fund,Zakat,Humayun Malik,Mrs,07123 456840,humayun.malik@email.com,90 Worksop Road,,Liverpool,Merseyside,UK,L9 6WX,190,true,one-off,Declined because suspected fraud
+Healthcare Support,Lillah,Wasim Hassan,Mr,020 1234 5689,wasim.hassan@email.com,12 Worthing Road,,Bristol,South West,UK,BS9 7YZ,870,true,Weekly,Approved
+Food Program,Zakat,Gulshan Khan,Mrs,07123 456841,,34 Wrexham Road,Flat 16,London,Greater London,UK,SW9 9AB,55,false,Monthly,Approved
+Water Well Project,Sadaqah,Ijaz Ali,Mr,020 8765 4343,ijaz.ali@email.com,56 Yeovil Road,,Birmingham,West Midlands,UK,B10 0CD,1400,true,Annually,Declined because insufficient funds
+Orphan Sponsorship,Lillah,Nuzhat Begum,Mrs,07123 456842,nuzhat.begum@email.com,78 York Road,Ground Floor,Manchester,Greater Manchester,UK,M10 1EF,330,true,one-off,Approved
+Mosque Construction,Sadaqah,Mohsin Patel,Mr,020 3456 7901,,90 Yarmouth Road,,Leicester,East Midlands,UK,LE10 2GH,3300,false,Weekly,Approved
+Winter Appeal,Zakat,Asif Qureshi,Mr,07123 456843,asif.qureshi@email.com,12 Andover Road,,Bradford,West Yorkshire,UK,BD10 3IJ,145,true,Monthly,Declined because card expired
+Emergency Relief,Lillah,Yasmeen Akhtar,Mrs,020 9876 4344,yasmeen.akhtar@email.com,34 Banbury Road,Flat 20,Cardiff,Wales,Wales,CF19 4KL,530,true,one-off,Approved
+Education Fund,Sadaqah,Sajid Mahmood,Mr,07123 456844,,56 Barnet Road,,Edinburgh,Scotland,Scotland,EH10 5MN,180,false,Weekly,Declined because insufficient funds
+Healthcare Support,Zakat,Samina Choudhry,Ms,020 1234 5690,samina.choudhry@email.com,78 Basildon Road,,Liverpool,Merseyside,UK,L10 6OP,740,true,Monthly,Approved
+Food Program,Lillah,Fahad Hussain,Mr,07123 456845,fahad.hussain@email.com,90 Basingstoke Road,Suite 5,Bristol,South West,UK,BS10 7QR,100,true,Annually,Declined because suspected fraud
+Water Well Project,Sadaqah,Robina Khan,Mrs,020 8765 4345,robina.khan@email.com,12 Bath Road,,London,Greater London,UK,SW10 8ST,1300,false,Monthly,Approved
