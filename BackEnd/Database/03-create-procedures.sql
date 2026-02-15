@@ -233,4 +233,79 @@ BEGIN
     DELETE FROM imam_question WHERE id = p_id;
 END //
 
+-- donation_history stored procedures
+
+CREATE PROCEDURE IF NOT EXISTS get_donation_transactions(IN p_cause VARCHAR(50), 
+                                                            IN p_donation_intention VARCHAR(7),
+                                                            IN p_email VARCHAR(50),
+                                                            IN p_phone_number VARCHAR(15),
+                                                            IN p_amount INT UNSIGNED,
+                                                            IN p_is_gift_aid BOOLEAN,
+                                                            IN p_donation_frequency VARCHAR(10),
+                                                            IN p_transaction_status VARCHAR(10))
+BEGIN
+    SELECT * FROM donation_history 
+        WHERE (p_cause IS NULL OR cause = p_cause)
+        AND (p_donation_intention IS NULL OR donation_intention = p_donation_intention)
+        AND (p_email IS NULL OR email = p_email)
+        AND (p_phone_number IS NULL OR phone_number = p_phone_number)
+        AND (p_amount IS NULL OR amount = p_amount)
+        AND (p_is_gift_aid IS NULL OR is_gift_aid = p_is_gift_aid)
+        AND (p_donation_frequency IS NULL OR donation_frequency = p_donation_frequency)
+        AND (p_transaction_status IS NULL OR transaction_status = p_transaction_status);
+END //
+
+
+
+CREATE PROCEDURE IF NOT EXISTS insert_donation_transaction(IN p_cause VARCHAR(50),
+                                                            IN p_donation_intention VARCHAR(7),
+                                                            IN p_donor_full_name VARCHAR(50),
+                                                            IN p_donor_title VARCHAR(50),
+                                                            IN p_phone_number VARCHAR(15),
+                                                            IN p_email VARCHAR(50),
+                                                            IN p_address_line_1 VARCHAR(40),
+                                                            IN p_address_line_2 VARCHAR(40),
+                                                            IN p_address_city VARCHAR(30),
+                                                            IN p_address_region VARCHAR(30),
+                                                            IN p_address_country VARCHAR(30),
+                                                            IN p_address_postal VARCHAR(12),
+                                                            IN p_amount INT UNSIGNED,
+                                                            IN p_is_gift_aid BOOLEAN,
+                                                            IN p_donation_frequency VARCHAR(10),
+                                                            IN p_transaction_status VARCHAR(10))
+BEGIN
+    INSERT INTO donation_history (cause,
+        donation_intention, 
+        donor_full_name, 
+        donor_title, 
+        phone_number,
+        email,
+        address_line_1,
+        address_line_2,
+        address_city,
+        address_region,
+        address_country,
+        address_postal,
+        amount,
+        is_gift_aid,
+        donation_frequency,
+        transaction_status)
+    VALUES (p_cause, 
+        p_donation_intention,
+        p_donor_full_name, 
+        p_donor_title, 
+        p_phone_number,
+        p_email,
+        p_address_line_1,
+        p_address_line_2,
+        p_address_city,
+        p_address_region,
+        p_address_country,
+        p_address_postal,
+        p_amount,
+        p_is_gift_aid,
+        p_donation_frequency,
+        p_transaction_status);
+END //
 DELIMITER ;
+

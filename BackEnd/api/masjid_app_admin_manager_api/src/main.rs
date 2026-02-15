@@ -12,6 +12,9 @@ use crate::features::ask_imam::endpoints::{
     delete_imam_question, get_imam_questions, provide_answer_for_imam_question,
 };
 use crate::features::ask_imam::services::{new_ask_imam_admin_service, AskImamAdminService};
+use crate::features::donation::endpoints::get_donation_history::get_donation_history;
+use crate::features::donation::repositories::new_donation_history_admin_repository;
+use crate::features::donation::services::new_donation_history_service;
 use axum::routing::{delete, get, patch, post, put};
 use axum::Router;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
@@ -51,7 +54,15 @@ async fn map_prayer_times() -> Router {
         .with_state(state)
 }
 async fn map_donation() -> Router {
-    panic!("Implement donation controller")
+    let repository = new_donation_history_admin_repository(RepositoryMode::Normal).await;
+    let in_memory_repository =
+        new_donation_history_admin_repository(RepositoryMode::InMemory).await;
+    let state = ServiceAppState {
+        service: new_donation_history_service(repository, in_memory_repository).await,
+    };
+    Router::new()
+        .route("/", get(get_donation_history))
+        .with_state(state)
 }
 async fn map_events() -> Router {
     let state = AppState {
@@ -95,11 +106,14 @@ async fn map_endpoints() -> Router {
     let ask_imam_routes = map_ask_imam().await;
     tracing::info!("Mapped Ask Imam Routes");
     let router = Router::new();
+    let donation_routes = map_donation().await;
+    tracing::info!("Mapped Donation Routes");
     router
         .nest("/authentication", authentication_routes)
         .nest("/prayer-times", prayer_times_routes)
         .nest("/events", events_routes)
         .nest("/ask-imam", ask_imam_routes)
+        .nest("/donation", donation_routes)
 }
 
 #[tokio::main]

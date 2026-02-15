@@ -7,6 +7,7 @@ pub enum RepositoryType {
     PrayerTimes,
     AskImam,
     Events,
+    Donation,
 }
 
 #[derive(PartialEq)]
@@ -42,6 +43,10 @@ fn get_connection_string(repository_type: RepositoryType) -> &'static str {
             tracing::info!("establishing database connection for retrieving events");
             "EVENTS_CONNECTION"
         }
+        RepositoryType::Donation => {
+            tracing::info!("establishing database connection for donation");
+            "DONATION_CONNECTION"
+        }
     }
 }
 impl MySqlRepository {
@@ -70,6 +75,16 @@ macro_rules! new_repository {
         match $repository_mode {
             RepositoryMode::InMemory => Arc::new(InMemoryRepository::new($repository_type).await),
             RepositoryMode::Normal => Arc::new(MySqlRepository::new($repository_type).await),
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! get_from_repositories_common {
+    ($self:expr, $($get_call:tt)*) => {
+        match $self.in_memory_repository.$($get_call)*.await {
+            Ok(records) => Ok(records),
+            Err(_) => Ok($self.repository.$($get_call)*.await?),
         }
     };
 }

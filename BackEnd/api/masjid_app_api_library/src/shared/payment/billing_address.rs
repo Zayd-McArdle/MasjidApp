@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-#[derive(Debug, Deserialize, Serialize, Validate, Clone)]
+#[derive(Debug, Deserialize, Serialize, Validate, Clone, Default)]
 pub struct BillingAddress {
     #[serde(rename = "line1")]
     #[validate(length(min = 2))]

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::str::FromStr;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, sqlx::Type)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, sqlx::Type)]
 #[serde(rename_all = "lowercase")]
 pub enum Recurrence {
     OneOff,
@@ -11,6 +11,11 @@ pub enum Recurrence {
     Fortnightly,
     Monthly,
     Annually,
+}
+impl Default for Recurrence {
+    fn default() -> Self {
+        Self::OneOff
+    }
 }
 impl Display for Recurrence {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
