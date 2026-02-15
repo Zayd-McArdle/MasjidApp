@@ -4,6 +4,9 @@ mod shared;
 use crate::features::ask_imam::endpoints::get_answered_questions;
 use crate::features::ask_imam::repositories::new_imam_questions_public_repository;
 use crate::features::ask_imam::services::new_ask_imam_public_service;
+use crate::features::donation::endpoints::send_donation::send_donation;
+use crate::features::donation::repositories::new_donation_history_public_repository;
+use crate::features::donation::services::new_donation_public_service;
 use crate::features::events::repositories::new_events_public_repository;
 use crate::features::{ask_imam, events};
 use axum::routing::{get, post, put};
@@ -13,6 +16,7 @@ use features::prayer_times::repositories::new_prayer_times_public_repository;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::data_access::repository_manager::RepositoryMode;
 use masjid_app_api_library::shared::logging::logging;
+use masjid_app_api_library::shared::payment::service::new_payment_service;
 use masjid_app_api_library::shared::types::app_state::{AppState, ServiceAppState};
 use std::collections::HashMap;
 
@@ -38,7 +42,17 @@ async fn map_prayer_times() -> Router {
         .with_state(state)
 }
 async fn map_donation() -> Router {
-    panic!("Implement donation controller")
+    let state = ServiceAppState {
+        service: new_donation_public_service(
+            new_payment_service(),
+            new_donation_history_public_repository(RepositoryMode::Normal).await,
+            new_donation_history_public_repository(RepositoryMode::InMemory).await,
+        )
+        .await,
+    };
+    Router::new()
+        .route("/", post(send_donation))
+        .with_state(state)
 }
 async fn map_events() -> Router {
     let state = AppState {
@@ -77,12 +91,15 @@ async fn map_endpoints() -> Router {
     tracing::info!("Mapped Events Endpoints");
     let ask_imam_routes = map_ask_imam().await;
     tracing::info!("Mapped Ask Imam Endpoints");
+    let donation_routes = map_donation().await;
+    tracing::info!("Mapped Donation Routes");
 
     let router = Router::new();
     router
         .nest("/prayer-times", prayer_times_routes)
         .nest("/events", event_routes)
         .nest("/ask-imam", ask_imam_routes)
+        .nest("/donation", donation_routes)
 }
 
 #[tokio::main]

@@ -5,6 +5,7 @@ use crate::shared::payment::transaction_status::TransactionStatus;
 use crate::shared::types::recurrence::Recurrence;
 use async_trait::async_trait;
 use mockall::automock;
+use std::sync::Arc;
 
 #[automock]
 #[async_trait]
@@ -47,4 +48,8 @@ impl PaymentService for StripePaymentService {
     async fn cancel_subscription(&self, subscription_id: &u64) {
         todo!()
     }
+}
+
+pub fn new_payment_service() -> Arc<dyn PaymentService> {
+    Arc::new(StripePaymentService)
 }

@@ -7,6 +7,7 @@ pub enum RepositoryType {
     PrayerTimes,
     AskImam,
     Events,
+    Donation,
 }
 
 #[derive(PartialEq)]
@@ -41,6 +42,10 @@ fn get_connection_string(repository_type: RepositoryType) -> &'static str {
         RepositoryType::Events => {
             tracing::info!("establishing database connection for retrieving events");
             "EVENTS_CONNECTION"
+        }
+        RepositoryType::Donation => {
+            tracing::info!("establishing database connection for donation");
+            "DONATION_CONNECTION"
         }
     }
 }
