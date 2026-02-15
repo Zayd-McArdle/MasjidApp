@@ -49,3 +49,24 @@ CREATE TABLE IF NOT EXISTS imam_question (
         (imam_name IS NOT NULL AND answer IS NOT NULL AND date_answered IS NOT NULL)
     )
 );
+
+CREATE TABLE IF NOT EXISTS donation_history (
+    id INT NOT NULL AUTO_INCREMENT,
+    cause VARCHAR(50) NOT NULL,
+    donation_intention VARCHAR(7) NOT NULL CHECK (donation_intention IN ('Lillah', 'Sadaqah', 'Zakat')),
+    donor_full_name VARCHAR(50) NOT NULL,
+    donor_title VARCHAR(50) NOT NULL,
+    phone_number VARCHAR(15) NOT NULL,
+    email VARCHAR(50) NULL,
+    address_line_1 VARCHAR(40) NOT NULL,
+    address_line_2 VARCHAR(40) NULL,
+    address_city VARCHAR(30) NOT NULL,
+    address_region VARCHAR(30) NOT NULL,
+    address_country VARCHAR(30) NULL,
+    address_postal VARCHAR(12) NOT NULL,
+    amount INT UNSIGNED NOT NULL,
+    is_gift_aid BOOLEAN NOT NULL,
+    donation_frequency VARCHAR(10) NOT NULL,
+    transaction_status VARCHAR(40) NOT NULL,
+    PRIMARY KEY (id)
+);

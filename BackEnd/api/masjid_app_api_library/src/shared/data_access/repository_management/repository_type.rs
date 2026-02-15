@@ -4,4 +4,5 @@ pub enum RepositoryType {
     PrayerTimes,
     AskImam,
     Events,
+    Donation,
 }

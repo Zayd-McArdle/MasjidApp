@@ -11,6 +11,8 @@ pub const ASK_IMAM_MYSQL_CONNECTION: &'static str = "ASK_IMAM_CONNECTION";
 pub const ASK_IMAM_REDIS_CONNECTION: &'static str = "ASK_IMAM_CONNECTION";
 pub const EVENTS_MYSQL_CONNECTION: &'static str = "EVENTS_CONNECTION";
 pub const EVENTS_REDIS_CONNECTION: &'static str = "EVENTS_CONNECTION";
+pub const DONATION_REDIS_CONNECTION: &'static str = "DONATION_REDIS_CONNECTION";
+pub const DONATION_MYSQL_CONNECTION: &'static str = "DONATION_MYSQL_CONNECTION";
 
 #[inline]
 pub(super) fn get_connection_string(
@@ -41,6 +43,12 @@ pub(super) fn get_connection_string(
         }
         (RepositoryType::Events, RepositoryMode::Normal(NormalDbProvider::MySql)) => {
             EVENTS_MYSQL_CONNECTION
+        }
+        (RepositoryType::Donation, RepositoryMode::InMemory(InMemoryDbProvider::Redis)) => {
+            DONATION_REDIS_CONNECTION
+        }
+        (RepositoryType::Donation, RepositoryMode::Normal(NormalDbProvider::MySql)) => {
+            DONATION_MYSQL_CONNECTION
         }
     }
 }

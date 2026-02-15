@@ -5,6 +5,9 @@ use crate::features::ask_imam::endpoints::ask_question_for_imam::ask_question_fo
 use crate::features::ask_imam::endpoints::get_answered_questions::get_answered_questions;
 use crate::features::ask_imam::repositories::new_imam_questions_public_repository;
 use crate::features::ask_imam::services::new_ask_imam_public_service;
+use crate::features::donation::endpoints::send_donation::send_donation;
+use crate::features::donation::repositories::new_donation_history_public_repository;
+use crate::features::donation::services::new_donation_public_service;
 use crate::features::events::events_public_repository::new_events_public_repository;
 use crate::features::prayer_times::endpoints::get_prayer_times::get_prayer_times;
 use crate::features::prayer_times::endpoints::get_updated_prayer_times::get_updated_prayer_times;
@@ -14,7 +17,6 @@ use crate::features::prayer_times::services::prayer_times_update_checking_servic
 use crate::features::{ask_imam, events};
 use axum::Router;
 use axum::routing::{get, post};
-use features::prayer_times;
 use features::prayer_times::repositories::new_prayer_times_public_repository;
 use masjid_app_api_library::features::events::endpoints::get_events::get_events_common;
 use masjid_app_api_library::features::events::services::event_retrieval_service::{
@@ -27,6 +29,10 @@ use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_prov
 use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
 use masjid_app_api_library::shared::data_access::repository_management::repository_mode::RepositoryMode;
 use masjid_app_api_library::shared::logging::logging;
+use masjid_app_api_library::shared::services::email::email_provider::EmailProvider;
+use masjid_app_api_library::shared::services::email::r#trait::new_email_service;
+use masjid_app_api_library::shared::services::payment::service::factory::new_payment_service;
+use masjid_app_api_library::shared::services::payment::service::payment_service_provider::PaymentServiceProvider;
 use masjid_app_api_library::shared::types::app_state::ServiceAppState;
 use std::sync::Arc;
 
@@ -56,7 +62,22 @@ async fn map_prayer_times() -> Router {
         .with_state(get_updated_prayer_times_app_state)
 }
 async fn map_donation() -> Router {
-    panic!("Implement donation controller")
+    let state = ServiceAppState {
+        service: new_donation_public_service(
+            new_payment_service(PaymentServiceProvider::Stripe),
+            new_email_service(EmailProvider::Lettre),
+            new_donation_history_public_repository(RepositoryMode::Normal(NormalDbProvider::MySql))
+                .await,
+            new_donation_history_public_repository(RepositoryMode::InMemory(
+                InMemoryDbProvider::Redis,
+            ))
+            .await,
+        )
+        .await,
+    };
+    Router::new()
+        .route("/", post(send_donation))
+        .with_state(state)
 }
 async fn map_events() -> Router {
     let state = ServiceAppState::<Arc<dyn EventRetrievalService>> {
@@ -93,12 +114,15 @@ async fn map_endpoints() -> Router {
     tracing::info!("Mapped Events Endpoints");
     let ask_imam_routes = map_ask_imam().await;
     tracing::info!("Mapped Ask Imam Endpoints");
+    let donation_routes = map_donation().await;
+    tracing::info!("Mapped Donation Routes");
 
     let router = Router::new();
     router
         .nest("/prayer-times", prayer_times_routes)
         .nest("/events", event_routes)
         .nest("/ask-imam", ask_imam_routes)
+        .nest("/donation", donation_routes)
 }
 
 #[tokio::main]
