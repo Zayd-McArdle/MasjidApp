@@ -73,43 +73,44 @@ mod test {
             },
         }];
         struct TestCase {
+            description: &'static str,
             expected_in_memory_db_response: Result<Vec<EventDTO>, GetEventsError>,
             expected_db_response: Option<Result<Vec<EventDTO>, GetEventsError>>,
             expected_response_code: StatusCode,
         }
         let test_cases = vec![
-            // When retrieval events fail on in-memory and MySQL database
             TestCase {
+                description: "When retrieval events fail on in-memory and MySQL database",
                 expected_in_memory_db_response: Err(GetEventsError::UnableToGetEvents),
                 expected_db_response: Some(Err(GetEventsError::UnableToGetEvents)),
                 expected_response_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
-            // When retrieval fails on in-memory database but finds no events in MySQL database
             TestCase {
+                description: "When retrieval fails on in-memory database but finds no events in MySQL database",
                 expected_in_memory_db_response: Err(GetEventsError::UnableToGetEvents),
                 expected_db_response: Some(Err(GetEventsError::EventsNotFound)),
                 expected_response_code: StatusCode::NO_CONTENT,
             },
-            // When no events found for in-memory database but retrieval fails for MySQL database
             TestCase {
+                description: "When no events found for in-memory database but retrieval fails for MySQL database",
                 expected_in_memory_db_response: Err(GetEventsError::EventsNotFound),
                 expected_db_response: Some(Err(GetEventsError::UnableToGetEvents)),
                 expected_response_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
-            // When events found for in-memory database
             TestCase {
+                description: "When events found for in-memory database",
                 expected_in_memory_db_response: Ok(events.clone()),
                 expected_db_response: None,
                 expected_response_code: StatusCode::OK,
             },
-            // When events not found for in-memory database but found in MySQL database
             TestCase {
+                description: "When events not found for in-memory database but found in MySQL database",
                 expected_in_memory_db_response: Err(GetEventsError::EventsNotFound),
                 expected_db_response: Some(Ok(events.clone())),
                 expected_response_code: StatusCode::OK,
             },
-            // When events found in MySQL database
             TestCase {
+                description: "When events found in MySQL database",
                 expected_in_memory_db_response: Err(GetEventsError::UnableToGetEvents),
                 expected_db_response: Some(Ok(events.clone())),
                 expected_response_code: StatusCode::OK,
@@ -117,6 +118,7 @@ mod test {
         ];
 
         for case in test_cases {
+            eprintln!("{}", case.description);
             let mut mock_events_in_memory_repository = MockEventsRepository::new();
             let mut mock_events_repository = MockEventsRepository::new();
 
