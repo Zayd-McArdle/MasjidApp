@@ -229,6 +229,7 @@ mod test {
     #[tokio::test]
     async fn test_upsert_event() {
         struct TestCase {
+            description: &'static str,
             request: ValidatedMultipartRequest<EventDTO>,
             file_uploader: FileHandler,
             expected_in_memory_db_response: Option<Result<(), UpsertEventError>>,
@@ -236,8 +237,8 @@ mod test {
             expected_status: StatusCode,
         }
         let test_cases = [
-            //Given the request json is invalid, I should get a bad request
             TestCase {
+                description: "Given the request json is invalid, I should get a bad request",
                 request: ValidatedMultipartRequest {
                     json: EventDTO {
                         id: 0,
@@ -266,16 +267,16 @@ mod test {
                 expected_db_response: None,
                 expected_status: StatusCode::BAD_REQUEST,
             },
-            // Given the json is valid, but event upsertion fails in database, I should get an internal server error
             TestCase {
+                description: "Given the json is valid, but event upsertion fails in database, I should get an internal server error",
                 request: get_valid_upsert_request(false),
                 file_uploader: FileHandler::default(),
                 expected_in_memory_db_response: Some(Err(UpsertEventError::UnableToUpsertEvent)),
                 expected_db_response: Some(Err(UpsertEventError::UnableToUpsertEvent)),
                 expected_status: StatusCode::INTERNAL_SERVER_ERROR,
             },
-            // Given the json is valid and upsertion succeeds, I should get an ok response
             TestCase {
+                description: "Given the json is valid and upsertion succeeds, I should get an ok response",
                 request: get_valid_upsert_request(false),
                 file_uploader: FileHandler::default(),
                 expected_in_memory_db_response: Some(Ok(())),
@@ -284,6 +285,7 @@ mod test {
             },
         ];
         for test_case in test_cases {
+            eprintln!("{}", test_case.description);
             let mut mock_in_memory_repository = MockEventsAdminRepository::new();
             let mut mock_repository = MockEventsAdminRepository::new();
             if let Some(expected_in_memory_db_response) = test_case.expected_in_memory_db_response {
