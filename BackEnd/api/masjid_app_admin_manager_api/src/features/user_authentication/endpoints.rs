@@ -105,6 +105,7 @@ mod tests {
 
     #[derive(Clone)]
     struct TestCase<TRequest, TOk, TErr> {
+        description: &'static str,
         request: TRequest,
         expected_db_response: Option<Result<TOk, TErr>>,
         expected_status_code: StatusCode,
@@ -122,8 +123,8 @@ mod tests {
             password: "Password".to_owned(),
         };
         let test_cases = vec![
-            //Given the request body is empty, I should receive a BAD_REQUEST
             TestCase {
+                description: "Given the request body is empty, I should receive a BAD_REQUEST",
                 request: LoginRequest {
                     username: "".to_string(),
                     password: "".to_string(),
@@ -131,31 +132,37 @@ mod tests {
                 expected_db_response: None,
                 expected_status_code: StatusCode::BAD_REQUEST,
             },
-            //Given the request body is valid but unable to validate login credentials, I should get an INTERNAL_SERVER_ERROR
             TestCase {
+                description:
+                    "Given the request body is valid but unable to validate login credentials, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
                 expected_db_response: Some(Err(LoginError::UnableToLogin)),
                 expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
-            //Given the request body is valid but login credentials are invalid, I should get an UNAUTHORIZED response
             TestCase {
+                description:
+                    "Given the request body is valid but login credentials are invalid, I should get an UNAUTHORIZED response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Err(LoginError::InvalidCredentials)),
                 expected_status_code: StatusCode::UNAUTHORIZED,
             },
-            //Given the request body is valid and when database successfully validates credentials, I should get an OK response
             TestCase {
+                description:
+                    "Given the request body is valid and when database successfully validates credentials, I should get an OK response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Ok("Admin".to_owned())),
                 expected_status_code: StatusCode::OK,
             },
             TestCase {
+                description:
+                    "Given the request body is valid and when database successfully validates credentials, I should get an OK response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Ok("Imam".to_owned())),
                 expected_status_code: StatusCode::OK,
             },
         ];
         for test_case in test_cases {
+            eprintln!("{}", test_case.description);
             let mut mock_repository = MockUserRepository::new();
 
             if let Some(expected_db_response) = test_case.expected_db_response {
@@ -183,6 +190,7 @@ mod tests {
         };
         let test_cases = vec![
             TestCase {
+                description: "Given the request body is empty, I should receive a BAD_REQUEST",
                 request: RegistrationRequest {
                     full_name: "".to_string(),
                     email: "".to_string(),
@@ -194,22 +202,29 @@ mod tests {
                 expected_status_code: StatusCode::BAD_REQUEST,
             },
             TestCase {
+                description:
+                    "Given the request body is valid but registration fails, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
                 expected_db_response: Some(Err(RegistrationError::FailedToRegister)),
                 expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
+                description:
+                    "Given the request body is valid but the user already exists, I should get a CONFLICT response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Err(RegistrationError::UserAlreadyRegistered)),
                 expected_status_code: StatusCode::CONFLICT,
             },
             TestCase {
+                description:
+                    "Given the request body is valid and registration succeeds, I should get a CREATED response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Ok(())),
                 expected_status_code: StatusCode::CREATED,
             },
         ];
         for test_case in test_cases {
+            eprintln!("{}", test_case.description);
             let mut mock_user_repository = MockUserRepository::new();
             if let Some(expected_db_response) = test_case.expected_db_response {
                 mock_user_repository
@@ -233,6 +248,7 @@ mod tests {
         };
         let test_cases = vec![
             TestCase {
+                description: "Given the request body is empty, I should receive a BAD_REQUEST",
                 request: ResetUserPasswordRequest {
                     username: "".to_string(),
                     replacement_password: "".to_string(),
@@ -241,22 +257,29 @@ mod tests {
                 expected_status_code: StatusCode::BAD_REQUEST,
             },
             TestCase {
+                description:
+                    "Given the request body is valid but password reset fails, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
                 expected_db_response: Some(Err(ResetPasswordError::FailedToResetUserPassword)),
                 expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
+                description:
+                    "Given the request body is valid but the user does not exist, I should get a NOT_FOUND response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Err(ResetPasswordError::UserDoesNotExist)),
                 expected_status_code: StatusCode::NOT_FOUND,
             },
             TestCase {
+                description:
+                    "Given the request body is valid and password reset succeeds, I should get an OK response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Ok(())),
                 expected_status_code: StatusCode::OK,
             },
         ];
         for test_case in test_cases {
+            eprintln!("{}", test_case.description);
             let mut mock_user_repository = MockUserRepository::new();
             if let Some(expected_db_response) = test_case.expected_db_response {
                 mock_user_repository
