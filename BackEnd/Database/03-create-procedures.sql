@@ -191,7 +191,8 @@ BEGIN
     SELECT * FROM imam_question WHERE answer IS NOT NULL AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
 END //
 
-CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions_by_topic_and_school_of_thought(IN p_topic VARCHAR(20), IN p_school_of_thought VARCHAR(7))
+CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions_by_topic_and_school_of_thought(IN p_topic VARCHAR(20), 
+                                                                                            IN p_school_of_thought VARCHAR(7))
 BEGIN
     SELECT * FROM imam_question WHERE answer IS NOT NULL AND topic = p_topic AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
 END //
