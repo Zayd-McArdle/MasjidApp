@@ -21,7 +21,8 @@ BEGIN
     VALUES (p_full_name, p_role, p_email, p_username, p_password);
 END //
 
-CREATE PROCEDURE IF NOT EXISTS reset_user_password(IN p_username VARCHAR(200), IN p_password VARCHAR(200))
+CREATE PROCEDURE IF NOT EXISTS reset_user_password(IN p_username VARCHAR(200), 
+                                                    IN p_password VARCHAR(200))
 BEGIN
     UPDATE user_details 
     SET password = p_password 
