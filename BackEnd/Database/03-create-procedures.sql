@@ -11,7 +11,11 @@ BEGIN
     SELECT username, password, role FROM user_details WHERE username = p_username;
 END //
 
-CREATE PROCEDURE IF NOT EXISTS register_user(IN p_full_name VARCHAR(100), IN p_role VARCHAR(50), IN p_email VARCHAR(50), IN p_username VARCHAR(200), IN p_password VARCHAR(200))
+CREATE PROCEDURE IF NOT EXISTS register_user(IN p_full_name VARCHAR(100), 
+                                                IN p_role VARCHAR(50), 
+                                                IN p_email VARCHAR(50), 
+                                                IN p_username VARCHAR(200), 
+                                                IN p_password VARCHAR(200))
 BEGIN
     INSERT INTO user_details (full_name, role, email, username, password) 
     VALUES (p_full_name, p_role, p_email, p_username, p_password);
