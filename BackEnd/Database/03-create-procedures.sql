@@ -53,7 +53,8 @@ BEGIN
     END IF;
 END //
 
-CREATE PROCEDURE IF NOT EXISTS upsert_prayer_times(IN p_data LONGBLOB, IN p_hash CHAR(64))
+CREATE PROCEDURE IF NOT EXISTS upsert_prayer_times(IN p_data LONGBLOB, 
+                                                    IN p_hash CHAR(64))
 BEGIN
     UPDATE prayer_times SET data = p_data, hash = p_hash;
     IF ROW_COUNT() = 0 THEN 
