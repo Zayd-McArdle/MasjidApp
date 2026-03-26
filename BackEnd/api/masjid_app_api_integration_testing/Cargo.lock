@@ -1486,7 +1486,6 @@ dependencies = [
  "sqlx",
  "tokio",
  "tracing",
- "tracing-subscriber",
  "validator",
 ]
 
