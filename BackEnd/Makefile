@@ -13,3 +13,8 @@ build:
 	cd ./api/masjid_app_public_api && cargo build || exit 1
 	cd ./api/masjid_app_admin_manager_api && cargo build || exit 1
 	cd ./api/masjid_app_api_integration_testing && cargo build || exit 1
+clean: 
+	cd ./api/masjid_app_api_library && cargo clean || exit 1
+	cd ./api/masjid_app_public_api && cargo clean || exit 1
+	cd ./api/masjid_app_admin_manager_api && cargo clean || exit 1
+	cd ./api/masjid_app_api_integration_testing && cargo clean || exit 1
