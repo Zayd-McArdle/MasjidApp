@@ -9,6 +9,6 @@ masjid_app_public_api = { path = "../masjid_app_public_api" }
 masjid_app_admin_manager_api = { path = "../masjid_app_admin_manager_api" }
 tracing-subscriber = { version = "0.3.22", features = ["std", "fmt", "json", "env-filter"] }
 tracing = "0.1.44"
-testcontainers = "0.26.2"
+testcontainers = "0.27.3"
 tokio = "1.52.1"
 sqlx = { version = "0.8.6", features = ["runtime-tokio", "tls-native-tls", "mysql", "chrono"] }
