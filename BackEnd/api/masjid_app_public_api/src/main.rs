@@ -10,6 +10,8 @@ use axum::routing::{get, post, put};
 use axum::Router;
 use features::prayer_times;
 use features::prayer_times::repositories::new_prayer_times_public_repository;
+use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;
+use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::data_access::repository_mode::RepositoryMode;
 use masjid_app_api_library::shared::logging::logging;
@@ -21,11 +23,15 @@ async fn map_prayer_times() -> Router {
         repository_map: HashMap::from([
             (
                 DbType::InMemory,
-                new_prayer_times_public_repository(RepositoryMode::InMemory).await,
+                new_prayer_times_public_repository(RepositoryMode::InMemory(
+                    InMemoryDbProvider::Redis,
+                ))
+                .await,
             ),
             (
                 DbType::MySql,
-                new_prayer_times_public_repository(RepositoryMode::Normal).await,
+                new_prayer_times_public_repository(RepositoryMode::Normal(NormalDbProvider::MySql))
+                    .await,
             ),
         ]),
     };
@@ -45,11 +51,12 @@ async fn map_events() -> Router {
         repository_map: HashMap::from([
             (
                 DbType::InMemory,
-                new_events_public_repository(RepositoryMode::InMemory).await,
+                new_events_public_repository(RepositoryMode::InMemory(InMemoryDbProvider::Redis))
+                    .await,
             ),
             (
                 DbType::MySql,
-                new_events_public_repository(RepositoryMode::Normal).await,
+                new_events_public_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await,
             ),
         ]),
     };
@@ -60,8 +67,12 @@ async fn map_events() -> Router {
 async fn map_ask_imam() -> Router {
     let state = ServiceAppState {
         service: new_ask_imam_public_service(
-            new_imam_questions_public_repository(RepositoryMode::Normal).await,
-            new_imam_questions_public_repository(RepositoryMode::InMemory).await,
+            new_imam_questions_public_repository(RepositoryMode::Normal(NormalDbProvider::MySql))
+                .await,
+            new_imam_questions_public_repository(RepositoryMode::InMemory(
+                InMemoryDbProvider::Redis,
+            ))
+            .await,
         ),
     };
     Router::new()
