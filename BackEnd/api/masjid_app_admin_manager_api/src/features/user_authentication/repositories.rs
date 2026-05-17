@@ -3,9 +3,8 @@ use crate::features::user_authentication::errors::{
 };
 use crate::features::user_authentication::models::{LoginDTO, UserAccountDTO};
 use async_trait::async_trait;
-use masjid_app_api_library::shared::data_access::repository_manager::{
-    MySqlRepository, RepositoryType,
-};
+use masjid_app_api_library::shared::data_access::repository_management::mysql_repository::MySqlRepository;
+use masjid_app_api_library::shared::data_access::repository_management::repository_type::RepositoryType;
 use mockall::automock;
 use sqlx::{Error, Row};
 use std::sync::Arc;
