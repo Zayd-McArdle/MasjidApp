@@ -4,7 +4,7 @@ use crate::common::logging::setup_logging;
 use masjid_app_admin_manager_api::features::prayer_times::repositories::new_prayer_times_admin_repository;
 use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesError;
 use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
-use masjid_app_api_library::shared::data_access::repository_manager::RepositoryMode;
+use masjid_app_api_library::shared::data_access::repository_mode::RepositoryMode;
 use masjid_app_public_api::features::prayer_times::repositories::new_prayer_times_public_repository;
 #[tokio::test]
 async fn test_prayer_times() {
@@ -14,7 +14,7 @@ async fn test_prayer_times() {
         password: "HR0o8NRkwvuMaIBh7yaf".to_string(),
         environment_variable: "PRAYER_TIMES_CONNECTION".to_string(),
     })
-        .await;
+    .await;
 
     let public_repository = new_prayer_times_public_repository(RepositoryMode::Normal).await;
     let admin_repository = new_prayer_times_admin_repository().await;

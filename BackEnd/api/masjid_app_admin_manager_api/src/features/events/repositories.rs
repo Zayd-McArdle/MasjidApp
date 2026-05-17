@@ -3,10 +3,10 @@ use async_trait::async_trait;
 use masjid_app_api_library::features::events::models::Event;
 use masjid_app_api_library::features::events::repositories::EventsRepository;
 use masjid_app_api_library::new_repository;
-use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::data_access::repository_manager::{
-    InMemoryRepository, MySqlRepository, RepositoryMode, RepositoryType,
+    InMemoryRepository, MySqlRepository, RepositoryType,
 };
+use masjid_app_api_library::shared::data_access::repository_mode::RepositoryMode;
 use sqlx::Row;
 use std::sync::Arc;
 

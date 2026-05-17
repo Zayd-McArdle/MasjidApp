@@ -9,11 +9,6 @@ pub enum RepositoryType {
     Events,
 }
 
-#[derive(PartialEq)]
-pub enum RepositoryMode {
-    InMemory,
-    Normal,
-}
 pub struct InMemoryRepository {}
 
 impl InMemoryRepository {

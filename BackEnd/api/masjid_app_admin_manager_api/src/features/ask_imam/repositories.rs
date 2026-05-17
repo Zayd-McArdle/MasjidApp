@@ -10,8 +10,9 @@ use masjid_app_api_library::features::ask_imam::repositories::{
 use masjid_app_api_library::new_repository;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::data_access::repository_manager::{
-    InMemoryRepository, MySqlRepository, RepositoryMode, RepositoryType,
+    InMemoryRepository, MySqlRepository, RepositoryType,
 };
+use masjid_app_api_library::shared::data_access::repository_mode::RepositoryMode;
 use std::sync::Arc;
 
 #[async_trait]

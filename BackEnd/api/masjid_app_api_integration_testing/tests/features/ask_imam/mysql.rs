@@ -7,7 +7,7 @@ use masjid_app_api_library::features::ask_imam::errors::GetQuestionsError;
 use masjid_app_api_library::features::ask_imam::models::{
     Answer, ImamQuestion, ImamQuestionDTO, SchoolOfThought,
 };
-use masjid_app_api_library::shared::data_access::repository_manager::RepositoryMode;
+use masjid_app_api_library::shared::data_access::repository_mode::RepositoryMode;
 use masjid_app_public_api::features::ask_imam::repositories::new_imam_questions_public_repository;
 use sqlx::types::chrono;
 

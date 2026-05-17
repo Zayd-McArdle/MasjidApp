@@ -4,8 +4,10 @@ use crate::common::logging::setup_logging;
 use masjid_app_admin_manager_api::features::events::errors::DeleteEventError;
 use masjid_app_admin_manager_api::features::events::repositories::new_events_admin_repository;
 use masjid_app_api_library::features::events::errors::GetEventsError;
-use masjid_app_api_library::features::events::models::{Event, EventDTO, EventRecurrence, EventStatus, EventType};
-use masjid_app_api_library::shared::data_access::repository_manager::RepositoryMode;
+use masjid_app_api_library::features::events::models::{
+    Event, EventDTO, EventRecurrence, EventStatus, EventType,
+};
+use masjid_app_api_library::shared::data_access::repository_mode::RepositoryMode;
 use masjid_app_public_api::features::events::repositories::new_events_public_repository;
 
 #[tokio::test]
@@ -15,12 +17,11 @@ async fn test_events() {
         username: "eventsadmin".to_string(),
         password: "changeme".to_string(),
         environment_variable: "EVENTS_CONNECTION".to_string(),
-    }).await;
+    })
+    .await;
 
     let public_repository = new_events_public_repository(RepositoryMode::Normal).await;
     let admin_repository = new_events_admin_repository(RepositoryMode::Normal).await;
-
-
 
     // Given no events exist, I should receive an error when deleting an event
     let delete_event_result = admin_repository.delete_event_by_id(&1).await.unwrap_err();
@@ -29,7 +30,7 @@ async fn test_events() {
     // When I try to retrieve events from an empty database, I should get an error
     let get_events_result = public_repository.get_events().await.unwrap_err();
     assert_eq!(get_events_result, GetEventsError::EventsNotFound);
-    let mut event = Event{
+    let mut event = Event {
         id: 0,
         title: "This is my event".to_string(),
         description: Some("This is my description".to_owned()),
@@ -54,7 +55,7 @@ async fn test_events() {
     event.id = 1;
     assert_eq!(get_events_result, vec![EventDTO::from(event)]);
     // When I update my event, I should get no error
-    let event = Event{
+    let event = Event {
         id: 1,
         title: "This is my updated event".to_string(),
         description: Some("This is my updated description".to_owned()),
