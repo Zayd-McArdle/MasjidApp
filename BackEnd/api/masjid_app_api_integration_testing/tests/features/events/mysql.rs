@@ -7,6 +7,7 @@ use masjid_app_api_library::features::events::errors::GetEventsError;
 use masjid_app_api_library::features::events::models::{
     Event, EventDTO, EventRecurrence, EventStatus, EventType,
 };
+use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
 use masjid_app_api_library::shared::data_access::repository_mode::RepositoryMode;
 use masjid_app_public_api::features::events::repositories::new_events_public_repository;
 
@@ -20,8 +21,10 @@ async fn test_events() {
     })
     .await;
 
-    let public_repository = new_events_public_repository(RepositoryMode::Normal).await;
-    let admin_repository = new_events_admin_repository(RepositoryMode::Normal).await;
+    let public_repository =
+        new_events_public_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await;
+    let admin_repository =
+        new_events_admin_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await;
 
     // Given no events exist, I should receive an error when deleting an event
     let delete_event_result = admin_repository.delete_event_by_id(&1).await.unwrap_err();

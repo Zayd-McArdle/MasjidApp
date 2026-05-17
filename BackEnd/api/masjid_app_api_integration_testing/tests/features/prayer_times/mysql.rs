@@ -4,6 +4,7 @@ use crate::common::logging::setup_logging;
 use masjid_app_admin_manager_api::features::prayer_times::repositories::new_prayer_times_admin_repository;
 use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesError;
 use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
+use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
 use masjid_app_api_library::shared::data_access::repository_mode::RepositoryMode;
 use masjid_app_public_api::features::prayer_times::repositories::new_prayer_times_public_repository;
 #[tokio::test]
@@ -16,7 +17,8 @@ async fn test_prayer_times() {
     })
     .await;
 
-    let public_repository = new_prayer_times_public_repository(RepositoryMode::Normal).await;
+    let public_repository =
+        new_prayer_times_public_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await;
     let admin_repository = new_prayer_times_admin_repository().await;
 
     //Given no prayer times exist, I should receive an error

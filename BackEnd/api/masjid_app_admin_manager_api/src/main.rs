@@ -14,6 +14,8 @@ use crate::features::ask_imam::endpoints::{
 use crate::features::ask_imam::services::{new_ask_imam_admin_service, AskImamAdminService};
 use axum::routing::{delete, get, patch, post, put};
 use axum::Router;
+use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;
+use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::data_access::repository_mode::RepositoryMode;
 use masjid_app_api_library::shared::logging::logging;
@@ -58,11 +60,12 @@ async fn map_events() -> Router {
         repository_map: HashMap::from([
             (
                 DbType::InMemory,
-                new_events_admin_repository(RepositoryMode::InMemory).await,
+                new_events_admin_repository(RepositoryMode::InMemory(InMemoryDbProvider::Redis))
+                    .await,
             ),
             (
                 DbType::MySql,
-                new_events_admin_repository(RepositoryMode::Normal).await,
+                new_events_admin_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await,
             ),
         ]),
     };
@@ -75,8 +78,12 @@ async fn map_events() -> Router {
 async fn map_ask_imam() -> Router {
     let state = ServiceAppState::<Arc<dyn AskImamAdminService>> {
         service: new_ask_imam_admin_service(
-            new_imam_questions_admin_repository(RepositoryMode::Normal).await,
-            new_imam_questions_admin_repository(RepositoryMode::InMemory).await,
+            new_imam_questions_admin_repository(RepositoryMode::Normal(NormalDbProvider::MySql))
+                .await,
+            new_imam_questions_admin_repository(RepositoryMode::InMemory(
+                InMemoryDbProvider::Redis,
+            ))
+            .await,
         ),
     };
     Router::new()
