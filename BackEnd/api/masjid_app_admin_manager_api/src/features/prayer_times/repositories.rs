@@ -3,9 +3,8 @@ use async_trait::async_trait;
 use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
 use masjid_app_api_library::features::prayer_times::repositories::PrayerTimesRepository;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
-use masjid_app_api_library::shared::data_access::repository_manager::{
-    MySqlRepository, RepositoryType,
-};
+use masjid_app_api_library::shared::data_access::repository_management::mysql_repository::MySqlRepository;
+use masjid_app_api_library::shared::data_access::repository_management::repository_type::RepositoryType;
 use std::sync::Arc;
 
 #[async_trait]

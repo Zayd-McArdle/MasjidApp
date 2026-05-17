@@ -1,10 +1,11 @@
+use crate::features::events::errors::GetEventsError;
+use crate::features::events::models::{Event, EventDTO};
+use crate::shared::data_access::repository_management::in_memory_repository::InMemoryRepository;
+use crate::shared::data_access::repository_management::mysql_repository::MySqlRepository;
 use async_trait::async_trait;
 use mockall::automock;
 use sqlx::mysql::MySqlRow;
 use sqlx::{Error, Row};
-use crate::features::events::errors::GetEventsError;
-use crate::features::events::models::{Event, EventDTO};
-use crate::shared::data_access::repository_manager::{InMemoryRepository, MySqlRepository};
 
 #[automock]
 #[async_trait]

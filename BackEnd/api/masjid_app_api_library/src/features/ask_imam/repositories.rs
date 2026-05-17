@@ -1,6 +1,7 @@
 use crate::features::ask_imam::errors::GetQuestionsError;
 use crate::features::ask_imam::models::{ImamQuestion, ImamQuestionDTO, SchoolOfThought};
-use crate::shared::data_access::repository_manager::{InMemoryRepository, MySqlRepository};
+use crate::shared::data_access::repository_management::in_memory_repository::InMemoryRepository;
+use crate::shared::data_access::repository_management::mysql_repository::MySqlRepository;
 use async_trait::async_trait;
 use mockall::automock;
 use sqlx::mysql::MySqlRow;

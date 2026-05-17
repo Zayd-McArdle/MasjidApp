@@ -13,7 +13,7 @@ use features::prayer_times::repositories::new_prayer_times_public_repository;
 use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;
 use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
-use masjid_app_api_library::shared::data_access::repository_mode::RepositoryMode;
+use masjid_app_api_library::shared::data_access::repository_management::repository_mode::RepositoryMode;
 use masjid_app_api_library::shared::logging::logging;
 use masjid_app_api_library::shared::types::app_state::{AppState, ServiceAppState};
 use std::collections::HashMap;
