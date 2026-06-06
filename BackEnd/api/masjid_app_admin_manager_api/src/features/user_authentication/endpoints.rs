@@ -1,5 +1,5 @@
 use crate::features::user_authentication::errors::{
-    LoginError, RegistrationError, ResetPasswordError,
+    GetUserError, InsertNewUserError, UpdateUserPasswordError,
 };
 use crate::features::user_authentication::models::{
     LoginRequest, RegistrationRequest, ResetUserPasswordRequest, UserAccountDTO,
@@ -30,7 +30,7 @@ pub(crate) async fn login(
         .repository_map
         .get(&DbType::MySql)
         .unwrap()
-        .login(&request.username, &request.password)
+        .get_user_by_credentials(&request.username, &request.password)
         .await;
     match login_result {
         Ok(role) => {
@@ -41,8 +41,10 @@ pub(crate) async fn login(
             }
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
-        Err(LoginError::InvalidCredentials) => StatusCode::UNAUTHORIZED.into_response(),
-        Err(LoginError::UnableToLogin) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+        Err(GetUserError::NotFound) => StatusCode::UNAUTHORIZED.into_response(),
+        Err(GetUserError::DatabaseError) | Err(GetUserError::UnableToVerifyPasswordHash) => {
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
     }
 }
 
@@ -64,14 +66,12 @@ pub(crate) async fn register_user(
         .repository_map
         .get(&DbType::MySql)
         .unwrap()
-        .register_user(new_user.clone())
+        .insert_new_user(new_user.clone())
         .await;
     match register_user_result {
         Ok(()) => StatusCode::CREATED.into_response(),
-        Err(RegistrationError::UserAlreadyRegistered) => StatusCode::CONFLICT.into_response(),
-        Err(RegistrationError::FailedToRegister) => {
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
+        Err(InsertNewUserError::UserExists) => StatusCode::CONFLICT.into_response(),
+        Err(InsertNewUserError::DatabaseError) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     }
 }
 
@@ -86,12 +86,12 @@ pub(crate) async fn reset_user_password(
         .repository_map
         .get(&DbType::MySql)
         .unwrap()
-        .reset_user_password(&request.username, &request.replacement_password)
+        .update_user_password(&request.username, &request.replacement_password)
         .await;
     match password_reset_result {
         Ok(()) => StatusCode::OK.into_response(),
-        Err(ResetPasswordError::UserDoesNotExist) => StatusCode::NOT_FOUND.into_response(),
-        Err(ResetPasswordError::FailedToResetUserPassword) => {
+        Err(UpdateUserPasswordError::UserDoesNotExist) => StatusCode::NOT_FOUND.into_response(),
+        Err(UpdateUserPasswordError::DatabaseError) => {
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
@@ -135,13 +135,13 @@ mod tests {
             TestCase {
                 description: "Given the request body is valid but unable to validate login credentials, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
-                expected_db_response: Some(Err(LoginError::UnableToLogin)),
+                expected_db_response: Some(Err(GetUserError::DatabaseError)),
                 expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
                 description: "Given the request body is valid but login credentials are invalid, I should get an UNAUTHORIZED response",
                 request: valid_request.clone(),
-                expected_db_response: Some(Err(LoginError::InvalidCredentials)),
+                expected_db_response: Some(Err(GetUserError::NotFound)),
                 expected_status_code: StatusCode::UNAUTHORIZED,
             },
             TestCase {
@@ -163,7 +163,7 @@ mod tests {
 
             if let Some(expected_db_response) = test_case.expected_db_response {
                 mock_repository
-                    .expect_login()
+                    .expect_get_user_by_credentials()
                     .returning(move |username, password| expected_db_response.clone());
             }
             let arc_repository: Arc<dyn UserRepository> = Arc::new(mock_repository);
@@ -200,13 +200,13 @@ mod tests {
             TestCase {
                 description: "Given the request body is valid but registration fails, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
-                expected_db_response: Some(Err(RegistrationError::FailedToRegister)),
+                expected_db_response: Some(Err(InsertNewUserError::DatabaseError)),
                 expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
                 description: "Given the request body is valid but the user already exists, I should get a CONFLICT response",
                 request: valid_request.clone(),
-                expected_db_response: Some(Err(RegistrationError::UserAlreadyRegistered)),
+                expected_db_response: Some(Err(InsertNewUserError::UserExists)),
                 expected_status_code: StatusCode::CONFLICT,
             },
             TestCase {
@@ -221,7 +221,7 @@ mod tests {
             let mut mock_user_repository = MockUserRepository::new();
             if let Some(expected_db_response) = test_case.expected_db_response {
                 mock_user_repository
-                    .expect_register_user()
+                    .expect_insert_new_user()
                     .returning(move |dto| expected_db_response.clone());
             }
             let arc_repository: Arc<dyn UserRepository> = Arc::new(mock_user_repository);
@@ -252,13 +252,13 @@ mod tests {
             TestCase {
                 description: "Given the request body is valid but password reset fails, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
-                expected_db_response: Some(Err(ResetPasswordError::FailedToResetUserPassword)),
+                expected_db_response: Some(Err(UpdateUserPasswordError::DatabaseError)),
                 expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
                 description: "Given the request body is valid but the user does not exist, I should get a NOT_FOUND response",
                 request: valid_request.clone(),
-                expected_db_response: Some(Err(ResetPasswordError::UserDoesNotExist)),
+                expected_db_response: Some(Err(UpdateUserPasswordError::UserDoesNotExist)),
                 expected_status_code: StatusCode::NOT_FOUND,
             },
             TestCase {
@@ -273,7 +273,7 @@ mod tests {
             let mut mock_user_repository = MockUserRepository::new();
             if let Some(expected_db_response) = test_case.expected_db_response {
                 mock_user_repository
-                    .expect_reset_user_password()
+                    .expect_update_user_password()
                     .returning(move |username, password| expected_db_response.clone());
             }
             let arc_repository: Arc<dyn UserRepository> = Arc::new(mock_user_repository);

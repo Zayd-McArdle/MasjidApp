@@ -1,17 +1,18 @@
 #[derive(Clone, Debug, PartialEq)]
-pub enum LoginError {
-    InvalidCredentials,
-    UnableToLogin,
+pub enum GetUserError {
+    NotFound,
+    UnableToVerifyPasswordHash,
+    DatabaseError,
 }
 
 #[derive(Clone)]
-pub enum RegistrationError {
-    UserAlreadyRegistered,
-    FailedToRegister,
+pub enum InsertNewUserError {
+    UserExists,
+    DatabaseError,
 }
 
 #[derive(Clone, PartialEq, Debug)]
-pub enum ResetPasswordError {
+pub enum UpdateUserPasswordError {
     UserDoesNotExist,
-    FailedToResetUserPassword,
+    DatabaseError,
 }
