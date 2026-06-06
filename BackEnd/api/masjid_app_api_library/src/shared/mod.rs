@@ -1,3 +1,4 @@
+pub mod common_service_impl;
 pub mod data_access;
 pub mod extractors;
 pub mod logging;
