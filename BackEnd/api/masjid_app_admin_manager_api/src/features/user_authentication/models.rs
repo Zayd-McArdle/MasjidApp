@@ -9,7 +9,7 @@ pub struct LoginRequest {
     pub password: String,
 }
 
-#[derive(sqlx::FromRow, Clone)]
+#[derive(Debug, sqlx::FromRow, Clone)]
 pub struct LoginDTO {
     pub username: String,
     pub password: String,
