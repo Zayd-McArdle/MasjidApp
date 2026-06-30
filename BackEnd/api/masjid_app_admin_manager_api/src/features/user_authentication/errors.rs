@@ -4,7 +4,7 @@ pub enum GetUserError {
     DatabaseError,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum InsertNewUserError {
     UserExists,
     DatabaseError,
