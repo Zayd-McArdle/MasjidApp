@@ -11,7 +11,14 @@ use crate::features::{prayer_times, user_authentication};
 use crate::features::ask_imam::endpoints::{
     delete_imam_question, get_imam_questions, provide_answer_for_imam_question,
 };
-use crate::features::ask_imam::services::{AskImamAdminService, new_ask_imam_admin_service};
+use crate::features::ask_imam::services::{new_ask_imam_admin_service, AskImamAdminService};
+use crate::features::user_authentication::services::login_service::{
+    new_login_service, LoginService,
+};
+use crate::features::user_authentication::services::reset_password_service::new_reset_password_service;
+use crate::features::user_authentication::services::user_registration_service::{
+    new_user_registration_service, UserRegistrationService,
+};
 use axum::Router;
 use axum::routing::{delete, get, patch, post, put};
 use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;
@@ -19,26 +26,45 @@ use masjid_app_api_library::shared::data_access::db_providers::normal_db_provide
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::data_access::repository_management::repository_mode::RepositoryMode;
 use masjid_app_api_library::shared::logging::logging;
+use masjid_app_api_library::shared::services::hashing::providers::HashingProvider;
+use masjid_app_api_library::shared::services::hashing::r#trait::new_hashing_service;
 use masjid_app_api_library::shared::types::app_state::{AppState, ServiceAppState};
 use std::collections::HashMap;
 use std::sync::Arc;
 
 async fn map_user_authentication() -> Router {
-    let state = AppState {
-        repository_map: HashMap::from([(DbType::MySql, new_user_repository().await)]),
+    let login_app_state = ServiceAppState {
+        service: new_login_service(
+            new_hashing_service(HashingProvider::Bcrypt),
+            new_user_repository().await,
+        ),
+    };
+    let user_registration_app_state = ServiceAppState {
+        service: new_user_registration_service(
+            new_hashing_service(HashingProvider::Bcrypt),
+            new_user_repository().await,
+        ),
+    };
+    let reset_password_app_state = ServiceAppState {
+        service: new_reset_password_service(
+            new_hashing_service(HashingProvider::Bcrypt),
+            new_user_repository().await,
+        ),
     };
 
     Router::new()
         .route("/login", post(user_authentication::endpoints::login))
+        .with_state(login_app_state)
         .route(
             "/register-user",
             post(user_authentication::endpoints::register_user),
         )
+        .with_state(user_registration_app_state)
         .route(
             "/reset-password",
             patch(user_authentication::endpoints::reset_user_password),
         )
-        .with_state(state)
+        .with_state(reset_password_app_state)
 }
 async fn map_prayer_times() -> Router {
     let state = AppState {

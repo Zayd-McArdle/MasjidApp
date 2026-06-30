@@ -1,22 +1,24 @@
-use crate::features::user_authentication::errors::{
-    GetUserError, InsertNewUserError, UpdateUserPasswordError,
-};
 use crate::features::user_authentication::models::{
     LoginRequest, RegistrationRequest, ResetUserPasswordRequest, UserAccountDTO,
 };
 use crate::features::user_authentication::repositories::UserRepository;
+use crate::features::user_authentication::services::errors::login_error::LoginError;
+use crate::features::user_authentication::services::errors::reset_password_error::ResetPasswordError;
+use crate::features::user_authentication::services::errors::user_registration_error::UserRegistrationError;
+use crate::features::user_authentication::services::login_service::LoginService;
+use crate::features::user_authentication::services::reset_password_service::ResetPasswordService;
+use crate::features::user_authentication::services::user_registration_service::UserRegistrationService;
 use crate::shared::jwt;
-use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use masjid_app_api_library::shared::data_access::db_type::DbType;
-use masjid_app_api_library::shared::types::app_state::AppState;
+use axum::Json;
+use masjid_app_api_library::shared::types::app_state::ServiceAppState;
 use std::sync::Arc;
 use validator::Validate;
 
 pub(crate) async fn login(
-    State(state): State<AppState<Arc<dyn UserRepository>>>,
+    State(state): State<ServiceAppState<Arc<dyn LoginService>>>,
     Json(request): Json<LoginRequest>,
 ) -> Response {
     if let Err(_) = request.validate() {
@@ -26,11 +28,10 @@ pub(crate) async fn login(
         )
             .into_response();
     }
-    let mut login_result = state
-        .repository_map
-        .get(&DbType::MySql)
-        .unwrap()
-        .get_user_by_credentials(&request.username, &request.password)
+
+    let login_result = state
+        .service
+        .login(&request.username, &request.password)
         .await;
     match login_result {
         Ok(role) => {
@@ -41,15 +42,15 @@ pub(crate) async fn login(
             }
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
-        Err(GetUserError::NotFound) => StatusCode::UNAUTHORIZED.into_response(),
-        Err(GetUserError::DatabaseError) | Err(GetUserError::UnableToVerifyPasswordHash) => {
+        Err(LoginError::InvalidCredentials) => StatusCode::UNAUTHORIZED.into_response(),
+        Err(LoginError::UnableToLogin) | Err(LoginError::UnableToVerifyPasswordHash) => {
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
 }
 
 pub(crate) async fn register_user(
-    State(state): State<AppState<Arc<dyn UserRepository>>>,
+    State(state): State<ServiceAppState<Arc<dyn UserRegistrationService>>>,
     Json(request): Json<RegistrationRequest>,
 ) -> Response {
     if let Err(_) = request.validate() {
@@ -62,36 +63,33 @@ pub(crate) async fn register_user(
         username: request.username,
         password: request.password,
     };
-    let mut register_user_result = state
-        .repository_map
-        .get(&DbType::MySql)
-        .unwrap()
-        .insert_new_user(new_user.clone())
-        .await;
-    match register_user_result {
+    match state.service.register_user(new_user).await {
         Ok(()) => StatusCode::CREATED.into_response(),
-        Err(InsertNewUserError::UserExists) => StatusCode::CONFLICT.into_response(),
-        Err(InsertNewUserError::DatabaseError) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+        Err(UserRegistrationError::UserAlreadyRegistered) => StatusCode::CONFLICT.into_response(),
+        Err(UserRegistrationError::UnableToRegisterToRepository)
+        | Err(UserRegistrationError::UnableToHashPassword(_)) => {
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
     }
 }
 
 pub(crate) async fn reset_user_password(
-    State(state): State<AppState<Arc<dyn UserRepository>>>,
+    State(state): State<ServiceAppState<Arc<dyn ResetPasswordService>>>,
     Json(request): Json<ResetUserPasswordRequest>,
 ) -> Response {
     if let Err(_) = request.validate() {
         return StatusCode::BAD_REQUEST.into_response();
     }
-    let mut password_reset_result = state
-        .repository_map
-        .get(&DbType::MySql)
-        .unwrap()
-        .update_user_password(&request.username, &request.replacement_password)
-        .await;
-    match password_reset_result {
+
+    match state
+        .service
+        .reset_password(&request.username, &request.replacement_password)
+        .await
+    {
         Ok(()) => StatusCode::OK.into_response(),
-        Err(UpdateUserPasswordError::UserDoesNotExist) => StatusCode::NOT_FOUND.into_response(),
-        Err(UpdateUserPasswordError::DatabaseError) => {
+        Err(ResetPasswordError::UserDoesNotExist) => StatusCode::NOT_FOUND.into_response(),
+        Err(ResetPasswordError::UnableToResetPassword)
+        | Err(ResetPasswordError::UnableToHashPassword(_)) => {
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
@@ -100,14 +98,15 @@ pub(crate) async fn reset_user_password(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::features::user_authentication::repositories::MockUserRepository;
-    use std::collections::HashMap;
+    use crate::features::user_authentication::services::login_service::MockLoginService;
+    use crate::features::user_authentication::services::reset_password_service::MockResetPasswordService;
+    use crate::features::user_authentication::services::user_registration_service::MockUserRegistrationService;
 
     #[derive(Clone)]
     struct TestCase<TRequest, TOk, TErr> {
         description: &'static str,
         request: TRequest,
-        expected_db_response: Option<Result<TOk, TErr>>,
+        expected_service_response: Option<Result<TOk, TErr>>,
         expected_status_code: StatusCode,
     }
     enum ApiType {
@@ -129,47 +128,46 @@ mod tests {
                     username: "".to_string(),
                     password: "".to_string(),
                 },
-                expected_db_response: None,
+                expected_service_response: None,
                 expected_status_code: StatusCode::BAD_REQUEST,
             },
             TestCase {
                 description: "Given the request body is valid but unable to validate login credentials, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
-                expected_db_response: Some(Err(GetUserError::DatabaseError)),
+                expected_service_response: Some(Err(LoginError::UnableToLogin)),
                 expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
                 description: "Given the request body is valid but login credentials are invalid, I should get an UNAUTHORIZED response",
                 request: valid_request.clone(),
-                expected_db_response: Some(Err(GetUserError::NotFound)),
+                expected_service_response: Some(Err(LoginError::InvalidCredentials)),
                 expected_status_code: StatusCode::UNAUTHORIZED,
             },
             TestCase {
                 description: "Given the request body is valid and when database successfully validates credentials, I should get an OK response",
                 request: valid_request.clone(),
-                expected_db_response: Some(Ok("Admin".to_owned())),
+                expected_service_response: Some(Ok("Admin".to_owned())),
                 expected_status_code: StatusCode::OK,
             },
             TestCase {
                 description: "Given the request body is valid and when database successfully validates credentials, I should get an OK response",
                 request: valid_request.clone(),
-                expected_db_response: Some(Ok("Imam".to_owned())),
+                expected_service_response: Some(Ok("Imam".to_owned())),
                 expected_status_code: StatusCode::OK,
             },
         ];
         for test_case in test_cases {
             eprintln!("{}", test_case.description);
-            let mut mock_repository = MockUserRepository::new();
+            let mut mock_service = MockLoginService::new();
 
-            if let Some(expected_db_response) = test_case.expected_db_response {
-                mock_repository
-                    .expect_get_user_by_credentials()
-                    .returning(move |username, password| expected_db_response.clone());
+            if let Some(expected_service_response) = test_case.expected_service_response {
+                mock_service
+                    .expect_login()
+                    .return_once(move |_, _| expected_service_response);
             }
-            let arc_repository: Arc<dyn UserRepository> = Arc::new(mock_repository);
-            let repository_map: HashMap<DbType, Arc<dyn UserRepository>> =
-                HashMap::from([(DbType::MySql, arc_repository)]);
-            let app_state: AppState<Arc<dyn UserRepository>> = AppState { repository_map };
+            let app_state = ServiceAppState::<Arc<dyn LoginService>> {
+                service: Arc::new(mock_service),
+            };
             let actual_response = login(State(app_state), Json(test_case.request)).await;
             assert_eq!(test_case.expected_status_code, actual_response.status());
         }
@@ -194,39 +192,41 @@ mod tests {
                     username: "".to_string(),
                     password: "".to_string(),
                 },
-                expected_db_response: None,
+                expected_service_response: None,
                 expected_status_code: StatusCode::BAD_REQUEST,
             },
             TestCase {
                 description: "Given the request body is valid but registration fails, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
-                expected_db_response: Some(Err(InsertNewUserError::DatabaseError)),
+                expected_service_response: Some(Err(
+                    UserRegistrationError::UnableToRegisterToRepository,
+                )),
                 expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
                 description: "Given the request body is valid but the user already exists, I should get a CONFLICT response",
                 request: valid_request.clone(),
-                expected_db_response: Some(Err(InsertNewUserError::UserExists)),
+                expected_service_response: Some(Err(UserRegistrationError::UserAlreadyRegistered)),
                 expected_status_code: StatusCode::CONFLICT,
             },
             TestCase {
                 description: "Given the request body is valid and registration succeeds, I should get a CREATED response",
                 request: valid_request.clone(),
-                expected_db_response: Some(Ok(())),
+                expected_service_response: Some(Ok(())),
                 expected_status_code: StatusCode::CREATED,
             },
         ];
         for test_case in test_cases {
             eprintln!("{}", test_case.description);
-            let mut mock_user_repository = MockUserRepository::new();
-            if let Some(expected_db_response) = test_case.expected_db_response {
-                mock_user_repository
-                    .expect_insert_new_user()
-                    .returning(move |dto| expected_db_response.clone());
+            let mut mock_service = MockUserRegistrationService::new();
+            if let Some(expected_service_response) = test_case.expected_service_response {
+                mock_service
+                    .expect_register_user()
+                    .return_once(|_| expected_service_response);
             }
-            let arc_repository: Arc<dyn UserRepository> = Arc::new(mock_user_repository);
-            let app_state: AppState<Arc<dyn UserRepository>> = AppState {
-                repository_map: HashMap::from([(DbType::MySql, arc_repository)]),
+            let arc_service: Arc<dyn UserRegistrationService> = Arc::new(mock_service);
+            let app_state = ServiceAppState {
+                service: arc_service,
             };
             let actual_response = register_user(State(app_state), Json(test_case.request)).await;
             assert_eq!(test_case.expected_status_code, actual_response.status());
@@ -246,41 +246,43 @@ mod tests {
                     username: "".to_string(),
                     replacement_password: "".to_string(),
                 },
-                expected_db_response: None,
+                expected_service_response: None,
                 expected_status_code: StatusCode::BAD_REQUEST,
             },
             TestCase {
                 description: "Given the request body is valid but password reset fails, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
-                expected_db_response: Some(Err(UpdateUserPasswordError::DatabaseError)),
+                expected_service_response: Some(Err(ResetPasswordError::UnableToResetPassword)),
                 expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
                 description: "Given the request body is valid but the user does not exist, I should get a NOT_FOUND response",
                 request: valid_request.clone(),
-                expected_db_response: Some(Err(UpdateUserPasswordError::UserDoesNotExist)),
+                expected_service_response: Some(Err(ResetPasswordError::UserDoesNotExist)),
                 expected_status_code: StatusCode::NOT_FOUND,
             },
             TestCase {
                 description: "Given the request body is valid and password reset succeeds, I should get an OK response",
                 request: valid_request.clone(),
-                expected_db_response: Some(Ok(())),
+                expected_service_response: Some(Ok(())),
                 expected_status_code: StatusCode::OK,
             },
         ];
         for test_case in test_cases {
             eprintln!("{}", test_case.description);
-            let mut mock_user_repository = MockUserRepository::new();
-            if let Some(expected_db_response) = test_case.expected_db_response {
-                mock_user_repository
-                    .expect_update_user_password()
-                    .returning(move |username, password| expected_db_response.clone());
+            let mut mock_service = MockResetPasswordService::new();
+            if let Some(expected_service_response) = test_case.expected_service_response {
+                mock_service
+                    .expect_reset_password()
+                    .return_once(move |_, _| expected_service_response);
             }
-            let arc_repository: Arc<dyn UserRepository> = Arc::new(mock_user_repository);
-            let app_state: AppState<Arc<dyn UserRepository>> = AppState {
-                repository_map: HashMap::from([(DbType::MySql, arc_repository)]),
+            let arc_service: Arc<dyn ResetPasswordService> = Arc::new(mock_service);
+            let app_state = ServiceAppState {
+                service: arc_service,
             };
-            let actual_response = reset_user_password(State(app_state), Json(test_case.request));
+            let actual_response =
+                reset_user_password(State(app_state), Json(test_case.request)).await;
+            assert!(matches!(test_case.expected_status_code, actual_resposne));
         }
     }
 }
