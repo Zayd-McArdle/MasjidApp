@@ -1,7 +1,6 @@
 #[derive(Clone, Debug, PartialEq)]
 pub enum GetUserError {
     NotFound,
-    UnableToVerifyPasswordHash,
     DatabaseError,
 }
 
