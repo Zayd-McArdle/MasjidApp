@@ -16,7 +16,7 @@ pub trait UserRepository: Send + Sync {
         &self,
         username: &str,
         password: &str,
-    ) -> Result<String, GetUserError>;
+    ) -> Result<LoginDTO, GetUserError>;
     async fn insert_new_user(&self, new_user: UserAccountDTO) -> Result<(), InsertNewUserError>;
     async fn update_user_password(
         &self,
@@ -34,9 +34,9 @@ impl UserRepository for MySqlRepository {
         &self,
         username: &str,
         password: &str,
-    ) -> Result<String, GetUserError> {
+    ) -> Result<LoginDTO, GetUserError> {
         let db_connection = self.db_connection.clone();
-        let user = sqlx::query("CALL get_user_credentials(?)")
+        sqlx::query("CALL get_user_credentials(?)")
             .bind(username)
             .map(|row: sqlx::mysql::MySqlRow| LoginDTO {
                 username: row.get(0),
@@ -47,36 +47,15 @@ impl UserRepository for MySqlRepository {
             .await
             .map_err(|err| {
                 if matches!(err, Error::RowNotFound) {
-                    tracing::debug!(
-                        username = username,
-                        error = err.to_string(),
-                        "user entered the wrong credentials"
-                    );
                     return GetUserError::NotFound;
                 }
                 tracing::error!(
                     username = username,
                     error = err.to_string(),
-                    "an error occurred whilst registering new user",
+                    "an error occurred whilst retrieving user",
                 );
                 GetUserError::DatabaseError
-            })?;
-        let hash_verified = bcrypt::verify(password, &user.password).map_err(|err| {
-            tracing::error!(
-                error = err.to_string(),
-                "unable to verify hash due to the following error"
-            );
-            GetUserError::UnableToVerifyPasswordHash
-        })?;
-        if hash_verified {
-            tracing::info!(username = username, "logged in");
-            return Ok(user.role);
-        }
-        tracing::debug!(
-            username = username,
-            "hashed password does not match hash in database"
-        );
-        Err(GetUserError::NotFound)
+            })
     }
     async fn insert_new_user(&self, new_user: UserAccountDTO) -> Result<(), InsertNewUserError> {
         let db_connection = self.db_connection.clone();
