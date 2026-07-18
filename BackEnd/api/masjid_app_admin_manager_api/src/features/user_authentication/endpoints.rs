@@ -6,10 +6,10 @@ use crate::features::user_authentication::models::{
 };
 use crate::features::user_authentication::repositories::UserRepository;
 use crate::shared::jwt;
+use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use axum::Json;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::types::app_state::AppState;
 use std::sync::Arc;
@@ -133,29 +133,25 @@ mod tests {
                 expected_status_code: StatusCode::BAD_REQUEST,
             },
             TestCase {
-                description:
-                    "Given the request body is valid but unable to validate login credentials, I should get an INTERNAL_SERVER_ERROR",
+                description: "Given the request body is valid but unable to validate login credentials, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
                 expected_db_response: Some(Err(LoginError::UnableToLogin)),
                 expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
-                description:
-                    "Given the request body is valid but login credentials are invalid, I should get an UNAUTHORIZED response",
+                description: "Given the request body is valid but login credentials are invalid, I should get an UNAUTHORIZED response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Err(LoginError::InvalidCredentials)),
                 expected_status_code: StatusCode::UNAUTHORIZED,
             },
             TestCase {
-                description:
-                    "Given the request body is valid and when database successfully validates credentials, I should get an OK response",
+                description: "Given the request body is valid and when database successfully validates credentials, I should get an OK response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Ok("Admin".to_owned())),
                 expected_status_code: StatusCode::OK,
             },
             TestCase {
-                description:
-                    "Given the request body is valid and when database successfully validates credentials, I should get an OK response",
+                description: "Given the request body is valid and when database successfully validates credentials, I should get an OK response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Ok("Imam".to_owned())),
                 expected_status_code: StatusCode::OK,
@@ -202,22 +198,19 @@ mod tests {
                 expected_status_code: StatusCode::BAD_REQUEST,
             },
             TestCase {
-                description:
-                    "Given the request body is valid but registration fails, I should get an INTERNAL_SERVER_ERROR",
+                description: "Given the request body is valid but registration fails, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
                 expected_db_response: Some(Err(RegistrationError::FailedToRegister)),
                 expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
-                description:
-                    "Given the request body is valid but the user already exists, I should get a CONFLICT response",
+                description: "Given the request body is valid but the user already exists, I should get a CONFLICT response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Err(RegistrationError::UserAlreadyRegistered)),
                 expected_status_code: StatusCode::CONFLICT,
             },
             TestCase {
-                description:
-                    "Given the request body is valid and registration succeeds, I should get a CREATED response",
+                description: "Given the request body is valid and registration succeeds, I should get a CREATED response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Ok(())),
                 expected_status_code: StatusCode::CREATED,
@@ -257,22 +250,19 @@ mod tests {
                 expected_status_code: StatusCode::BAD_REQUEST,
             },
             TestCase {
-                description:
-                    "Given the request body is valid but password reset fails, I should get an INTERNAL_SERVER_ERROR",
+                description: "Given the request body is valid but password reset fails, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
                 expected_db_response: Some(Err(ResetPasswordError::FailedToResetUserPassword)),
                 expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
-                description:
-                    "Given the request body is valid but the user does not exist, I should get a NOT_FOUND response",
+                description: "Given the request body is valid but the user does not exist, I should get a NOT_FOUND response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Err(ResetPasswordError::UserDoesNotExist)),
                 expected_status_code: StatusCode::NOT_FOUND,
             },
             TestCase {
-                description:
-                    "Given the request body is valid and password reset succeeds, I should get an OK response",
+                description: "Given the request body is valid and password reset succeeds, I should get an OK response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Ok(())),
                 expected_status_code: StatusCode::OK,

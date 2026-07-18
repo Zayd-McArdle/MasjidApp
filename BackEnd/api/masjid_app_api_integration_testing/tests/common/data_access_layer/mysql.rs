@@ -1,7 +1,7 @@
-use testcontainers::{ContainerAsync, GenericImage, ImageExt};
+use crate::common::data_access_layer::DatabaseCredentials;
 use testcontainers::core::{IntoContainerPort, WaitFor};
 use testcontainers::runners::AsyncRunner;
-use crate::common::data_access_layer::{DatabaseCredentials};
+use testcontainers::{ContainerAsync, GenericImage, ImageExt};
 pub async fn setup_container(credentials: DatabaseCredentials) -> ContainerAsync<GenericImage> {
     tracing::info!("Starting MasjidAppDatabase");
     let container = GenericImage::new("masjidappdatabase", "latest")

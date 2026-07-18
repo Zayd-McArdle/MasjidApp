@@ -97,7 +97,7 @@ mod tests {
     use super::*;
     use axum::{
         body::{Body, Bytes},
-        http::{header, Request, StatusCode},
+        http::{Request, StatusCode, header},
     };
     use serde::{Deserialize, Serialize};
     use validator::Validate;

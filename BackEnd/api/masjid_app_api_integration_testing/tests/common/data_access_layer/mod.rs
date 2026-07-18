@@ -1,5 +1,5 @@
-pub mod redis;
 pub mod mysql;
+pub mod redis;
 
 pub struct DatabaseCredentials {
     pub username: String,

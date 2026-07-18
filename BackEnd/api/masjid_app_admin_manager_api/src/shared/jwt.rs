@@ -1,14 +1,14 @@
 use axum::extract::FromRequestParts;
-use axum::http::request::Parts;
 use axum::http::StatusCode;
+use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
 use axum::{Json, RequestPartsExt};
 use axum_extra::{
-    headers::{authorization::Bearer, Authorization},
     TypedHeader,
+    headers::{Authorization, authorization::Bearer},
 };
 use jsonwebtoken::errors::ErrorKind;
-use jsonwebtoken::{decode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::hash::Hash;

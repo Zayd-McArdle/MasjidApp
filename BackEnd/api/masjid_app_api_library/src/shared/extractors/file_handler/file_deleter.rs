@@ -1,5 +1,5 @@
 use crate::shared::extractors::file_handler::{
-    file_path_is_safe, FileHandler, FilePathSafetyError,
+    FileHandler, FilePathSafetyError, file_path_is_safe,
 };
 use std::io::ErrorKind;
 use std::path::Path;

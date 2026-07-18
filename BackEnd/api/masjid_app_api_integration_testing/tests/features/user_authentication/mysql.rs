@@ -1,7 +1,9 @@
-use masjid_app_admin_manager_api::features::user_authentication::errors::{LoginError, ResetPasswordError};
-use masjid_app_admin_manager_api::features::user_authentication::models::UserAccountDTO;
-use crate::common::data_access_layer::{mysql, DatabaseCredentials};
+use crate::common::data_access_layer::{DatabaseCredentials, mysql};
 use crate::common::logging::setup_logging;
+use masjid_app_admin_manager_api::features::user_authentication::errors::{
+    LoginError, ResetPasswordError,
+};
+use masjid_app_admin_manager_api::features::user_authentication::models::UserAccountDTO;
 use masjid_app_admin_manager_api::features::user_authentication::repositories::new_user_repository;
 #[tokio::test]
 async fn test_user_authentication() {
@@ -11,7 +13,7 @@ async fn test_user_authentication() {
         password: "BL6FxKu!237GvPS9".to_string(),
         environment_variable: "AUTHENTICATION_CONNECTION".to_string(),
     })
-        .await;
+    .await;
 
     //Given no user exists, I should get an error when attempting to log in
     let repository = new_user_repository().await;

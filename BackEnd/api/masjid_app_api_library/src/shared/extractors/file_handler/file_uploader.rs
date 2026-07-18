@@ -1,8 +1,8 @@
 use crate::shared::extractors::file_handler::FileHandler;
 use async_trait::async_trait;
 use axum::extract::FromRequestParts;
-use axum::http::request::Parts;
 use axum::http::StatusCode;
+use axum::http::request::Parts;
 use std::fmt::Display;
 use std::fs::File;
 use std::path::{Path, PathBuf};
@@ -71,8 +71,8 @@ impl FileHandler {
 }
 
 mod test {
-    use crate::shared::extractors::file_handler::file_uploader::{UploadError, NO_FILE_EXTENSION};
     use crate::shared::extractors::file_handler::FileHandler;
+    use crate::shared::extractors::file_handler::file_uploader::{NO_FILE_EXTENSION, UploadError};
 
     #[tokio::test]
     async fn test_file_uploader_save_file() {

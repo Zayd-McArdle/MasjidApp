@@ -6,8 +6,8 @@ use crate::features::ask_imam::repositories::new_imam_questions_public_repositor
 use crate::features::ask_imam::services::new_ask_imam_public_service;
 use crate::features::events::repositories::new_events_public_repository;
 use crate::features::{ask_imam, events};
-use axum::routing::{get, post, put};
 use axum::Router;
+use axum::routing::{get, post, put};
 use features::prayer_times;
 use features::prayer_times::repositories::new_prayer_times_public_repository;
 use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;

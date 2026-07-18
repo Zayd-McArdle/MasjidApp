@@ -2,8 +2,8 @@ use crate::shared::data_access::db_providers::normal_db_provider::NormalDbProvid
 use crate::shared::data_access::repository_management::repository_mode::RepositoryMode;
 use crate::shared::data_access::repository_management::repository_type::RepositoryType;
 use crate::shared::data_access::repository_management::utils::get_connection_string;
-use sqlx::mysql::MySqlPoolOptions;
 use sqlx::MySqlPool;
+use sqlx::mysql::MySqlPoolOptions;
 use std::sync::Arc;
 
 pub struct MySqlRepository {

@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-pub enum PostalCode{
+pub enum PostalCode {
     PostCode(String),
     ZipCode(String),
 }
@@ -11,7 +11,7 @@ pub struct Address {
 }
 pub enum DonationMethod {
     Now,
-    Deferred
+    Deferred,
 }
 pub struct StandingOrder {
     account_holder: String,
