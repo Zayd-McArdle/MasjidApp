@@ -14,13 +14,13 @@ use std::sync::Arc;
 
 #[async_trait]
 pub trait EventsAdminRepository: EventsRepository {
-    async fn upsert_event(&self, event: Event) -> Result<(), UpsertEventError>;
+    async fn upsert_event(&self, event: &Event) -> Result<(), UpsertEventError>;
     async fn delete_event_by_id(&self, event_id: &i32) -> Result<Option<String>, DeleteEventError>;
 }
 
 #[async_trait]
 impl EventsAdminRepository for InMemoryRepository {
-    async fn upsert_event(&self, event: Event) -> Result<(), UpsertEventError> {
+    async fn upsert_event(&self, event: &Event) -> Result<(), UpsertEventError> {
         tracing::warn!("in-memory database for upserting event not implemented");
         Err(UpsertEventError::UnableToUpsertEvent)
     }
@@ -33,7 +33,7 @@ impl EventsAdminRepository for InMemoryRepository {
 
 #[async_trait]
 impl EventsAdminRepository for MySqlRepository {
-    async fn upsert_event(&self, event: Event) -> Result<(), UpsertEventError> {
+    async fn upsert_event(&self, event: &Event) -> Result<(), UpsertEventError> {
         let db_connection = self.db_connection.clone();
         sqlx::query("CALL upsert_event(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
             .bind(&event.id)
