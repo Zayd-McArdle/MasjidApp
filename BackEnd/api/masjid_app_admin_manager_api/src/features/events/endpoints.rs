@@ -1,24 +1,30 @@
-use crate::features::events::errors::{DeleteEventError, UpsertEventError};
+use crate::features::events::errors::{DeleteEventError, InsertEventError, UpdateEventError, UpsertEventError};
 use crate::features::events::repositories::EventsAdminRepository;
+use crate::features::events::services::errors::event_deletion_error::EventDeletionError;
+use crate::features::events::services::errors::event_publishing_error::EventPublishingError;
+use crate::features::events::services::event_deletion_service::EventDeletionService;
+use crate::features::events::services::event_publishing_service::EventPublishingService;
 use crate::shared::jwt::Claims;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use masjid_app_api_library::features::events::endpoints::get_events_common;
-use masjid_app_api_library::features::events::models::{Event, EventDTO};
-use masjid_app_api_library::shared::data_access::db_type::DbType;
+use masjid_app_api_library::features::events::models::EventDTO;
+use masjid_app_api_library::features::events::services::event_retrieval_service::EventRetrievalService;
 use masjid_app_api_library::shared::extractors::file_handler::FileHandler;
 use masjid_app_api_library::shared::extractors::request_validator::multipart::ValidatedMultipartRequest;
-use masjid_app_api_library::shared::types::app_state::AppState;
+use masjid_app_api_library::shared::types::app_state::ServiceAppState;
 use std::sync::Arc;
 use validator::Validate;
 
-pub async fn get_events(State(state): State<AppState<Arc<dyn EventsAdminRepository>>>) -> Response {
+pub async fn get_events(
+    State(state): State<ServiceAppState<Arc<dyn EventRetrievalService>>>,
+) -> Response {
     get_events_common(State(state)).await
 }
 
 pub async fn upsert_events(
-    State(state): State<AppState<Arc<dyn EventsAdminRepository>>>,
+    State(state): State<ServiceAppState<Arc<dyn EventPublishingService>>>,
     file_uploader: FileHandler,
     claims: Claims,
     mut request: ValidatedMultipartRequest<EventDTO>,
@@ -51,31 +57,30 @@ pub async fn upsert_events(
         }
     };*/
 
-    let mut upsert_event_result = Err(UpsertEventError::UnableToUpsertEvent);
-
-    if let Some(in_memory_repository) = state.repository_map.get(&DbType::InMemory) {
-        upsert_event_result = in_memory_repository
-            .upsert_event(Event::from(request.json.clone()))
-            .await;
-    }
-    if upsert_event_result.is_err() {
-        upsert_event_result = state
-            .repository_map
-            .get(&DbType::MySql)
-            .unwrap()
-            .upsert_event(Event::from(request.json))
-            .await;
-    }
-    match upsert_event_result {
+    match state.service.publish_event(request.json).await {
         Ok(()) => StatusCode::OK.into_response(),
-        Err(UpsertEventError::UnableToUpsertEvent) => {
+        Err(EventPublishingError::RepositoryError(UpsertEventError::InsertError(
+            InsertEventError::EventAlreadyExists,
+        ))) => StatusCode::CONFLICT.into_response(),
+
+        Err(EventPublishingError::RepositoryError(UpsertEventError::UpdateError(
+            UpdateEventError::EventNotFound,
+        ))) => StatusCode::NOT_FOUND.into_response(),
+        Err(EventPublishingError::UnableToSaveImage)
+        | Err(EventPublishingError::RepositoryError(UpsertEventError::InsertError(
+            InsertEventError::UnableToInsertEvent,
+        )))
+        | Err(EventPublishingError::RepositoryError(UpsertEventError::UpdateError(
+            UpdateEventError::UnableToUpdateEvent,
+        )))
+        | Err(EventPublishingError::RepositoryError(UpsertEventError::UnableToUpsertEvent)) => {
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
 }
 
 pub async fn delete_event(
-    State(state): State<AppState<Arc<dyn EventsAdminRepository>>>,
+    State(state): State<ServiceAppState<Arc<dyn EventDeletionService>>>,
     file_deleter: FileHandler,
     claims: Claims,
     Path(event_id): Path<i32>,
@@ -84,20 +89,8 @@ pub async fn delete_event(
         return (StatusCode::BAD_REQUEST, "event ids cannot be 0").into_response();
     }
 
-    let mut delete_event_result = Err(DeleteEventError::UnableToDeleteEvent);
-    if let Some(in_memory_repository) = state.repository_map.get(&DbType::InMemory) {
-        delete_event_result = in_memory_repository.delete_event_by_id(&event_id).await;
-    }
-    if delete_event_result.is_err() {
-        delete_event_result = state
-            .repository_map
-            .get(&DbType::MySql)
-            .unwrap()
-            .delete_event_by_id(&event_id)
-            .await;
-    }
-    match delete_event_result {
-        Ok(image_url) => {
+    match state.service.delete_event(event_id).await {
+        Ok(()) => {
             // TODO - implement file handling in a separate api
             /*if let Some(url) = image_url {
                 let file_directory = url
@@ -148,8 +141,11 @@ pub async fn delete_event(
             }*/
             StatusCode::OK.into_response()
         }
-        Err(DeleteEventError::EventNotFound) => StatusCode::NOT_FOUND.into_response(),
-        Err(DeleteEventError::UnableToDeleteEvent) => {
+        Err(EventDeletionError::RepositoryError(DeleteEventError::EventNotFound)) => {
+            StatusCode::NOT_FOUND.into_response()
+        }
+        Err(EventDeletionError::RepositoryError(DeleteEventError::UnableToDeleteEvent))
+        | Err(EventDeletionError::UnableToDeleteImagesRelatedToEvent) => {
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
@@ -157,26 +153,26 @@ pub async fn delete_event(
 mod test {
     use crate::features::events::endpoints::{delete_event, upsert_events};
     use crate::features::events::errors::{DeleteEventError, UpsertEventError};
-    use crate::features::events::repositories::EventsAdminRepository;
+    use crate::features::events::services::errors::event_deletion_error::EventDeletionError;
+    use crate::features::events::services::errors::event_publishing_error::EventPublishingError;
+    use crate::features::events::services::event_deletion_service::{
+        EventDeletionService, MockEventDeletionService,
+    };
+    use crate::features::events::services::event_publishing_service::{
+        EventPublishingService, MockEventPublishingService,
+    };
     use crate::shared::jwt::Claims;
-    use async_trait::async_trait;
     use axum::body::Bytes;
     use axum::extract::State;
     use axum::http::StatusCode;
-    use masjid_app_api_library::features::events::errors::GetEventsError;
-    use masjid_app_api_library::features::events::models::Event;
     use masjid_app_api_library::features::events::models::{
         EventDTO, EventDetails, EventRecurrence, EventStatus, EventType,
     };
-    use masjid_app_api_library::features::events::repositories::EventsRepository;
-    use masjid_app_api_library::shared::data_access::db_type::DbType;
     use masjid_app_api_library::shared::extractors::file_handler::FileHandler;
     use masjid_app_api_library::shared::extractors::request_validator::multipart::ValidatedMultipartRequest;
     use masjid_app_api_library::shared::types::age_range::AgeRange;
-    use masjid_app_api_library::shared::types::app_state::AppState;
+    use masjid_app_api_library::shared::types::app_state::ServiceAppState;
     use masjid_app_api_library::shared::types::contact_details::ContactDetails;
-    use mockall::mock;
-    use std::collections::HashMap;
     use std::sync::Arc;
 
     fn get_valid_upsert_request(include_file: bool) -> ValidatedMultipartRequest<EventDTO> {
@@ -213,27 +209,14 @@ mod test {
             filename: Some(filename),
         }
     }
-    mock!(
-        pub EventsAdminRepository {}
 
-        #[async_trait]
-        impl EventsRepository for EventsAdminRepository {
-            async fn get_events(&self) -> Result<Vec<EventDTO>, GetEventsError>;
-        }
-        #[async_trait]
-        impl EventsAdminRepository for EventsAdminRepository {
-            async fn upsert_event(&self, event: Event) -> Result<(), UpsertEventError>;
-            async fn delete_event_by_id(&self, event_id: &i32) -> Result<Option<String>, DeleteEventError>;
-        }
-    );
     #[tokio::test]
     async fn test_upsert_event() {
         struct TestCase {
             description: &'static str,
             request: ValidatedMultipartRequest<EventDTO>,
             file_uploader: FileHandler,
-            expected_in_memory_db_response: Option<Result<(), UpsertEventError>>,
-            expected_db_response: Option<Result<(), UpsertEventError>>,
+            expected_service_response: Option<Result<(), EventPublishingError>>,
             expected_status: StatusCode,
         }
         let test_cases = [
@@ -263,49 +246,36 @@ mod test {
                     filename: None,
                 },
                 file_uploader: FileHandler::default(),
-                expected_in_memory_db_response: None,
-                expected_db_response: None,
+                expected_service_response: None,
                 expected_status: StatusCode::BAD_REQUEST,
             },
             TestCase {
-                description: "Given the json is valid, but event upsertion fails in database, I should get an internal server error",
+                description: "Given the json is valid, but event publishing fails, I should get an internal server error",
                 request: get_valid_upsert_request(false),
                 file_uploader: FileHandler::default(),
-                expected_in_memory_db_response: Some(Err(UpsertEventError::UnableToUpsertEvent)),
-                expected_db_response: Some(Err(UpsertEventError::UnableToUpsertEvent)),
+                expected_service_response: Some(Err(EventPublishingError::RepositoryError(
+                    UpsertEventError::UnableToUpsertEvent,
+                ))),
                 expected_status: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
                 description: "Given the json is valid and upsertion succeeds, I should get an ok response",
                 request: get_valid_upsert_request(false),
                 file_uploader: FileHandler::default(),
-                expected_in_memory_db_response: Some(Ok(())),
-                expected_db_response: Some(Ok(())),
+                expected_service_response: Some(Ok(())),
                 expected_status: StatusCode::OK,
             },
         ];
         for test_case in test_cases {
             eprintln!("{}", test_case.description);
-            let mut mock_in_memory_repository = MockEventsAdminRepository::new();
-            let mut mock_repository = MockEventsAdminRepository::new();
-            if let Some(expected_in_memory_db_response) = test_case.expected_in_memory_db_response {
-                mock_in_memory_repository
-                    .expect_upsert_event()
-                    .returning(move |data| expected_in_memory_db_response);
+            let mut mock_service = MockEventPublishingService::new();
+            if let Some(mock_response) = test_case.expected_service_response {
+                mock_service
+                    .expect_publish_event()
+                    .return_once(move |_| mock_response);
             }
-            if let Some(expected_db_response) = test_case.expected_db_response {
-                mock_repository
-                    .expect_upsert_event()
-                    .returning(move |data| expected_db_response);
-            }
-            let arc_repository: Arc<dyn EventsAdminRepository> = Arc::new(mock_repository);
-            let arc_in_memory_repository: Arc<dyn EventsAdminRepository> =
-                Arc::new(mock_in_memory_repository);
-            let app_state: AppState<Arc<dyn EventsAdminRepository>> = AppState {
-                repository_map: HashMap::from([
-                    (DbType::MySql, arc_repository),
-                    (DbType::InMemory, arc_in_memory_repository),
-                ]),
+            let app_state = ServiceAppState::<Arc<dyn EventPublishingService>> {
+                service: Arc::new(mock_service),
             };
             let actual_response = upsert_events(
                 State(app_state),
@@ -324,8 +294,7 @@ mod test {
             description: &'static str,
             delete_event_request_id: i32,
             file_deleter: FileHandler,
-            expected_in_memory_db_response: Option<Result<Option<String>, DeleteEventError>>,
-            expected_db_response: Option<Result<Option<String>, DeleteEventError>>,
+            expected_service_response: Option<Result<(), EventDeletionError>>,
             expected_status: StatusCode,
         }
         let test_cases = [
@@ -333,58 +302,44 @@ mod test {
                 description: "When I use an invalid event ID, I should get a bad request",
                 delete_event_request_id: 0,
                 file_deleter: FileHandler::default(),
-                expected_in_memory_db_response: None,
-                expected_db_response: None,
+                expected_service_response: None,
                 expected_status: StatusCode::BAD_REQUEST,
             },
             TestCase {
                 description: "When I delete an event using a non-existent ID, I should get a not found",
                 delete_event_request_id: 1,
                 file_deleter: FileHandler::default(),
-                expected_in_memory_db_response: None,
-                expected_db_response: Some(Err(DeleteEventError::EventNotFound)),
+                expected_service_response: Some(Err(EventDeletionError::RepositoryError(
+                    DeleteEventError::EventNotFound,
+                ))),
                 expected_status: StatusCode::NOT_FOUND,
             },
             TestCase {
                 description: "When deleting an event fails, I should get an internal server error",
                 delete_event_request_id: 2,
                 file_deleter: FileHandler::default(),
-                expected_in_memory_db_response: None,
-                expected_db_response: Some(Err(DeleteEventError::UnableToDeleteEvent)),
+                expected_service_response: None,
                 expected_status: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
                 description: "When deleting an event succeeds, I should get an ok response",
                 delete_event_request_id: 2,
                 file_deleter: FileHandler::default(),
-                expected_in_memory_db_response: None,
-                expected_db_response: Some(Ok(None)),
+                expected_service_response: None,
                 expected_status: StatusCode::OK,
             },
         ];
         for test_case in test_cases {
             eprintln!("{}", test_case.description);
-            let mut mock_in_memory_repository = MockEventsAdminRepository::new();
-            let mut mock_repository = MockEventsAdminRepository::new();
-            if let Some(expected_in_memory_db_response) = test_case.expected_in_memory_db_response {
-                mock_in_memory_repository
-                    .expect_delete_event_by_id()
-                    .return_once(move |_| expected_in_memory_db_response);
-            }
-            if let Some(expected_db_response) = test_case.expected_db_response {
-                mock_repository
-                    .expect_delete_event_by_id()
-                    .return_once(move |_| expected_db_response);
+            let mut mock_service = MockEventDeletionService::new();
+            if let Some(mock_response) = test_case.expected_service_response {
+                mock_service
+                    .expect_delete_event()
+                    .return_once(move |_| mock_response);
             }
 
-            let arc_repository: Arc<dyn EventsAdminRepository> = Arc::new(mock_repository);
-            let arc_in_memory_repository: Arc<dyn EventsAdminRepository> =
-                Arc::new(mock_in_memory_repository);
-            let app_state: AppState<Arc<dyn EventsAdminRepository>> = AppState {
-                repository_map: HashMap::from([
-                    (DbType::MySql, arc_repository),
-                    //(DbType::InMemory, arc_in_memory_repository),
-                ]),
+            let app_state = ServiceAppState::<Arc<dyn EventDeletionService>> {
+                service: Arc::new(mock_service),
             };
             let actual_response = delete_event(
                 State(app_state),

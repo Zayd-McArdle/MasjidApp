@@ -12,6 +12,12 @@ use crate::features::ask_imam::endpoints::{
     delete_imam_question, get_imam_questions, provide_answer_for_imam_question,
 };
 use crate::features::ask_imam::services::{new_ask_imam_admin_service, AskImamAdminService};
+use crate::features::events::services::event_deletion_service::{
+    new_event_deletion_service, EventDeletionService,
+};
+use crate::features::events::services::event_publishing_service::{
+    new_event_publishing_service, EventPublishingService,
+};
 use crate::features::user_authentication::services::login_service::{
     new_login_service, LoginService,
 };
@@ -19,8 +25,11 @@ use crate::features::user_authentication::services::reset_password_service::new_
 use crate::features::user_authentication::services::user_registration_service::{
     new_user_registration_service, UserRegistrationService,
 };
-use axum::Router;
 use axum::routing::{delete, get, patch, post, put};
+use axum::Router;
+use masjid_app_api_library::features::events::services::event_retrieval_service::{
+    new_event_retrieval_service, EventRetrievalService,
+};
 use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;
 use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
@@ -82,24 +91,33 @@ async fn map_donation() -> Router {
     panic!("Implement donation controller")
 }
 async fn map_events() -> Router {
-    let state = AppState {
-        repository_map: HashMap::from([
-            (
-                DbType::InMemory,
-                new_events_admin_repository(RepositoryMode::InMemory(InMemoryDbProvider::Redis))
-                    .await,
-            ),
-            (
-                DbType::MySql,
-                new_events_admin_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await,
-            ),
-        ]),
+    let get_events_app_state = ServiceAppState::<Arc<dyn EventRetrievalService>> {
+        service: new_event_retrieval_service(
+            new_events_admin_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await,
+            new_events_admin_repository(RepositoryMode::InMemory(InMemoryDbProvider::Redis)).await,
+        ),
+    };
+
+    let upsert_events_app_state = ServiceAppState::<Arc<dyn EventPublishingService>> {
+        service: new_event_publishing_service(
+            new_events_admin_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await,
+            new_events_admin_repository(RepositoryMode::InMemory(InMemoryDbProvider::Redis)).await,
+        ),
+    };
+
+    let delete_event_app_state = ServiceAppState::<Arc<dyn EventDeletionService>> {
+        service: new_event_deletion_service(
+            new_events_admin_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await,
+            new_events_admin_repository(RepositoryMode::InMemory(InMemoryDbProvider::Redis)).await,
+        ),
     };
     Router::new()
         .route("/", get(get_events))
+        .with_state(get_events_app_state)
         .route("/", put(upsert_events))
+        .with_state(upsert_events_app_state)
         .route("/{id}", delete(delete_event))
-        .with_state(state)
+        .with_state(delete_event_app_state)
 }
 async fn map_ask_imam() -> Router {
     let state = ServiceAppState::<Arc<dyn AskImamAdminService>> {
