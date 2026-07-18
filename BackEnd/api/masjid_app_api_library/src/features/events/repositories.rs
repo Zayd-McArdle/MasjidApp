@@ -1,4 +1,4 @@
-use crate::features::events::errors::GetEventsError;
+use crate::features::events::errors::GetEventsRepositoryError;
 use crate::features::events::models::{Event, EventDTO};
 use crate::shared::data_access::repository_management::in_memory_repository::InMemoryRepository;
 use crate::shared::data_access::repository_management::mysql_repository::MySqlRepository;
@@ -10,19 +10,19 @@ use sqlx::{Error, Row};
 #[automock]
 #[async_trait]
 pub trait EventsRepository: Send + Sync {
-    async fn get_events(&self) -> Result<Vec<EventDTO>, GetEventsError>;
+    async fn get_events(&self) -> Result<Vec<EventDTO>, GetEventsRepositoryError>;
 }
 
 #[async_trait]
 impl EventsRepository for InMemoryRepository {
-    async fn get_events(&self) -> Result<Vec<EventDTO>, GetEventsError> {
+    async fn get_events(&self) -> Result<Vec<EventDTO>, GetEventsRepositoryError> {
         tracing::warn!("In-memory database for getting events not implemented");
-        Err(GetEventsError::UnableToGetEvents)
+        Err(GetEventsRepositoryError::UnableToGetEvents)
     }
 }
 #[async_trait]
 impl EventsRepository for MySqlRepository {
-    async fn get_events(&self) -> Result<Vec<EventDTO>, GetEventsError> {
+    async fn get_events(&self) -> Result<Vec<EventDTO>, GetEventsRepositoryError> {
         let db_connection = self.db_connection.clone();
         let events = sqlx::query("CALL get_events();")
             .map(|row: MySqlRow| Event {
@@ -44,13 +44,13 @@ impl EventsRepository for MySqlRepository {
             .await
             .map_err(|err| {
                 if let Error::RowNotFound = err {
-                    return GetEventsError::EventsNotFound;
+                    return GetEventsRepositoryError::EventsNotFound;
                 }
                 tracing::error!("failed to fetch events from database: {}", err);
-                GetEventsError::UnableToGetEvents
+                GetEventsRepositoryError::UnableToGetEvents
             })?;
         if events.is_empty() {
-            return Err(GetEventsError::EventsNotFound);
+            return Err(GetEventsRepositoryError::EventsNotFound);
         }
 
         Ok(events.into_iter().map(EventDTO::from).collect())
