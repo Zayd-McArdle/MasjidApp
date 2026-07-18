@@ -3,7 +3,7 @@ use crate::common::data_access_layer::DatabaseCredentials;
 use crate::common::logging::setup_logging;
 use masjid_app_admin_manager_api::features::events::errors::DeleteEventError;
 use masjid_app_admin_manager_api::features::events::repositories::new_events_admin_repository;
-use masjid_app_api_library::features::events::errors::GetEventsError;
+use masjid_app_api_library::features::events::errors::GetEventsRepositoryError;
 use masjid_app_api_library::features::events::models::{
     Event, EventDTO, EventRecurrence, EventStatus, EventType,
 };
@@ -50,7 +50,7 @@ async fn test_events() {
     };
 
     // When I insert a new event, I should get no error
-    let insert_event_result = admin_repository.upsert_event(event.clone()).await;
+    let insert_event_result = admin_repository.upsert_event(&event).await;
     assert!(insert_event_result.is_ok());
 
     // When I retrieve events, I should get the event that I inserted
@@ -74,7 +74,7 @@ async fn test_events() {
         email: None,
     };
 
-    let update_result = admin_repository.upsert_event(event.clone()).await;
+    let update_result = admin_repository.upsert_event(&event).await;
     assert!(update_result.is_ok());
 
     // When I retrieve events, I should get my updated event
