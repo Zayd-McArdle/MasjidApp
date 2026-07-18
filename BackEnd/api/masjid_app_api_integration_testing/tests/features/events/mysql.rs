@@ -32,7 +32,7 @@ async fn test_events() {
 
     // When I try to retrieve events from an empty database, I should get an error
     let get_events_result = public_repository.get_events().await.unwrap_err();
-    assert_eq!(get_events_result, GetEventsError::EventsNotFound);
+    assert_eq!(get_events_result, GetEventsRepositoryError::EventsNotFound);
     let mut event = Event {
         id: 0,
         title: "This is my event".to_string(),
@@ -87,6 +87,6 @@ async fn test_events() {
 
     // When trying to retrieve events, I should get an error
     let get_events_result = public_repository.get_events().await.unwrap_err();
-    assert_eq!(get_events_result, GetEventsError::EventsNotFound);
+    assert_eq!(get_events_result, GetEventsRepositoryError::EventsNotFound);
     container.stop().await.unwrap();
 }
