@@ -10,6 +10,9 @@ use axum::Router;
 use axum::routing::{get, post, put};
 use features::prayer_times;
 use features::prayer_times::repositories::new_prayer_times_public_repository;
+use masjid_app_api_library::features::events::services::event_retrieval_service::{
+    new_event_retrieval_service, EventRetrievalService,
+};
 use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;
 use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
 use masjid_app_api_library::shared::data_access::db_type::DbType;
@@ -17,6 +20,7 @@ use masjid_app_api_library::shared::data_access::repository_management::reposito
 use masjid_app_api_library::shared::logging::logging;
 use masjid_app_api_library::shared::types::app_state::{AppState, ServiceAppState};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 async fn map_prayer_times() -> Router {
     let state = AppState {
@@ -47,18 +51,11 @@ async fn map_donation() -> Router {
     panic!("Implement donation controller")
 }
 async fn map_events() -> Router {
-    let state = AppState {
-        repository_map: HashMap::from([
-            (
-                DbType::InMemory,
-                new_events_public_repository(RepositoryMode::InMemory(InMemoryDbProvider::Redis))
-                    .await,
-            ),
-            (
-                DbType::MySql,
-                new_events_public_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await,
-            ),
-        ]),
+    let state = ServiceAppState::<Arc<dyn EventRetrievalService>> {
+        service: new_event_retrieval_service(
+            new_events_public_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await,
+            new_events_public_repository(RepositoryMode::InMemory(InMemoryDbProvider::Redis)).await,
+        ),
     };
     Router::new()
         .route("/", get(events::endpoints::get_events))
