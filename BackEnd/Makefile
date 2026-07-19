@@ -18,3 +18,8 @@ clean:
 	cd ./api/masjid_app_public_api && cargo clean || exit 1
 	cd ./api/masjid_app_admin_manager_api && cargo clean || exit 1
 	cd ./api/masjid_app_api_integration_testing && cargo clean || exit 1
+format:
+	cd ./api/masjid_app_api_library && cargo fmt || exit 1
+	cd ./api/masjid_app_public_api && cargo fmt || exit 1
+	cd ./api/masjid_app_admin_manager_api && cargo fmt || exit 1
+	cd ./api/masjid_app_api_integration_testing && cargo fmt || exit 1
