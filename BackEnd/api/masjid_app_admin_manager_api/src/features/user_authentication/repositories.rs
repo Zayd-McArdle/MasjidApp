@@ -59,19 +59,12 @@ impl UserRepository for MySqlRepository {
     }
     async fn insert_new_user(&self, new_user: UserAccountDTO) -> Result<(), InsertNewUserError> {
         let db_connection = self.db_connection.clone();
-        let hashed_password = bcrypt::hash(new_user.password, 12).map_err(|err| {
-            tracing::error!(
-                error = err.to_string(),
-                "an error occurred when hashing the password"
-            );
-            InsertNewUserError::DatabaseError
-        })?;
         sqlx::query("CALL register_user(?, ?, ?, ?, ?);")
             .bind(&new_user.full_name)
             .bind(&new_user.role)
             .bind(&new_user.email)
             .bind(&new_user.username)
-            .bind(hashed_password)
+            .bind(&new_user.password)
             .execute(&*db_connection)
             .await
             .map_err(|err| {
@@ -97,16 +90,9 @@ impl UserRepository for MySqlRepository {
         new_password: &str,
     ) -> Result<(), UpdateUserPasswordError> {
         let db_connection = self.db_connection.clone();
-        let hashed_password = bcrypt::hash(new_password, 12).map_err(|err| {
-            tracing::error!(
-                error = err.to_string(),
-                "an error occurred when hashing the password"
-            );
-            UpdateUserPasswordError::DatabaseError
-        })?;
         let query_result = sqlx::query("CALL reset_user_password(?, ?);")
             .bind(username)
-            .bind(hashed_password)
+            .bind(new_password)
             .execute(&*db_connection)
             .await
             .map_err(|_| UpdateUserPasswordError::DatabaseError)?;
