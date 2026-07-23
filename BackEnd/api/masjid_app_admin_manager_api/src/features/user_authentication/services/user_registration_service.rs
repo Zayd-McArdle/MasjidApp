@@ -22,7 +22,7 @@ impl UserRegistrationService for AuthenticationServiceImpl {
         &self,
         mut new_user: UserAccountDTO,
     ) -> Result<(), UserRegistrationError> {
-        new_user.password = self.hashing_service.hash(new_user.password.as_bytes())?;
+        new_user.password = self.hashing_service.hash(&new_user.password.as_bytes())?;
         self.user_repository
             .insert_new_user(new_user)
             .await

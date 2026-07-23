@@ -22,11 +22,11 @@ impl LoginService for AuthenticationServiceImpl {
             .get_user_by_credentials(username, password)
             .await
             .map_err(LoginError::from)?;
-        if self
+        let hash_verified = self
             .hashing_service
             .verify_hash(password.as_bytes(), &user.password)
-            .map_err(|_| LoginError::UnableToVerifyPasswordHash)?
-        {
+            .map_err(|_| LoginError::UnableToVerifyPasswordHash)?;
+        if hash_verified {
             tracing::info!(username = username, "logged in");
             return Ok(user.role);
         }
