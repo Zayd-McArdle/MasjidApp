@@ -97,30 +97,34 @@ CREATE PROCEDURE IF NOT EXISTS upsert_event(IN p_id INT,
                                             IN p_email VARCHAR(50))
 BEGIN
     IF p_id = 0 THEN
-        INSERT INTO events (title, 
-            description, 
-            date, 
-            type, 
-            recurrence,
-            status, 
-            minimum_age, 
-            maximum_age, 
-            image_url, 
-            full_name, 
-            phone_number, 
-            email)
-        VALUES (p_title,
-            p_description,
-            p_date,
-            p_type,
-            p_recurrence,
-            p_status,
-            p_minimum_age,
-            p_maximum_age,
-            p_image_url,
-            p_full_name,
-            p_phone_number,
-            p_email);
+        IF EXISTS(SELECT 1 FROM events WHERE title = p_title) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Event already exists';
+        ELSE
+            INSERT INTO events (title, 
+                description, 
+                date, 
+                type, 
+                recurrence,
+                status, 
+                minimum_age, 
+                maximum_age, 
+                image_url, 
+                full_name, 
+                phone_number, 
+                email)
+            VALUES (p_title,
+                p_description,
+                p_date,
+                p_type,
+                p_recurrence,
+                p_status,
+                p_minimum_age,
+                p_maximum_age,
+                p_image_url,
+                p_full_name,
+                p_phone_number,
+                p_email);
+        END IF;
     ELSE 
         UPDATE events SET title = p_title, 
             description = p_description, 
