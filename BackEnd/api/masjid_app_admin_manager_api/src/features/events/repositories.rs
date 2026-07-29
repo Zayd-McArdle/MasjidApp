@@ -1,4 +1,6 @@
-use crate::features::events::errors::{DeleteEventError, UpsertEventError};
+use crate::features::events::errors::{
+    DeleteEventError, InsertEventError, UpdateEventError, UpsertEventError,
+};
 use async_trait::async_trait;
 use masjid_app_api_library::features::events::models::Event;
 use masjid_app_api_library::features::events::repositories::EventsRepository;
@@ -35,7 +37,7 @@ impl EventsAdminRepository for InMemoryRepository {
 impl EventsAdminRepository for MySqlRepository {
     async fn upsert_event(&self, event: &Event) -> Result<(), UpsertEventError> {
         let db_connection = self.db_connection.clone();
-        sqlx::query("CALL upsert_event(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        let result = sqlx::query("CALL upsert_event(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
             .bind(&event.id)
             .bind(&event.title)
             .bind(&event.description)
@@ -52,9 +54,20 @@ impl EventsAdminRepository for MySqlRepository {
             .execute(&*db_connection)
             .await
             .map_err(|err| {
+                if let sqlx::Error::Database(ref database_error) = err {
+                    if database_error.message() == "Event already exists" {
+                        return UpsertEventError::InsertError(InsertEventError::EventAlreadyExists);
+                    }
+                }
                 tracing::error!("Unable to upsert event due to the following error: {}", err);
-                UpsertEventError::UnableToUpsertEvent
+                UpsertEventError::InsertError(InsertEventError::UnableToInsertEvent)
             })?;
+        if result.rows_affected() == 0 {
+            tracing::debug!(id = &event.id, "record not found");
+            return Err(UpsertEventError::UpdateError(
+                UpdateEventError::EventNotFound,
+            ));
+        }
         Ok(())
     }
 
