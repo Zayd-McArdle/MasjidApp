@@ -1,11 +1,11 @@
-use crate::features::prayer_times::errors::GetPrayerTimesError;
+use crate::features::prayer_times::errors::GetPrayerTimesRepositoryError;
 use crate::features::prayer_times::models::PrayerTimesDTO;
-use crate::features::prayer_times::repositories::PrayerTimesRepository;
-use crate::shared::data_access::db_type::DbType;
-use crate::shared::types::app_state::AppState;
+use crate::features::prayer_times::services::errors::get_prayer_times_service_error::GetPrayerTimesServiceError;
+use crate::features::prayer_times::services::prayer_times_retrieval_service::PrayerTimesRetrievalService;
+use crate::shared::types::app_state::ServiceAppState;
 use axum::body::Body;
 use axum::extract::State;
-use axum::http::{StatusCode, header};
+use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
 use std::sync::Arc;
 
@@ -33,51 +33,30 @@ pub fn build_prayer_times_response(prayer_times: PrayerTimesDTO, hash: Option<&s
     StatusCode::INTERNAL_SERVER_ERROR.into_response()
 }
 
-pub async fn get_prayer_times_common<R>(State(state): State<AppState<Arc<R>>>) -> Response
-where
-    R: PrayerTimesRepository + ?Sized,
-{
-    let mut get_prayer_times_result: Result<PrayerTimesDTO, GetPrayerTimesError> =
-        Err(GetPrayerTimesError::UnableToGetPrayerTimes);
-
-    if let Some(prayer_times_in_memory_repository) = state.repository_map.get(&DbType::InMemory) {
-        get_prayer_times_result = prayer_times_in_memory_repository.get_prayer_times().await;
-    }
-
-    if get_prayer_times_result.is_err() {
-        get_prayer_times_result = state
-            .repository_map
-            .get(&DbType::MySql)
-            .unwrap()
-            .get_prayer_times()
-            .await;
-    }
-    match get_prayer_times_result {
+pub async fn get_prayer_times_common<R: PrayerTimesRetrievalService + ?Sized>(
+    State(state): State<ServiceAppState<Arc<R>>>,
+) -> Response {
+    match state.service.get_prayer_times().await {
         Ok(prayer_times) => build_prayer_times_response(prayer_times, None),
-        Err(GetPrayerTimesError::PrayerTimesNotFound) => StatusCode::NOT_FOUND.into_response(),
-        Err(GetPrayerTimesError::UnableToGetPrayerTimes) => {
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
+        Err(GetPrayerTimesServiceError::RepositoryError(
+            GetPrayerTimesRepositoryError::PrayerTimesNotFound,
+        )) => StatusCode::NOT_FOUND.into_response(),
+        Err(GetPrayerTimesServiceError::RepositoryError(
+            GetPrayerTimesRepositoryError::UnableToGetPrayerTimes,
+        )) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     }
 }
 
+#[cfg(test)]
 mod test {
     use super::*;
-    use crate::features::prayer_times::errors::GetPrayerTimesError;
-    use crate::features::prayer_times::repositories::MockPrayerTimesRepository;
-    use crate::shared::data_access::db_type::DbType;
-    use crate::shared::types::app_state::AppState;
-    use axum::extract::State;
-    use axum::http::StatusCode;
-    use std::collections::HashMap;
-    use std::sync::Arc;
+    use crate::features::prayer_times::errors::GetPrayerTimesRepositoryError;
+    use crate::features::prayer_times::services::prayer_times_retrieval_service::MockPrayerTimesRetrievalService;
 
     #[tokio::test]
     async fn test_get_prayer_times() {
-        #[derive(Clone)]
         struct TestCase {
-            cached_prayer_times_data: Result<PrayerTimesDTO, GetPrayerTimesError>,
-            prayer_times_data: Result<PrayerTimesDTO, GetPrayerTimesError>,
+            expected_service_response: Result<PrayerTimesDTO, GetPrayerTimesServiceError>,
             expected_response_code: StatusCode,
         }
         let valid_prayer_times_data = Ok(PrayerTimesDTO {
@@ -86,41 +65,32 @@ mod test {
         });
         let test_cases = vec![
             TestCase {
-                cached_prayer_times_data: Err(GetPrayerTimesError::PrayerTimesNotFound),
-                prayer_times_data: Err(GetPrayerTimesError::PrayerTimesNotFound),
+                expected_service_response: Err(GetPrayerTimesServiceError::RepositoryError(
+                    GetPrayerTimesRepositoryError::PrayerTimesNotFound,
+                )),
                 expected_response_code: StatusCode::NOT_FOUND,
             },
             TestCase {
-                cached_prayer_times_data: Err(GetPrayerTimesError::UnableToGetPrayerTimes),
-                prayer_times_data: Err(GetPrayerTimesError::UnableToGetPrayerTimes),
+                expected_service_response: Err(GetPrayerTimesServiceError::RepositoryError(
+                    GetPrayerTimesRepositoryError::UnableToGetPrayerTimes,
+                )),
                 expected_response_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
-                cached_prayer_times_data: valid_prayer_times_data.clone(),
-                prayer_times_data: valid_prayer_times_data,
+                expected_service_response: valid_prayer_times_data,
                 expected_response_code: StatusCode::OK,
             },
         ];
 
         for case in test_cases {
-            let mut mock_prayer_times_in_memory_repository = MockPrayerTimesRepository::new();
-            let mut mock_prayer_times_repository = MockPrayerTimesRepository::new();
+            let mut mock_service = MockPrayerTimesRetrievalService::new();
 
-            mock_prayer_times_in_memory_repository
+            mock_service
                 .expect_get_prayer_times()
-                .returning(move || case.cached_prayer_times_data.clone());
-            mock_prayer_times_repository
-                .expect_get_prayer_times()
-                .returning(move || case.prayer_times_data.clone());
-            let arc_in_memory_repository: Arc<dyn PrayerTimesRepository> =
-                Arc::new(mock_prayer_times_in_memory_repository);
-            let arc_repository: Arc<dyn PrayerTimesRepository> =
-                Arc::new(mock_prayer_times_repository);
-            let app_state: AppState<Arc<dyn PrayerTimesRepository>> = AppState {
-                repository_map: HashMap::from([
-                    (DbType::InMemory, arc_in_memory_repository),
-                    (DbType::MySql, arc_repository),
-                ]),
+                .return_once(move || case.expected_service_response);
+
+            let app_state = ServiceAppState::<Arc<dyn PrayerTimesRetrievalService>> {
+                service: Arc::new(mock_service),
             };
 
             let actual_response = get_prayer_times_common(State(app_state)).await;

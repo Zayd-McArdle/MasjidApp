@@ -1,5 +1,5 @@
 #[derive(Clone, Debug, PartialEq)]
-pub enum GetPrayerTimesError {
+pub enum GetPrayerTimesRepositoryError {
     PrayerTimesNotFound,
     UnableToGetPrayerTimes,
 }

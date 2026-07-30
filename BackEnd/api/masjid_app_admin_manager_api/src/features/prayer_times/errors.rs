@@ -1,4 +1,4 @@
 #[derive(Clone, Debug, PartialEq)]
-pub enum UpdatePrayerTimesError {
+pub enum UpdatePrayerTimesRepositoryError {
     UnableToUpdatePrayerTimes,
 }
