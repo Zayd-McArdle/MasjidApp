@@ -150,30 +150,17 @@ pub async fn delete_event(
         }
     }
 }
+#[cfg(test)]
 mod test {
-    use crate::features::events::endpoints::{delete_event, upsert_events};
-    use crate::features::events::errors::{DeleteEventError, UpsertEventError};
-    use crate::features::events::services::errors::event_deletion_error::EventDeletionError;
-    use crate::features::events::services::errors::event_publishing_error::EventPublishingError;
-    use crate::features::events::services::event_deletion_service::{
-        EventDeletionService, MockEventDeletionService,
-    };
-    use crate::features::events::services::event_publishing_service::{
-        EventPublishingService, MockEventPublishingService,
-    };
-    use crate::shared::jwt::Claims;
+    use super::*;
+    use crate::features::events::services::event_deletion_service::MockEventDeletionService;
+    use crate::features::events::services::event_publishing_service::MockEventPublishingService;
     use axum::body::Bytes;
-    use axum::extract::State;
-    use axum::http::StatusCode;
     use masjid_app_api_library::features::events::models::{
-        EventDTO, EventDetails, EventRecurrence, EventStatus, EventType,
+        EventDetails, EventRecurrence, EventStatus, EventType,
     };
-    use masjid_app_api_library::shared::extractors::file_handler::FileHandler;
-    use masjid_app_api_library::shared::extractors::request_validator::multipart::ValidatedMultipartRequest;
     use masjid_app_api_library::shared::types::age_range::AgeRange;
-    use masjid_app_api_library::shared::types::app_state::ServiceAppState;
     use masjid_app_api_library::shared::types::contact_details::ContactDetails;
-    use std::sync::Arc;
 
     fn get_valid_upsert_request(include_file: bool) -> ValidatedMultipartRequest<EventDTO> {
         let mut file_data = Bytes::default();
