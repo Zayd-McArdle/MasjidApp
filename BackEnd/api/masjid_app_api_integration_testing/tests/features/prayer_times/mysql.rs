@@ -2,7 +2,7 @@ use crate::common::data_access_layer;
 use crate::common::data_access_layer::DatabaseCredentials;
 use crate::common::logging::setup_logging;
 use masjid_app_admin_manager_api::features::prayer_times::repositories::new_prayer_times_admin_repository;
-use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesError;
+use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesRepositoryError;
 use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
 use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
 use masjid_app_api_library::shared::data_access::repository_management::repository_mode::RepositoryMode;
@@ -19,13 +19,14 @@ async fn test_prayer_times() {
 
     let public_repository =
         new_prayer_times_public_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await;
-    let admin_repository = new_prayer_times_admin_repository().await;
+    let admin_repository =
+        new_prayer_times_admin_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await;
 
     //Given no prayer times exist, I should receive an error
     let get_prayer_times_result = public_repository.get_prayer_times().await.unwrap_err();
     assert_eq!(
         get_prayer_times_result,
-        GetPrayerTimesError::PrayerTimesNotFound
+        GetPrayerTimesRepositoryError::PrayerTimesNotFound
     );
 
     //When trying to retrieve latest prayer times if none exist, I should receive an error
@@ -37,12 +38,12 @@ async fn test_prayer_times() {
         .unwrap_err();
     assert_eq!(
         get_updated_prayer_times_result,
-        GetPrayerTimesError::PrayerTimesNotFound
+        GetPrayerTimesRepositoryError::PrayerTimesNotFound
     );
 
     //When I insert some prayer times, I should receive no error
     let update_prayer_times_result = admin_repository
-        .update_prayer_times(PrayerTimesDTO {
+        .update_prayer_times(&PrayerTimesDTO {
             data: Some(vec![0x01, 0x02, 0x03, 0x04]),
             hash: "5a4e9c5d6b8a2f3e1c0b9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d".to_owned(),
         })

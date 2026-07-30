@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesError;
+use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesRepositoryError;
 use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
 use masjid_app_api_library::features::prayer_times::repositories::PrayerTimesRepository;
 use masjid_app_api_library::new_repository;
@@ -19,7 +19,7 @@ pub trait PrayerTimesPublicRepository: PrayerTimesRepository {
     async fn get_updated_prayer_times(
         &self,
         hash: &str,
-    ) -> Result<PrayerTimesDTO, GetPrayerTimesError>;
+    ) -> Result<PrayerTimesDTO, GetPrayerTimesRepositoryError>;
 }
 
 pub async fn new_prayer_times_public_repository(
@@ -33,9 +33,9 @@ impl PrayerTimesPublicRepository for InMemoryRepository {
     async fn get_updated_prayer_times(
         &self,
         hash: &str,
-    ) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
+    ) -> Result<PrayerTimesDTO, GetPrayerTimesRepositoryError> {
         tracing::warn!("In-memory database for getting updated prayer times not implemented");
-        Err(GetPrayerTimesError::UnableToGetPrayerTimes)
+        Err(GetPrayerTimesRepositoryError::UnableToGetPrayerTimes)
     }
 }
 
@@ -44,7 +44,7 @@ impl PrayerTimesPublicRepository for MySqlRepository {
     async fn get_updated_prayer_times(
         &self,
         hash: &str,
-    ) -> Result<PrayerTimesDTO, GetPrayerTimesError> {
+    ) -> Result<PrayerTimesDTO, GetPrayerTimesRepositoryError> {
         let db_connection = self.db_connection.clone();
         let query_response = sqlx::query("CALL get_updated_prayer_times(?);")
             .bind(hash)
@@ -70,14 +70,14 @@ impl PrayerTimesPublicRepository for MySqlRepository {
             Ok(prayer_times) => Ok(prayer_times),
             Err(Error::RowNotFound) => {
                 tracing::error!("prayer times not found");
-                Err(GetPrayerTimesError::PrayerTimesNotFound)
+                Err(GetPrayerTimesRepositoryError::PrayerTimesNotFound)
             }
             Err(err) => {
                 tracing::error!(
                     "unable to get updated prayer times from the database: {}",
                     err
                 );
-                Err(GetPrayerTimesError::UnableToGetPrayerTimes)
+                Err(GetPrayerTimesRepositoryError::UnableToGetPrayerTimes)
             }
         }
     }

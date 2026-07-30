@@ -1,0 +1,1 @@
+pub mod get_prayer_times_service_error;

@@ -18,6 +18,8 @@ use crate::features::events::services::event_deletion_service::{
 use crate::features::events::services::event_publishing_service::{
     new_event_publishing_service, EventPublishingService,
 };
+use crate::features::prayer_times::services::prayer_times_update_service::new_prayer_times_update_service;
+use crate::features::prayer_times::services::prayer_times_update_service::PrayerTimesUpdateService;
 use crate::features::user_authentication::services::login_service::{
     new_login_service, LoginService,
 };
@@ -29,6 +31,9 @@ use axum::routing::{delete, get, patch, post, put};
 use axum::Router;
 use masjid_app_api_library::features::events::services::event_retrieval_service::{
     new_event_retrieval_service, EventRetrievalService,
+};
+use masjid_app_api_library::features::prayer_times::services::prayer_times_retrieval_service::{
+    new_prayer_times_retrieval_service, PrayerTimesRetrievalService,
 };
 use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;
 use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
@@ -76,16 +81,27 @@ async fn map_user_authentication() -> Router {
         .with_state(reset_password_app_state)
 }
 async fn map_prayer_times() -> Router {
-    let state = AppState {
-        repository_map: HashMap::from([
-            (DbType::InMemory, new_prayer_times_admin_repository().await),
-            (DbType::MySql, new_prayer_times_admin_repository().await),
-        ]),
+    let get_prayer_times_app_state = ServiceAppState::<Arc<dyn PrayerTimesRetrievalService>> {
+        service: new_prayer_times_retrieval_service(
+            new_prayer_times_admin_repository(RepositoryMode::Normal(NormalDbProvider::MySql))
+                .await,
+            new_prayer_times_admin_repository(RepositoryMode::InMemory(InMemoryDbProvider::Redis))
+                .await,
+        ),
+    };
+    let update_prayer_times_app_state = ServiceAppState::<Arc<dyn PrayerTimesUpdateService>> {
+        service: new_prayer_times_update_service(
+            new_prayer_times_admin_repository(RepositoryMode::Normal(NormalDbProvider::MySql))
+                .await,
+            new_prayer_times_admin_repository(RepositoryMode::InMemory(InMemoryDbProvider::Redis))
+                .await,
+        ),
     };
     Router::new()
         .route("/", get(prayer_times::endpoints::get_prayer_times))
+        .with_state(get_prayer_times_app_state)
         .route("/", patch(prayer_times::endpoints::update_prayer_times))
-        .with_state(state)
+        .with_state(update_prayer_times_app_state)
 }
 async fn map_donation() -> Router {
     panic!("Implement donation controller")
