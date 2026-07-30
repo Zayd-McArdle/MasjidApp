@@ -1,6 +1,5 @@
 use crate::features::prayer_times::errors::UpdatePrayerTimesRepositoryError;
 use crate::features::prayer_times::models::UpdatePrayerTimesRequest;
-use crate::features::prayer_times::repositories::PrayerTimesAdminRepository;
 use crate::features::prayer_times::services::errors::update_prayer_times_service_error::UpdatePrayerTimesServiceError;
 use crate::features::prayer_times::services::prayer_times_update_service::PrayerTimesUpdateService;
 use crate::shared::jwt::Claims;

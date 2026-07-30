@@ -1,4 +1,3 @@
-use crate::features::prayer_times::repositories::PrayerTimesPublicRepository;
 use crate::features::prayer_times::services::errors::check_for_updated_prayer_times_error::CheckForUpdatedPrayerTimesError;
 use crate::features::prayer_times::services::prayer_times_update_checking_service::PrayerTimesUpdateCheckingService;
 use axum::extract::{Path, State};
@@ -43,6 +42,7 @@ pub async fn get_updated_prayer_times(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::features::prayer_times::repositories::PrayerTimesPublicRepository;
     use async_trait::async_trait;
     use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
     use masjid_app_api_library::features::prayer_times::repositories::PrayerTimesRepository;

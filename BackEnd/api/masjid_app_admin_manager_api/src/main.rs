@@ -20,13 +20,9 @@ use crate::features::events::services::event_publishing_service::{
 };
 use crate::features::prayer_times::services::prayer_times_update_service::new_prayer_times_update_service;
 use crate::features::prayer_times::services::prayer_times_update_service::PrayerTimesUpdateService;
-use crate::features::user_authentication::services::login_service::{
-    new_login_service, LoginService,
-};
+use crate::features::user_authentication::services::login_service::new_login_service;
 use crate::features::user_authentication::services::reset_password_service::new_reset_password_service;
-use crate::features::user_authentication::services::user_registration_service::{
-    new_user_registration_service, UserRegistrationService,
-};
+use crate::features::user_authentication::services::user_registration_service::new_user_registration_service;
 use axum::routing::{delete, get, patch, post, put};
 use axum::Router;
 use masjid_app_api_library::features::events::services::event_retrieval_service::{
@@ -37,13 +33,11 @@ use masjid_app_api_library::features::prayer_times::services::prayer_times_retri
 };
 use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;
 use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
-use masjid_app_api_library::shared::data_access::db_type::DbType;
 use masjid_app_api_library::shared::data_access::repository_management::repository_mode::RepositoryMode;
 use masjid_app_api_library::shared::logging::logging;
 use masjid_app_api_library::shared::services::hashing::providers::HashingProvider;
 use masjid_app_api_library::shared::services::hashing::r#trait::new_hashing_service;
-use masjid_app_api_library::shared::types::app_state::{AppState, ServiceAppState};
-use std::collections::HashMap;
+use masjid_app_api_library::shared::types::app_state::ServiceAppState;
 use std::sync::Arc;
 
 async fn map_user_authentication() -> Router {
