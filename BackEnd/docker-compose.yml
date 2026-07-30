@@ -43,7 +43,7 @@ services:
       dockerfile: api/masjid_app_admin_manager_api/Dockerfile
     environment:
       AUTHENTICATION_CONNECTION: "mysql://authenticationuser:BL6FxKu!237GvPS9@db/masjidappdatabase"
-      PRAYER_TIMES_CONNECTION: "mysql://prayertimesuser:HR0o8NRkwvuMaIBh7yaf@db/masjidappdatabase"
+      PRAYER_TIMES_CONNECTION: "mysql://prayertimesadmin:HR0o8NRkwvuMaIBh7yaf@db/masjidappdatabase"
       ANNOUNCEMENT_CONNECTION: "mysql://announcementsuser:LzwvN6bU4y3EqmAYBMJFrn@db/masjidappdatabase"
       EVENTS_CONNECTION: "mysql://eventsadmin:changeme@db/masjidappdatabase"
       ASK_IMAM_CONNECTION: "mysql://askimamadmin:changeme@db/masjidappdatabase"
