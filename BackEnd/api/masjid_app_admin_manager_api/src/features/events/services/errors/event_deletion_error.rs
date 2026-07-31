@@ -1,5 +1,4 @@
 use crate::features::events::errors::DeleteEventError;
-use crate::features::events::services::errors::event_deletion_error::EventDeletionError::RepositoryError;
 
 #[derive(Debug)]
 pub enum EventDeletionError {
@@ -7,7 +6,8 @@ pub enum EventDeletionError {
     UnableToDeleteImagesRelatedToEvent,
 }
 impl From<DeleteEventError> for EventDeletionError {
+    #[inline]
     fn from(value: DeleteEventError) -> Self {
-        RepositoryError(value)
+        Self::RepositoryError(value)
     }
 }

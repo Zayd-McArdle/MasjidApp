@@ -5,6 +5,7 @@ pub enum GetPrayerTimesServiceError {
 }
 
 impl From<GetPrayerTimesRepositoryError> for GetPrayerTimesServiceError {
+    #[inline]
     fn from(value: GetPrayerTimesRepositoryError) -> Self {
         Self::RepositoryError(value)
     }
