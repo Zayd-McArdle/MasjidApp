@@ -8,6 +8,7 @@ pub enum LoginError {
 }
 
 impl From<GetUserError> for LoginError {
+    #[inline]
     fn from(value: GetUserError) -> Self {
         match value {
             GetUserError::NotFound => Self::InvalidCredentials,

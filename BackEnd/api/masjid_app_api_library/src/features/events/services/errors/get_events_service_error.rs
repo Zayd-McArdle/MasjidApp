@@ -5,6 +5,7 @@ pub enum GetEventsServiceError {
 }
 
 impl From<GetEventsRepositoryError> for GetEventsServiceError {
+    #[inline]
     fn from(value: GetEventsRepositoryError) -> Self {
         Self::UnableToGetEventsFromRepository(value)
     }

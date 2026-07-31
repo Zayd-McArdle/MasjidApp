@@ -9,11 +9,13 @@ pub enum UserRegistrationError {
 }
 
 impl From<HashError> for UserRegistrationError {
+    #[inline]
     fn from(value: HashError) -> Self {
         Self::UnableToHashPassword(value)
     }
 }
 impl From<InsertNewUserError> for UserRegistrationError {
+    #[inline]
     fn from(value: InsertNewUserError) -> Self {
         match value {
             InsertNewUserError::UserExists => Self::UserAlreadyRegistered,
