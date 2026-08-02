@@ -2,10 +2,10 @@ use crate::features::events::errors::GetEventsRepositoryError;
 use crate::features::events::services::errors::get_events_service_error::GetEventsServiceError;
 use crate::features::events::services::event_retrieval_service::EventRetrievalService;
 use crate::shared::types::app_state::ServiceAppState;
+use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use axum::Json;
 use std::sync::Arc;
 
 #[inline]

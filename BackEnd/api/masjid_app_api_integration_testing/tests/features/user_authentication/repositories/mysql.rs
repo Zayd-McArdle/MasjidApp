@@ -1,4 +1,4 @@
-use crate::common::data_access_layer::{mysql, DatabaseCredentials};
+use crate::common::data_access_layer::{DatabaseCredentials, mysql};
 use crate::common::logging::setup_logging;
 use masjid_app_admin_manager_api::features::user_authentication::errors::{
     GetUserError, UpdateUserPasswordError,

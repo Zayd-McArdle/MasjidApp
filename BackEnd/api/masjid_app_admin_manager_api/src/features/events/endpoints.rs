@@ -1,4 +1,6 @@
-use crate::features::events::errors::{DeleteEventError, InsertEventError, UpdateEventError, UpsertEventError};
+use crate::features::events::errors::{
+    DeleteEventError, InsertEventError, UpdateEventError, UpsertEventError,
+};
 use crate::features::events::repositories::EventsAdminRepository;
 use crate::features::events::services::errors::event_deletion_error::EventDeletionError;
 use crate::features::events::services::errors::event_publishing_error::EventPublishingError;

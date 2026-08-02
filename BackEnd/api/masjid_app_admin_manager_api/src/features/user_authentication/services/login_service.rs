@@ -4,7 +4,7 @@ use crate::features::user_authentication::services::errors::login_error::LoginEr
 use async_trait::async_trait;
 use masjid_app_api_library::shared::services::hashing::errors::VerifyHashError;
 use masjid_app_api_library::shared::services::hashing::r#trait::{
-    new_hashing_service, HashingService,
+    HashingService, new_hashing_service,
 };
 use mockall::automock;
 use std::sync::Arc;

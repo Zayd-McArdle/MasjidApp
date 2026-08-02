@@ -5,7 +5,7 @@ use masjid_app_api_library::features::ask_imam::models::{
     Answer, ImamQuestionDTO, SchoolOfThought,
 };
 use masjid_app_api_library::features::ask_imam::repositories::{
-    get_imam_questions_common, ImamQuestionsRepository,
+    ImamQuestionsRepository, get_imam_questions_common,
 };
 use masjid_app_api_library::new_repository;
 use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;

@@ -6,18 +6,18 @@ use crate::features::ask_imam::repositories::new_imam_questions_public_repositor
 use crate::features::ask_imam::services::new_ask_imam_public_service;
 use crate::features::events::repositories::new_events_public_repository;
 use crate::features::prayer_times::services::prayer_times_update_checking_service::{
-    new_prayer_times_update_checking_service, PrayerTimesUpdateCheckingService,
+    PrayerTimesUpdateCheckingService, new_prayer_times_update_checking_service,
 };
 use crate::features::{ask_imam, events};
-use axum::routing::{get, post, put};
 use axum::Router;
+use axum::routing::{get, post, put};
 use features::prayer_times;
 use features::prayer_times::repositories::new_prayer_times_public_repository;
 use masjid_app_api_library::features::events::services::event_retrieval_service::{
-    new_event_retrieval_service, EventRetrievalService,
+    EventRetrievalService, new_event_retrieval_service,
 };
 use masjid_app_api_library::features::prayer_times::services::prayer_times_retrieval_service::{
-    new_prayer_times_retrieval_service, PrayerTimesRetrievalService,
+    PrayerTimesRetrievalService, new_prayer_times_retrieval_service,
 };
 use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;
 use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;

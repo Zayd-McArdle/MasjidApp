@@ -5,7 +5,7 @@ use crate::features::prayer_times::services::prayer_times_retrieval_service::Pra
 use crate::shared::types::app_state::ServiceAppState;
 use axum::body::Body;
 use axum::extract::State;
-use axum::http::{header, StatusCode};
+use axum::http::{StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use std::sync::Arc;
 

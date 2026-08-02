@@ -11,25 +11,25 @@ use crate::features::{prayer_times, user_authentication};
 use crate::features::ask_imam::endpoints::{
     delete_imam_question, get_imam_questions, provide_answer_for_imam_question,
 };
-use crate::features::ask_imam::services::{new_ask_imam_admin_service, AskImamAdminService};
+use crate::features::ask_imam::services::{AskImamAdminService, new_ask_imam_admin_service};
 use crate::features::events::services::event_deletion_service::{
-    new_event_deletion_service, EventDeletionService,
+    EventDeletionService, new_event_deletion_service,
 };
 use crate::features::events::services::event_publishing_service::{
-    new_event_publishing_service, EventPublishingService,
+    EventPublishingService, new_event_publishing_service,
 };
-use crate::features::prayer_times::services::prayer_times_update_service::new_prayer_times_update_service;
 use crate::features::prayer_times::services::prayer_times_update_service::PrayerTimesUpdateService;
+use crate::features::prayer_times::services::prayer_times_update_service::new_prayer_times_update_service;
 use crate::features::user_authentication::services::login_service::new_login_service;
 use crate::features::user_authentication::services::reset_password_service::new_reset_password_service;
 use crate::features::user_authentication::services::user_registration_service::new_user_registration_service;
-use axum::routing::{delete, get, patch, post, put};
 use axum::Router;
+use axum::routing::{delete, get, patch, post, put};
 use masjid_app_api_library::features::events::services::event_retrieval_service::{
-    new_event_retrieval_service, EventRetrievalService,
+    EventRetrievalService, new_event_retrieval_service,
 };
 use masjid_app_api_library::features::prayer_times::services::prayer_times_retrieval_service::{
-    new_prayer_times_retrieval_service, PrayerTimesRetrievalService,
+    PrayerTimesRetrievalService, new_prayer_times_retrieval_service,
 };
 use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;
 use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;

@@ -1,6 +1,6 @@
 use crate::shared::services::hashing::errors::{HashError, VerifyHashError};
-use crate::shared::services::hashing::providers::HashingProvider;
 use crate::shared::services::hashing::r#impl::HashingServiceImpl;
+use crate::shared::services::hashing::providers::HashingProvider;
 use mockall::automock;
 use std::sync::Arc;
 
