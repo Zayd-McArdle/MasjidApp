@@ -40,6 +40,7 @@ pub async fn get_imam_questions_common(
         query
     }
     .map(imam_question_from_my_sql_row)
+    .map(ImamQuestionDTO::from)
     .fetch_all(&*db_connection)
     .await
     .map_err(|err| {
@@ -56,7 +57,7 @@ pub async fn get_imam_questions_common(
     if questions.is_empty() {
         return Err(GetQuestionsError::QuestionsNotFound);
     }
-    Ok(questions.into_iter().map(ImamQuestionDTO::from).collect())
+    Ok(questions)
 }
 
 #[async_trait]
