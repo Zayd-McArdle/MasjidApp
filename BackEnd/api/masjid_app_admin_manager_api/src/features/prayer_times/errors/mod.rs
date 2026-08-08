@@ -1,4 +1,1 @@
-#[derive(Clone, Debug, PartialEq)]
-pub enum UpdatePrayerTimesRepositoryError {
-    UnableToUpdatePrayerTimes,
-}
+pub mod update_prayer_times_repository_error;

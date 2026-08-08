@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use masjid_app_api_library::features::prayer_times::errors::GetPrayerTimesRepositoryError;
-use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
+use masjid_app_api_library::features::prayer_times::errors::get_prayer_times_repository_error::GetPrayerTimesRepositoryError;
+use masjid_app_api_library::features::prayer_times::models::prayer_times_dto::PrayerTimesDTO;
 use masjid_app_api_library::features::prayer_times::repositories::PrayerTimesRepository;
 use masjid_app_api_library::new_repository;
 use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;
@@ -9,10 +9,10 @@ use masjid_app_api_library::shared::data_access::repository_management::in_memor
 use masjid_app_api_library::shared::data_access::repository_management::mysql_repository::MySqlRepository;
 use masjid_app_api_library::shared::data_access::repository_management::repository_mode::RepositoryMode;
 use masjid_app_api_library::shared::data_access::repository_management::repository_type::RepositoryType;
-use sqlx::mysql::MySqlRow;
-use sqlx::{Error, Row};
 use std::sync::Arc;
 
+mod mysql_impl;
+mod redis_impl;
 #[async_trait]
 pub trait PrayerTimesPublicRepository: PrayerTimesRepository {
     async fn get_updated_prayer_times(
@@ -25,59 +25,4 @@ pub async fn new_prayer_times_public_repository(
     repository_mode: RepositoryMode,
 ) -> Arc<dyn PrayerTimesPublicRepository> {
     new_repository!(repository_mode, RepositoryType::PrayerTimes)
-}
-
-#[async_trait]
-impl PrayerTimesPublicRepository for InMemoryRepository {
-    async fn get_updated_prayer_times(
-        &self,
-        hash: &str,
-    ) -> Result<PrayerTimesDTO, GetPrayerTimesRepositoryError> {
-        tracing::warn!("In-memory database for getting updated prayer times not implemented");
-        Err(GetPrayerTimesRepositoryError::UnableToGetPrayerTimes)
-    }
-}
-
-#[async_trait]
-impl PrayerTimesPublicRepository for MySqlRepository {
-    async fn get_updated_prayer_times(
-        &self,
-        hash: &str,
-    ) -> Result<PrayerTimesDTO, GetPrayerTimesRepositoryError> {
-        let db_connection = self.db_connection.clone();
-        let query_response = sqlx::query("CALL get_updated_prayer_times(?);")
-            .bind(hash)
-            .fetch_one(&*db_connection)
-            .await
-            .map(|row: MySqlRow| {
-                if row.len() == 1 {
-                    tracing::debug!("prayer times hash matches request hash");
-                    return PrayerTimesDTO {
-                        data: None,
-                        hash: row.get(0),
-                    };
-                }
-                tracing::debug!(
-                    "prayer times hash does not match request hash. downloading new prayer times"
-                );
-                return PrayerTimesDTO {
-                    data: row.get(0),
-                    hash: row.get(1),
-                };
-            });
-        match query_response {
-            Ok(prayer_times) => Ok(prayer_times),
-            Err(Error::RowNotFound) => {
-                tracing::error!("prayer times not found");
-                Err(GetPrayerTimesRepositoryError::PrayerTimesNotFound)
-            }
-            Err(err) => {
-                tracing::error!(
-                    "unable to get updated prayer times from the database: {}",
-                    err
-                );
-                Err(GetPrayerTimesRepositoryError::UnableToGetPrayerTimes)
-            }
-        }
-    }
 }

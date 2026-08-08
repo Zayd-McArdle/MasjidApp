@@ -1,4 +1,4 @@
-use crate::features::prayer_times::errors::UpdatePrayerTimesRepositoryError;
+use crate::features::prayer_times::errors::update_prayer_times_repository_error::UpdatePrayerTimesRepositoryError;
 
 pub enum UpdatePrayerTimesServiceError {
     RepositoryError(UpdatePrayerTimesRepositoryError),
