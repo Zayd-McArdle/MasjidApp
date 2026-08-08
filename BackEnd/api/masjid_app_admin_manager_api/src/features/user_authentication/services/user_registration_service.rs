@@ -1,4 +1,4 @@
-use crate::features::user_authentication::models::UserAccountDTO;
+use crate::features::user_authentication::models::user_account_dto::UserAccountDTO;
 use crate::features::user_authentication::repositories::UserRepository;
 use crate::features::user_authentication::services::authentication_service_impl::AuthenticationServiceImpl;
 use crate::features::user_authentication::services::errors::user_registration_error::UserRegistrationError;
@@ -33,7 +33,7 @@ impl UserRegistrationService for AuthenticationServiceImpl {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::features::user_authentication::errors::InsertNewUserError;
+    use crate::features::user_authentication::errors::insert_new_user_error::InsertNewUserError;
     use crate::features::user_authentication::repositories::MockUserRepository;
     use masjid_app_api_library::shared::services::hashing::providers::HashingProvider;
     use masjid_app_api_library::shared::services::hashing::r#trait::new_hashing_service;

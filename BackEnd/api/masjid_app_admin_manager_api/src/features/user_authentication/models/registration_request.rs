@@ -1,21 +1,5 @@
 use serde::Deserialize;
 use validator::{Validate, ValidationError};
-
-#[derive(Deserialize, Validate, Clone)]
-pub struct LoginRequest {
-    #[validate(length(min = 2))]
-    pub username: String,
-    #[validate(length(min = 2))]
-    pub password: String,
-}
-
-#[derive(Debug, sqlx::FromRow, Clone)]
-pub struct LoginDTO {
-    pub username: String,
-    pub password: String,
-    pub role: String,
-}
-
 #[derive(Deserialize, Validate, Clone)]
 pub struct RegistrationRequest {
     #[validate(length(min = 2, message = "First name cannot be empty"))]
@@ -33,26 +17,10 @@ pub struct RegistrationRequest {
     ))]
     pub password: String,
 }
-
-#[derive(sqlx::FromRow, Clone)]
-pub struct UserAccountDTO {
-    pub full_name: String,
-    pub email: String,
-    pub role: String,
-    pub username: String,
-    pub password: String,
-}
+#[inline]
 fn validate_role(role: &str) -> Result<(), ValidationError> {
     if role == "Admin" || role == "Imam" {
         return Ok(());
     }
     Err(ValidationError::new("Invalid role"))
-}
-
-#[derive(Deserialize, Validate, Clone)]
-pub struct ResetUserPasswordRequest {
-    #[validate(length(min = 2))]
-    pub username: String,
-    #[validate(length(min = 16))]
-    pub replacement_password: String,
 }

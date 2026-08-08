@@ -1,5 +1,5 @@
 use masjid_app_admin_manager_api::features::user_authentication;
-use masjid_app_admin_manager_api::features::user_authentication::models::UserAccountDTO;
+use masjid_app_admin_manager_api::features::user_authentication::models::user_account_dto::UserAccountDTO;
 
 pub(crate) async fn add_user_to_main_database(new_user: UserAccountDTO) {
     let repository = user_authentication::repositories::new_user_repository().await;

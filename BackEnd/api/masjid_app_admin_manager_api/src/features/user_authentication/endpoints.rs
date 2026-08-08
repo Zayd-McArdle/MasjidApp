@@ -1,6 +1,7 @@
-use crate::features::user_authentication::models::{
-    LoginRequest, RegistrationRequest, ResetUserPasswordRequest, UserAccountDTO,
-};
+use crate::features::user_authentication::models::login_request::LoginRequest;
+use crate::features::user_authentication::models::registration_request::RegistrationRequest;
+use crate::features::user_authentication::models::reset_user_password_request::ResetUserPasswordRequest;
+use crate::features::user_authentication::models::user_account_dto::UserAccountDTO;
 use crate::features::user_authentication::services::errors::login_error::LoginError;
 use crate::features::user_authentication::services::errors::reset_password_error::ResetPasswordError;
 use crate::features::user_authentication::services::errors::user_registration_error::UserRegistrationError;
