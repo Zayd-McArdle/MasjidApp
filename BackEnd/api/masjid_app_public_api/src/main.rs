@@ -6,6 +6,8 @@ use crate::features::ask_imam::endpoints::get_answered_questions::get_answered_q
 use crate::features::ask_imam::repositories::new_imam_questions_public_repository;
 use crate::features::ask_imam::services::new_ask_imam_public_service;
 use crate::features::events::repositories::new_events_public_repository;
+use crate::features::prayer_times::endpoints::get_prayer_times::get_prayer_times;
+use crate::features::prayer_times::endpoints::get_updated_prayer_times::get_updated_prayer_times;
 use crate::features::prayer_times::services::prayer_times_update_checking_service::{
     PrayerTimesUpdateCheckingService, new_prayer_times_update_checking_service,
 };
@@ -47,12 +49,9 @@ async fn map_prayer_times() -> Router {
         ),
     };
     Router::new()
-        .route("/", get(prayer_times::endpoints::get_prayer_times))
+        .route("/", get(get_prayer_times))
         .with_state(get_prayer_times_app_state)
-        .route(
-            "/update",
-            get(prayer_times::endpoints::get_updated_prayer_times),
-        )
+        .route("/update", get(get_updated_prayer_times))
         .with_state(get_updated_prayer_times_app_state)
 }
 async fn map_donation() -> Router {
