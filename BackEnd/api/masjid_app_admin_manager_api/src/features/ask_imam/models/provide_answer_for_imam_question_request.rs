@@ -1,25 +1,6 @@
-use enum_stringify::EnumStringify;
-use masjid_app_api_library::features::ask_imam::models::Answer;
+use masjid_app_api_library::features::ask_imam::models::answer::Answer;
 use serde::Deserialize;
 use validator::Validate;
-#[derive(Deserialize, EnumStringify)]
-#[enum_stringify(case = "lower")]
-pub enum QuestionStatus {
-    Unanswered,
-    Answered,
-}
-
-#[derive(Deserialize, Validate)]
-pub struct GetImamQuestionsAdminRequest {
-    #[validate(length(min = 2))]
-    pub topic: Option<String>,
-
-    #[serde(rename = "schoolOfThought")]
-    pub school_of_thought: Option<String>,
-
-    #[serde(rename = "questionStatus")]
-    pub question_status: Option<String>,
-}
 
 #[derive(Validate, Deserialize, Clone)]
 pub struct ProvideAnswerForImamQuestionRequest {

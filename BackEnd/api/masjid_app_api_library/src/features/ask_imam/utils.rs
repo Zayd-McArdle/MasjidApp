@@ -1,12 +1,9 @@
-use crate::features::ask_imam::errors::GetQuestionsError;
-use crate::features::ask_imam::models::ImamQuestionDTO;
-use crate::features::ask_imam::repositories::ImamQuestionsRepository;
+use crate::features::ask_imam::errors::get_questions_error::GetQuestionsError;
+use crate::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
 use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use std::str::FromStr;
-use validator::Validate;
-
+#[inline]
 pub fn send_response_for_get_imam_questions(
     get_imam_questions_result: Result<Vec<ImamQuestionDTO>, GetQuestionsError>,
 ) -> Response {
@@ -18,11 +15,11 @@ pub fn send_response_for_get_imam_questions(
         }
     }
 }
+#[cfg(test)]
 mod test {
-    use crate::features::ask_imam::endpoints::send_response_for_get_imam_questions;
-    use crate::features::ask_imam::errors::GetQuestionsError;
-    use crate::features::ask_imam::models::{Answer, ImamQuestionDTO, SchoolOfThought};
-    use axum::http::StatusCode;
+    use super::*;
+    use crate::features::ask_imam::models::answer::Answer;
+    use crate::features::ask_imam::models::school_of_thought::SchoolOfThought;
 
     fn get_mock_answered_questions() -> Vec<ImamQuestionDTO> {
         vec![
