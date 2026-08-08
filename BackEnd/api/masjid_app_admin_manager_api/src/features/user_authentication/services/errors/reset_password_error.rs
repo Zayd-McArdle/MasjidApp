@@ -1,4 +1,4 @@
-use crate::features::user_authentication::errors::UpdateUserPasswordError;
+use crate::features::user_authentication::errors::update_user_password_error::UpdateUserPasswordError;
 use masjid_app_api_library::shared::services::hashing::errors::HashError;
 
 pub enum ResetPasswordError {
