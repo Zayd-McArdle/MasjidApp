@@ -1,6 +1,7 @@
-use crate::features::user_authentication::models::{
-    LoginRequest, RegistrationRequest, ResetUserPasswordRequest, UserAccountDTO,
-};
+use crate::features::user_authentication::models::login_request::LoginRequest;
+use crate::features::user_authentication::models::registration_request::RegistrationRequest;
+use crate::features::user_authentication::models::reset_user_password_request::ResetUserPasswordRequest;
+use crate::features::user_authentication::models::user_account_dto::UserAccountDTO;
 use crate::features::user_authentication::services::errors::login_error::LoginError;
 use crate::features::user_authentication::services::errors::reset_password_error::ResetPasswordError;
 use crate::features::user_authentication::services::errors::user_registration_error::UserRegistrationError;
@@ -8,10 +9,10 @@ use crate::features::user_authentication::services::login_service::LoginService;
 use crate::features::user_authentication::services::reset_password_service::ResetPasswordService;
 use crate::features::user_authentication::services::user_registration_service::UserRegistrationService;
 use crate::shared::jwt;
-use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
+use axum::Json;
 use masjid_app_api_library::shared::types::app_state::ServiceAppState;
 use std::sync::Arc;
 use validator::Validate;
@@ -279,9 +280,10 @@ mod tests {
             let app_state = ServiceAppState {
                 service: arc_service,
             };
-            let actual_response =
-                reset_user_password(State(app_state), Json(test_case.request)).await;
-            assert!(matches!(test_case.expected_status_code, actual_resposne));
+            let actual_response = reset_user_password(State(app_state), Json(test_case.request))
+                .await
+                .status();
+            assert_eq!(test_case.expected_status_code, actual_response);
         }
     }
 }

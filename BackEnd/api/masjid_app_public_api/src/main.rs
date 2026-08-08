@@ -1,18 +1,22 @@
 mod features;
 mod shared;
 
-use crate::features::ask_imam::endpoints::get_answered_questions;
+use crate::features::ask_imam::endpoints::ask_question_for_imam::ask_question_for_imam;
+use crate::features::ask_imam::endpoints::get_answered_questions::get_answered_questions;
 use crate::features::ask_imam::repositories::new_imam_questions_public_repository;
 use crate::features::ask_imam::services::new_ask_imam_public_service;
-use crate::features::events::repositories::new_events_public_repository;
+use crate::features::events::events_public_repository::new_events_public_repository;
+use crate::features::prayer_times::endpoints::get_prayer_times::get_prayer_times;
+use crate::features::prayer_times::endpoints::get_updated_prayer_times::get_updated_prayer_times;
 use crate::features::prayer_times::services::prayer_times_update_checking_service::{
     PrayerTimesUpdateCheckingService, new_prayer_times_update_checking_service,
 };
 use crate::features::{ask_imam, events};
 use axum::Router;
-use axum::routing::{get, post, put};
+use axum::routing::{get, post};
 use features::prayer_times;
 use features::prayer_times::repositories::new_prayer_times_public_repository;
+use masjid_app_api_library::features::events::endpoints::get_events::get_events_common;
 use masjid_app_api_library::features::events::services::event_retrieval_service::{
     EventRetrievalService, new_event_retrieval_service,
 };
@@ -46,12 +50,9 @@ async fn map_prayer_times() -> Router {
         ),
     };
     Router::new()
-        .route("/", get(prayer_times::endpoints::get_prayer_times))
+        .route("/", get(get_prayer_times))
         .with_state(get_prayer_times_app_state)
-        .route(
-            "/update",
-            get(prayer_times::endpoints::get_updated_prayer_times),
-        )
+        .route("/update", get(get_updated_prayer_times))
         .with_state(get_updated_prayer_times_app_state)
 }
 async fn map_donation() -> Router {
@@ -65,7 +66,7 @@ async fn map_events() -> Router {
         ),
     };
     Router::new()
-        .route("/", get(events::endpoints::get_events))
+        .route("/", get(get_events_common))
         .with_state(state)
 }
 async fn map_ask_imam() -> Router {
@@ -81,7 +82,7 @@ async fn map_ask_imam() -> Router {
     };
     Router::new()
         .route("/", get(get_answered_questions))
-        .route("/", post(ask_imam::endpoints::ask_question_for_imam))
+        .route("/", post(ask_question_for_imam))
         .with_state(state)
 }
 

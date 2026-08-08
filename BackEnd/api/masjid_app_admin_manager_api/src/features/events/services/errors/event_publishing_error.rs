@@ -1,6 +1,6 @@
-use crate::features::events::errors::UpsertEventError;
+use crate::features::events::repositories::errors::upsert_event_error::UpsertEventError;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum EventPublishingError {
     UnableToSaveImage,
     RepositoryError(UpsertEventError),

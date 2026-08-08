@@ -1,4 +1,4 @@
-use crate::features::events::models::EventDTO;
+use crate::features::events::models::event_dto::EventDTO;
 use crate::features::events::repositories::EventsRepository;
 use crate::features::events::services::errors::get_events_service_error::GetEventsServiceError;
 use crate::features::events::services::event_service_impl::EventServiceImpl;
@@ -38,8 +38,11 @@ impl EventRetrievalService for EventServiceImpl<dyn EventsRepository> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::features::events::errors::GetEventsRepositoryError;
-    use crate::features::events::models::{EventDetails, EventRecurrence, EventStatus, EventType};
+    use crate::features::events::models::event_details::EventDetails;
+    use crate::features::events::models::event_recurrence::EventRecurrence;
+    use crate::features::events::models::event_status::EventStatus;
+    use crate::features::events::models::event_type::EventType;
+    use crate::features::events::repositories::errors::get_events_repository_error::GetEventsRepositoryError;
     use crate::features::events::repositories::MockEventsRepository;
     use crate::shared::types::contact_details::ContactDetails;
     use chrono::DateTime;
@@ -120,7 +123,7 @@ mod tests {
                 Arc::new(mock_in_memory_repository),
             );
             let actual_result = service.get_events().await;
-            assert!(matches!(test_case.expected_result, actual_result));
+            assert_eq!(test_case.expected_result, actual_result);
         }
     }
 }

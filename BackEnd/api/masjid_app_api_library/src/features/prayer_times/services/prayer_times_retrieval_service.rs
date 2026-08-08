@@ -1,4 +1,4 @@
-use crate::features::prayer_times::models::PrayerTimesDTO;
+use crate::features::prayer_times::models::prayer_times_dto::PrayerTimesDTO;
 use crate::features::prayer_times::repositories::PrayerTimesRepository;
 use crate::features::prayer_times::services::errors::get_prayer_times_service_error::GetPrayerTimesServiceError;
 use crate::features::prayer_times::services::service_impl::PrayerTimesServiceImpl;

@@ -2,10 +2,7 @@ use crate::features::user_authentication::repositories::UserRepository;
 use crate::features::user_authentication::services::authentication_service_impl::AuthenticationServiceImpl;
 use crate::features::user_authentication::services::errors::login_error::LoginError;
 use async_trait::async_trait;
-use masjid_app_api_library::shared::services::hashing::errors::VerifyHashError;
-use masjid_app_api_library::shared::services::hashing::r#trait::{
-    HashingService, new_hashing_service,
-};
+use masjid_app_api_library::shared::services::hashing::r#trait::HashingService;
 use mockall::automock;
 use std::sync::Arc;
 
@@ -48,10 +45,11 @@ pub fn new_login_service(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::features::user_authentication::errors::GetUserError;
-    use crate::features::user_authentication::models::LoginDTO;
+    use crate::features::user_authentication::errors::get_user_error::GetUserError;
+    use crate::features::user_authentication::models::login_dto::LoginDTO;
     use crate::features::user_authentication::repositories::MockUserRepository;
     use crate::features::user_authentication::services::errors::login_error::LoginError;
+    use masjid_app_api_library::shared::services::hashing::errors::VerifyHashError;
     use masjid_app_api_library::shared::services::hashing::r#trait::MockHashingService;
     use std::sync::Arc;
 

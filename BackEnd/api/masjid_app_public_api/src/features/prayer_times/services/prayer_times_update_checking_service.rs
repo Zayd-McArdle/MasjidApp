@@ -1,7 +1,7 @@
 use crate::features::prayer_times::repositories::PrayerTimesPublicRepository;
 use crate::features::prayer_times::services::errors::check_for_updated_prayer_times_error::CheckForUpdatedPrayerTimesError;
 use async_trait::async_trait;
-use masjid_app_api_library::features::prayer_times::models::PrayerTimesDTO;
+use masjid_app_api_library::features::prayer_times::models::prayer_times_dto::PrayerTimesDTO;
 use masjid_app_api_library::features::prayer_times::services::service_impl::PrayerTimesServiceImpl;
 use masjid_app_api_library::new_prayer_times_service;
 use masjid_app_api_library::shared::common_service_impl::CommonServiceImpl;

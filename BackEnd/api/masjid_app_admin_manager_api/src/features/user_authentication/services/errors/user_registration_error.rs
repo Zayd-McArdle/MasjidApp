@@ -1,7 +1,7 @@
-use crate::features::user_authentication::errors::InsertNewUserError;
+use crate::features::user_authentication::errors::insert_new_user_error::InsertNewUserError;
 use masjid_app_api_library::shared::services::hashing::errors::HashError;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum UserRegistrationError {
     UnableToHashPassword(HashError),
     UserAlreadyRegistered,

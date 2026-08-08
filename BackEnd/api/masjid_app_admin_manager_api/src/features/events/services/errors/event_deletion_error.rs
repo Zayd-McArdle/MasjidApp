@@ -1,6 +1,6 @@
-use crate::features::events::errors::DeleteEventError;
+use crate::features::events::repositories::errors::delete_event_error::DeleteEventError;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum EventDeletionError {
     RepositoryError(DeleteEventError),
     UnableToDeleteImagesRelatedToEvent,

@@ -1,4 +1,4 @@
-use crate::features::user_authentication::errors::GetUserError;
+use crate::features::user_authentication::errors::get_user_error::GetUserError;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum LoginError {

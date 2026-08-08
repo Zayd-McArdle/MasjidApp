@@ -1,11 +1,9 @@
-use crate::common::data_access_layer::{DatabaseCredentials, mysql};
+use crate::common::data_access_layer::{mysql, DatabaseCredentials};
 use crate::common::logging::setup_logging;
-use masjid_app_admin_manager_api::features::user_authentication::errors::{
-    GetUserError, UpdateUserPasswordError,
-};
-use masjid_app_admin_manager_api::features::user_authentication::models::{
-    LoginDTO, UserAccountDTO,
-};
+use masjid_app_admin_manager_api::features::user_authentication::errors::get_user_error::GetUserError;
+use masjid_app_admin_manager_api::features::user_authentication::errors::update_user_password_error::UpdateUserPasswordError;
+use masjid_app_admin_manager_api::features::user_authentication::models::login_dto::LoginDTO;
+use masjid_app_admin_manager_api::features::user_authentication::models::user_account_dto::UserAccountDTO;
 use masjid_app_admin_manager_api::features::user_authentication::repositories::new_user_repository;
 #[tokio::test]
 async fn test_user_authentication() {
@@ -55,7 +53,7 @@ async fn test_user_authentication() {
         password: "password".to_owned(),
         role: "Admin".to_owned(),
     });
-    assert!(matches!(expected_login_result.clone(), actual_login_result));
+    assert_eq!(expected_login_result.clone(), actual_login_result);
 
     //Given a user exists, I should be able to reset their password
     let reset_password_result = repository
@@ -72,7 +70,7 @@ async fn test_user_authentication() {
         password: "new_password".to_owned(),
         role: "Admin".to_owned(),
     });
-    assert!(matches!(expected_login_result, actual_login_result));
+    assert_eq!(expected_login_result, actual_login_result);
 
     main_database_container
         .stop()

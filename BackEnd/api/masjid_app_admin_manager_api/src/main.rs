@@ -2,22 +2,29 @@ mod features;
 mod shared;
 
 use crate::features::ask_imam::repositories::new_imam_questions_admin_repository;
-use crate::features::events::endpoints::{delete_event, get_events, upsert_events};
 use crate::features::events::repositories::new_events_admin_repository;
 use crate::features::prayer_times::repositories::new_prayer_times_admin_repository;
+use crate::features::user_authentication;
 use crate::features::user_authentication::repositories::new_user_repository;
-use crate::features::{prayer_times, user_authentication};
 
+use crate::features::ask_imam::endpoints::delete_imam_question::delete_imam_question;
+use crate::features::ask_imam::endpoints::get_imam_questions::get_imam_questions;
+use crate::features::ask_imam::endpoints::provide_answer_for_imam_question::provide_answer_for_imam_question;
 use crate::features::ask_imam::endpoints::{
     delete_imam_question, get_imam_questions, provide_answer_for_imam_question,
 };
 use crate::features::ask_imam::services::{AskImamAdminService, new_ask_imam_admin_service};
+use crate::features::events::endpoints::delete_event::delete_event;
+use crate::features::events::endpoints::get_events::get_events;
+use crate::features::events::endpoints::publish_event::upsert_events;
 use crate::features::events::services::event_deletion_service::{
     EventDeletionService, new_event_deletion_service,
 };
 use crate::features::events::services::event_publishing_service::{
     EventPublishingService, new_event_publishing_service,
 };
+use crate::features::prayer_times::endpoints::get_prayer_times::get_prayer_times;
+use crate::features::prayer_times::endpoints::update_prayer_times::update_prayer_times;
 use crate::features::prayer_times::services::prayer_times_update_service::PrayerTimesUpdateService;
 use crate::features::prayer_times::services::prayer_times_update_service::new_prayer_times_update_service;
 use crate::features::user_authentication::services::login_service::new_login_service;
@@ -92,9 +99,9 @@ async fn map_prayer_times() -> Router {
         ),
     };
     Router::new()
-        .route("/", get(prayer_times::endpoints::get_prayer_times))
+        .route("/", get(get_prayer_times))
         .with_state(get_prayer_times_app_state)
-        .route("/", patch(prayer_times::endpoints::update_prayer_times))
+        .route("/", patch(update_prayer_times))
         .with_state(update_prayer_times_app_state)
 }
 async fn map_donation() -> Router {

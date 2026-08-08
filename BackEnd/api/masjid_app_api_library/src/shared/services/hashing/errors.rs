@@ -1,5 +1,5 @@
 use bcrypt::BcryptError;
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum HashError {
     InputTooLarge(usize),
     UnknownError,

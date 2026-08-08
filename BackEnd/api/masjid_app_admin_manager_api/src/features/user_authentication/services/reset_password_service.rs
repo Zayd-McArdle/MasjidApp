@@ -36,7 +36,7 @@ impl ResetPasswordService for AuthenticationServiceImpl {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::features::user_authentication::errors::UpdateUserPasswordError;
+    use crate::features::user_authentication::errors::update_user_password_error::UpdateUserPasswordError;
     use crate::features::user_authentication::repositories::MockUserRepository;
     use masjid_app_api_library::shared::services::hashing::providers::HashingProvider;
     use masjid_app_api_library::shared::services::hashing::r#trait::new_hashing_service;
@@ -75,8 +75,8 @@ mod tests {
                 new_hashing_service(HashingProvider::Bcrypt),
                 Arc::new(mock_repository),
             );
-            let actual_result = reset_password_service.reset_password("", "");
-            assert!(matches!(test_case.expected_result, actual_result));
+            let actual_result = reset_password_service.reset_password("", "").await;
+            assert_eq!(test_case.expected_result, actual_result);
         }
     }
 }

@@ -1,11 +1,12 @@
-use crate::features::ask_imam::errors::{DeleteQuestionError, UpsertAnswerToQuestionError};
-use crate::features::ask_imam::models::QuestionStatus;
+use crate::features::ask_imam::errors::delete_question_error::DeleteQuestionError;
+use crate::features::ask_imam::errors::upsert_answer_to_question_error::UpsertAnswerToQuestionError;
+use crate::features::ask_imam::models::question_status::QuestionStatus;
 use crate::features::ask_imam::repositories::ImamQuestionsAdminRepository;
 use async_trait::async_trait;
-use masjid_app_api_library::features::ask_imam::errors::GetQuestionsError;
-use masjid_app_api_library::features::ask_imam::models::{
-    Answer, ImamQuestionDTO, SchoolOfThought,
-};
+use masjid_app_api_library::features::ask_imam::errors::get_questions_error::GetQuestionsError;
+use masjid_app_api_library::features::ask_imam::models::answer::Answer;
+use masjid_app_api_library::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
+use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
 use masjid_app_api_library::features::ask_imam::services::AskImamServiceImpl;
 use mockall::automock;
 use std::sync::Arc;
