@@ -1,10 +1,10 @@
-use crate::features::ask_imam::errors::InsertImamQuestionError;
+use crate::features::ask_imam::errors::insert_imam_question_error::InsertImamQuestionError;
 use crate::features::ask_imam::repositories::ImamQuestionsPublicRepository;
 use async_trait::async_trait;
-use masjid_app_api_library::features::ask_imam::errors::GetQuestionsError;
-use masjid_app_api_library::features::ask_imam::models::{
-    ImamQuestion, ImamQuestionDTO, SchoolOfThought,
-};
+use masjid_app_api_library::features::ask_imam::errors::get_questions_error::GetQuestionsError;
+use masjid_app_api_library::features::ask_imam::models::imam_question::ImamQuestion;
+use masjid_app_api_library::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
+use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
 use masjid_app_api_library::features::ask_imam::services::AskImamServiceImpl;
 use mockall::automock;
 use std::sync::Arc;
@@ -86,10 +86,10 @@ impl AskImamPublicService for AskImamServiceImpl<dyn ImamQuestionsPublicReposito
 #[cfg(test)]
 mod tests {
     use super::*;
-    use masjid_app_api_library::features::ask_imam::errors::GetQuestionsError;
-    use masjid_app_api_library::features::ask_imam::models::{
-        Answer, ImamQuestionDTO, SchoolOfThought,
-    };
+    use masjid_app_api_library::features::ask_imam::models::answer::Answer;
+    use masjid_app_api_library::features::ask_imam::models::imam_question::ImamQuestion;
+    use masjid_app_api_library::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
+    use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
     use masjid_app_api_library::features::ask_imam::repositories::ImamQuestionsRepository;
     use mockall::mock;
     use std::str::FromStr;

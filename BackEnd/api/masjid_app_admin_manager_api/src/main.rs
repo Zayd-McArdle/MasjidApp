@@ -8,6 +8,9 @@ use crate::features::prayer_times::repositories::new_prayer_times_admin_reposito
 use crate::features::user_authentication::repositories::new_user_repository;
 use crate::features::{prayer_times, user_authentication};
 
+use crate::features::ask_imam::endpoints::delete_imam_question::delete_imam_question;
+use crate::features::ask_imam::endpoints::get_imam_questions::get_imam_questions;
+use crate::features::ask_imam::endpoints::provide_answer_for_imam_question::provide_answer_for_imam_question;
 use crate::features::ask_imam::endpoints::{
     delete_imam_question, get_imam_questions, provide_answer_for_imam_question,
 };

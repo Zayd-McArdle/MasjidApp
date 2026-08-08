@@ -1,7 +1,8 @@
 mod features;
 mod shared;
 
-use crate::features::ask_imam::endpoints::get_answered_questions;
+use crate::features::ask_imam::endpoints::ask_question_for_imam::ask_question_for_imam;
+use crate::features::ask_imam::endpoints::get_answered_questions::get_answered_questions;
 use crate::features::ask_imam::repositories::new_imam_questions_public_repository;
 use crate::features::ask_imam::services::new_ask_imam_public_service;
 use crate::features::events::repositories::new_events_public_repository;
@@ -10,7 +11,7 @@ use crate::features::prayer_times::services::prayer_times_update_checking_servic
 };
 use crate::features::{ask_imam, events};
 use axum::Router;
-use axum::routing::{get, post, put};
+use axum::routing::{get, post};
 use features::prayer_times;
 use features::prayer_times::repositories::new_prayer_times_public_repository;
 use masjid_app_api_library::features::events::services::event_retrieval_service::{
@@ -81,7 +82,7 @@ async fn map_ask_imam() -> Router {
     };
     Router::new()
         .route("/", get(get_answered_questions))
-        .route("/", post(ask_imam::endpoints::ask_question_for_imam))
+        .route("/", post(ask_question_for_imam))
         .with_state(state)
 }
 

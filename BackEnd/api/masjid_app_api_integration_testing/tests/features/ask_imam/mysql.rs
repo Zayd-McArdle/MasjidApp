@@ -1,12 +1,13 @@
 use crate::common::data_access_layer;
 use crate::common::data_access_layer::DatabaseCredentials;
 use crate::common::logging::setup_logging;
-use masjid_app_admin_manager_api::features::ask_imam::errors::DeleteQuestionError;
+use masjid_app_admin_manager_api::features::ask_imam::errors::delete_question_error::DeleteQuestionError;
 use masjid_app_admin_manager_api::features::ask_imam::repositories::new_imam_questions_admin_repository;
-use masjid_app_api_library::features::ask_imam::errors::GetQuestionsError;
-use masjid_app_api_library::features::ask_imam::models::{
-    Answer, ImamQuestion, ImamQuestionDTO, SchoolOfThought,
-};
+use masjid_app_api_library::features::ask_imam::errors::get_questions_error::GetQuestionsError;
+use masjid_app_api_library::features::ask_imam::models::answer::Answer;
+use masjid_app_api_library::features::ask_imam::models::imam_question::ImamQuestion;
+use masjid_app_api_library::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
+use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
 use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
 use masjid_app_api_library::shared::data_access::repository_management::repository_mode::RepositoryMode;
 use masjid_app_public_api::features::ask_imam::repositories::new_imam_questions_public_repository;

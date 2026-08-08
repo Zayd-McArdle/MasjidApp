@@ -1,8 +1,10 @@
-use masjid_app_api_library::features::ask_imam::models::{ImamQuestion, SchoolOfThought};
+use masjid_app_api_library::features::ask_imam::models::imam_question::ImamQuestion;
+use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
 use serde::Deserialize;
 use sqlx::types::chrono;
 use std::convert::Into;
 use validator::Validate;
+
 #[derive(Debug, Deserialize, Validate)]
 pub struct AskImamRequest {
     #[validate(length(min = 4))]
