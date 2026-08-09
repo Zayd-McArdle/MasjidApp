@@ -2,7 +2,6 @@ mod features;
 mod shared;
 
 use crate::features::ask_imam::repositories::new_imam_questions_admin_repository;
-use crate::features::events::endpoints::{delete_event, get_events, upsert_events};
 use crate::features::events::repositories::new_events_admin_repository;
 use crate::features::prayer_times::repositories::new_prayer_times_admin_repository;
 use crate::features::user_authentication;
@@ -15,6 +14,9 @@ use crate::features::ask_imam::endpoints::{
     delete_imam_question, get_imam_questions, provide_answer_for_imam_question,
 };
 use crate::features::ask_imam::services::{AskImamAdminService, new_ask_imam_admin_service};
+use crate::features::events::endpoints::delete_event::delete_event;
+use crate::features::events::endpoints::get_events::get_events;
+use crate::features::events::endpoints::publish_event::upsert_events;
 use crate::features::events::services::event_deletion_service::{
     EventDeletionService, new_event_deletion_service,
 };

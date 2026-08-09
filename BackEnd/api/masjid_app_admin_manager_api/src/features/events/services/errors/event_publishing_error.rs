@@ -1,4 +1,4 @@
-use crate::features::events::errors::UpsertEventError;
+use crate::features::events::repositories::errors::upsert_event_error::UpsertEventError;
 
 #[derive(Debug)]
 pub enum EventPublishingError {
