@@ -1,8 +1,8 @@
 use crate::features::events::repositories::EventsAdminRepository;
 use crate::features::events::services::errors::event_publishing_error::EventPublishingError;
 use async_trait::async_trait;
-use masjid_app_api_library::features::events::models::{Event, EventDTO};
-use masjid_app_api_library::features::events::repositories::EventsRepository;
+use masjid_app_api_library::features::events::models::event::Event;
+use masjid_app_api_library::features::events::models::event_dto::EventDTO;
 use masjid_app_api_library::features::events::services::event_service_impl::EventServiceImpl;
 use masjid_app_api_library::new_event_service;
 use masjid_app_api_library::shared::common_service_impl::CommonServiceImpl;
@@ -39,14 +39,16 @@ impl EventPublishingService for EventServiceImpl<dyn EventsAdminRepository> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::features::events::errors::{DeleteEventError, UpsertEventError};
+    use crate::features::events::repositories::errors::delete_event_error::DeleteEventError;
+    use crate::features::events::repositories::errors::upsert_event_error::UpsertEventError;
     use async_trait::async_trait;
     use chrono::DateTime;
-    use masjid_app_api_library::features::events::errors::GetEventsRepositoryError;
-    use masjid_app_api_library::features::events::models::{
-        EventDetails, EventRecurrence, EventStatus, EventType,
-    };
+    use masjid_app_api_library::features::events::models::event_details::EventDetails;
+    use masjid_app_api_library::features::events::models::event_recurrence::EventRecurrence;
+    use masjid_app_api_library::features::events::models::event_status::EventStatus;
+    use masjid_app_api_library::features::events::models::event_type::EventType;
     use masjid_app_api_library::features::events::repositories::EventsRepository;
+    use masjid_app_api_library::features::events::repositories::errors::get_events_repository_error::GetEventsRepositoryError;
     use masjid_app_api_library::shared::types::contact_details::ContactDetails;
     use mockall::mock;
 

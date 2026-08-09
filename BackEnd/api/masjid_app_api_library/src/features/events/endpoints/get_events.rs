@@ -1,4 +1,4 @@
-use crate::features::events::errors::GetEventsRepositoryError;
+use crate::features::events::repositories::errors::get_events_repository_error::GetEventsRepositoryError;
 use crate::features::events::services::errors::get_events_service_error::GetEventsServiceError;
 use crate::features::events::services::event_retrieval_service::EventRetrievalService;
 use crate::shared::types::app_state::ServiceAppState;
@@ -26,9 +26,11 @@ pub async fn get_events_common<R: EventRetrievalService + ?Sized>(
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::features::events::models::{
-        EventDTO, EventDetails, EventRecurrence, EventStatus, EventType,
-    };
+    use crate::features::events::models::event_details::EventDetails;
+    use crate::features::events::models::event_dto::EventDTO;
+    use crate::features::events::models::event_recurrence::EventRecurrence;
+    use crate::features::events::models::event_status::EventStatus;
+    use crate::features::events::models::event_type::EventType;
     use crate::features::events::services::event_retrieval_service::MockEventRetrievalService;
     use crate::shared::types::age_range::AgeRange;
     use crate::shared::types::contact_details::ContactDetails;

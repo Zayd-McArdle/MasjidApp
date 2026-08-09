@@ -43,15 +43,15 @@ impl EventDeletionService for EventServiceImpl<dyn EventsAdminRepository> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::features::events::errors::DeleteEventError;
-    use crate::features::events::errors::UpsertEventError;
     use crate::features::events::repositories::EventsAdminRepository;
+    use crate::features::events::repositories::errors::delete_event_error::DeleteEventError;
+    use crate::features::events::repositories::errors::upsert_event_error::UpsertEventError;
     use crate::features::events::services::errors::event_deletion_error::EventDeletionError;
     use async_trait::async_trait;
-    use masjid_app_api_library::features::events::errors::GetEventsRepositoryError;
-    use masjid_app_api_library::features::events::models::Event;
-    use masjid_app_api_library::features::events::models::EventDTO;
+    use masjid_app_api_library::features::events::models::event::Event;
+    use masjid_app_api_library::features::events::models::event_dto::EventDTO;
     use masjid_app_api_library::features::events::repositories::EventsRepository;
+    use masjid_app_api_library::features::events::repositories::errors::get_events_repository_error::GetEventsRepositoryError;
     use mockall::mock;
 
     mock!(

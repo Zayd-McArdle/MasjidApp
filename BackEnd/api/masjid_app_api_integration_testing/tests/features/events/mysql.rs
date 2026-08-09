@@ -1,15 +1,17 @@
 use crate::common::data_access_layer;
 use crate::common::data_access_layer::DatabaseCredentials;
 use crate::common::logging::setup_logging;
-use masjid_app_admin_manager_api::features::events::errors::DeleteEventError;
+use masjid_app_admin_manager_api::features::events::repositories::errors::delete_event_error::DeleteEventError;
 use masjid_app_admin_manager_api::features::events::repositories::new_events_admin_repository;
-use masjid_app_api_library::features::events::errors::GetEventsRepositoryError;
-use masjid_app_api_library::features::events::models::{
-    Event, EventDTO, EventRecurrence, EventStatus, EventType,
-};
+use masjid_app_api_library::features::events::models::event::Event;
+use masjid_app_api_library::features::events::models::event_dto::EventDTO;
+use masjid_app_api_library::features::events::models::event_recurrence::EventRecurrence;
+use masjid_app_api_library::features::events::models::event_status::EventStatus;
+use masjid_app_api_library::features::events::models::event_type::EventType;
+use masjid_app_api_library::features::events::repositories::errors::get_events_repository_error::GetEventsRepositoryError;
 use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
 use masjid_app_api_library::shared::data_access::repository_management::repository_mode::RepositoryMode;
-use masjid_app_public_api::features::events::repositories::new_events_public_repository;
+use masjid_app_public_api::features::events::events_public_repository::new_events_public_repository;
 
 #[tokio::test]
 async fn test_events() {
