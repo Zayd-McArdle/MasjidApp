@@ -27,6 +27,7 @@ impl EventsRepository for MySqlRepository {
                 phone_number: row.get(11),
                 email: row.get(12),
             })
+            .map(EventDTO::from)
             .fetch_all(&*db_connection)
             .await
             .map_err(|err| {
@@ -40,6 +41,6 @@ impl EventsRepository for MySqlRepository {
             return Err(GetEventsRepositoryError::EventsNotFound);
         }
 
-        Ok(events.into_iter().map(EventDTO::from).collect())
+        Ok(events)
     }
 }
