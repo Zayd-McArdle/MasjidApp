@@ -1,4 +1,4 @@
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 pub enum GetQuestionsError {
     QuestionsNotFound,
     UnableToGetAnsweredQuestions,

@@ -89,7 +89,7 @@ mod tests {
             if let Some(expected_db_response) = test_case.expected_db_response {
                 mock_service
                     .expect_provide_answer_to_question()
-                    .returning(move |_, _| expected_db_response);
+                    .return_once(move |_, _| expected_db_response);
             }
             let arc_service: Arc<dyn AskImamAdminService> = Arc::new(mock_service);
             let app_state = ServiceAppState {

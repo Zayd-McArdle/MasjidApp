@@ -1,4 +1,4 @@
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum GetEventsRepositoryError {
     EventsNotFound,
     UnableToGetEvents,

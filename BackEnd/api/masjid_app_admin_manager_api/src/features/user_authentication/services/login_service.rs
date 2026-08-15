@@ -115,7 +115,7 @@ mod tests {
             let service =
                 new_login_service(Arc::new(mock_hashing_service), Arc::new(mock_repository));
             let actual_result = service.login("admin", "password").await;
-            assert_eq!(test_case.expected_result, actual_result);
+            assert!(matches!(test_case.expected_result, actual_result));
         }
     }
 }

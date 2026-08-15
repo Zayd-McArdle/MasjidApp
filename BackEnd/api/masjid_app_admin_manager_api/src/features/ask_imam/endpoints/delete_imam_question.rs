@@ -67,7 +67,7 @@ mod test {
             if let Some(expected_db_response) = test_case.expected_db_response {
                 mock_service
                     .expect_delete_question()
-                    .returning(move |_| expected_db_response);
+                    .return_once(move |_| expected_db_response);
             }
             let arc_respository: Arc<dyn AskImamAdminService> = Arc::new(mock_service);
             let app_state = ServiceAppState {

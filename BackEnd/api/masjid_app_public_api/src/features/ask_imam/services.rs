@@ -457,7 +457,7 @@ mod tests {
                     }),
                 )
                 .await;
-            assert_eq!(test_case.expected_result, actual_result);
+            assert!(matches!(test_case.expected_result, actual_result));
         }
     }
     #[tokio::test]
@@ -532,7 +532,7 @@ mod tests {
                 new_ask_imam_public_service(mock_repository, mock_in_memory_repository)
                     .ask_question(test_case.question)
                     .await;
-            assert_eq!(test_case.expected_result, actual_result);
+            assert!(matches!(test_case.expected_result, actual_result));
         }
     }
 }

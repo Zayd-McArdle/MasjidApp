@@ -1,4 +1,4 @@
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Debug)]
 pub enum UpdateUserPasswordError {
     UserDoesNotExist,
     DatabaseError,

@@ -30,11 +30,17 @@ async fn test_events() {
 
     // Given no events exist, I should receive an error when deleting an event
     let delete_event_result = admin_repository.delete_event_by_id(&1).await.unwrap_err();
-    assert_eq!(delete_event_result, DeleteEventError::EventNotFound);
+    assert!(matches!(
+        delete_event_result,
+        DeleteEventError::EventNotFound
+    ));
 
     // When I try to retrieve events from an empty database, I should get an error
     let get_events_result = public_repository.get_events().await.unwrap_err();
-    assert_eq!(get_events_result, GetEventsRepositoryError::EventsNotFound);
+    assert!(matches!(
+        get_events_result,
+        GetEventsRepositoryError::EventsNotFound
+    ));
     let mut event = Event {
         id: 0,
         title: "This is my event".to_string(),
@@ -89,6 +95,9 @@ async fn test_events() {
 
     // When trying to retrieve events, I should get an error
     let get_events_result = public_repository.get_events().await.unwrap_err();
-    assert_eq!(get_events_result, GetEventsRepositoryError::EventsNotFound);
+    assert!(matches!(
+        get_events_result,
+        GetEventsRepositoryError::EventsNotFound
+    ));
     container.stop().await.unwrap();
 }

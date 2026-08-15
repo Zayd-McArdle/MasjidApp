@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 pub enum InsertImamQuestionError {
     UnableToInsertQuestion,
 }

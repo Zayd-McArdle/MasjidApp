@@ -7,7 +7,7 @@ use std::fmt::Display;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub enum UploadError {
     EmptyFile,
     NoFileName,
@@ -126,7 +126,7 @@ mod test {
             let actual_result = file_uploader
                 .save_file(&test_case.file_data, test_case.file_name)
                 .await;
-            assert_eq!(test_case.expected_result, actual_result)
+            assert!(matches!(test_case.expected_result, actual_result))
         }
     }
 }

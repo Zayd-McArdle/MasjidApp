@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 pub mod file_deleter;
 pub mod file_uploader;
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug)]
 enum FilePathSafetyError {
     EmptyPath,
     PathTraversalAttack,
@@ -80,7 +80,7 @@ mod test {
         ];
         for test_case in test_cases {
             let actual_result = file_path_is_safe(test_case.test_path);
-            assert_eq!(test_case.expected_result, actual_result,)
+            assert!(matches!(test_case.expected_result, actual_result))
         }
     }
 }

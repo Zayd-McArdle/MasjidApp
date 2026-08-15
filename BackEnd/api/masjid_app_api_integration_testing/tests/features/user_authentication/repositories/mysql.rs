@@ -21,17 +21,17 @@ async fn test_user_authentication() {
         .get_user_by_credentials("JohnSmith", "password")
         .await
         .unwrap_err();
-    assert_eq!(login_result, GetUserError::NotFound);
+    assert!(matches!(login_result, GetUserError::NotFound));
 
     //Given no user exists, I should get an error when trying to reset the user password
     let reset_password_result = repository
         .update_user_password("JohnSmith", "new_password")
         .await
         .unwrap_err();
-    assert_eq!(
+    assert!(matches!(
         reset_password_result,
         UpdateUserPasswordError::UserDoesNotExist
-    );
+    ));
 
     //Given no user exists, I should successfully register one with no error
     let new_user = UserAccountDTO {
@@ -53,7 +53,7 @@ async fn test_user_authentication() {
         password: "password".to_owned(),
         role: "Admin".to_owned(),
     });
-    assert!(matches!(expected_login_result.clone(), actual_login_result));
+    assert!(matches!(expected_login_result, actual_login_result));
 
     //Given a user exists, I should be able to reset their password
     let reset_password_result = repository

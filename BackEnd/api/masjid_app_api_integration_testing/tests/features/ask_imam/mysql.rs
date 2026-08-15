@@ -31,21 +31,18 @@ async fn test_ask_imam() {
     eprintln!(
         "Given no questions were asked for the imam, I should receive an error when deleting a question"
     );
-    let delete_question_result = admin_repository
-        .delete_imam_question_by_id(&1)
-        .await
-        .unwrap_err();
-    assert_eq!(
+    let delete_question_result = admin_repository.delete_imam_question_by_id(&1).await;
+    assert!(matches!(
         delete_question_result,
-        DeleteQuestionError::QuestionNotFound
-    );
+        Err(DeleteQuestionError::QuestionNotFound)
+    ));
 
     eprintln!("When retrieving questions from an empty database, I should receive an error");
-    let get_all_questions_result = admin_repository.get_all_imam_questions().await.unwrap_err();
-    assert_eq!(
+    let get_all_questions_result = admin_repository.get_all_imam_questions().await;
+    assert!(matches!(
         get_all_questions_result,
-        GetQuestionsError::QuestionsNotFound
-    );
+        Err(GetQuestionsError::QuestionsNotFound)
+    ));
 
     eprintln!("When inserting valid questions, I should receive no error");
     let valid_questions = get_valid_questions();

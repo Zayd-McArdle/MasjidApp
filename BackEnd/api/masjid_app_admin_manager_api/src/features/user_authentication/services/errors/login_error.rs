@@ -1,6 +1,6 @@
 use crate::features::user_authentication::errors::get_user_error::GetUserError;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug)]
 pub enum LoginError {
     InvalidCredentials,
     UnableToVerifyPasswordHash,

@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 pub enum UpsertAnswerToQuestionError {
     QuestionNotFound,
     UnableToUpsertAnswerToQuestion,

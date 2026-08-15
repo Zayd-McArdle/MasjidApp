@@ -1,4 +1,4 @@
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug)]
 pub enum GetUserError {
     NotFound,
     DatabaseError,

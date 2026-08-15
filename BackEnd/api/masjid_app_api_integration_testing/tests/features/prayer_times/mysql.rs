@@ -24,10 +24,10 @@ async fn test_prayer_times() {
 
     //Given no prayer times exist, I should receive an error
     let get_prayer_times_result = public_repository.get_prayer_times().await.unwrap_err();
-    assert_eq!(
+    assert!(matches!(
         get_prayer_times_result,
         GetPrayerTimesRepositoryError::PrayerTimesNotFound
-    );
+    ));
 
     //When trying to retrieve latest prayer times if none exist, I should receive an error
     let get_updated_prayer_times_result = public_repository
@@ -36,10 +36,10 @@ async fn test_prayer_times() {
         )
         .await
         .unwrap_err();
-    assert_eq!(
+    assert!(matches!(
         get_updated_prayer_times_result,
         GetPrayerTimesRepositoryError::PrayerTimesNotFound
-    );
+    ));
 
     //When I insert some prayer times, I should receive no error
     let update_prayer_times_result = admin_repository
