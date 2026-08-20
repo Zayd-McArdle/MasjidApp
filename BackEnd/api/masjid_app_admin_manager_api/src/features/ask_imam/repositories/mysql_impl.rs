@@ -1,74 +1,39 @@
 use crate::features::ask_imam::errors::delete_question_error::DeleteQuestionError;
 use crate::features::ask_imam::errors::upsert_answer_to_question_error::UpsertAnswerToQuestionError;
+use crate::features::ask_imam::models::get_imam_questions_admin_filter::GetImamQuestionsAdminFilter;
+use crate::features::ask_imam::models::question_status::QuestionStatus;
 use crate::features::ask_imam::repositories::ImamQuestionsAdminRepository;
 use async_trait::async_trait;
 use masjid_app_api_library::features::ask_imam::errors::get_questions_error::GetQuestionsError;
 use masjid_app_api_library::features::ask_imam::models::answer::Answer;
 use masjid_app_api_library::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
-use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
 use masjid_app_api_library::features::ask_imam::repositories::mysql_impl::get_imam_questions_common;
 use masjid_app_api_library::shared::data_access::repository_management::mysql_repository::MySqlRepository;
 
+const GET_ALL_IMAM_QUESTIONS_STORED_PROCEDURE: &str = "CALL get_all_imam_questions(?, ?)";
+const GET_UNANSWERED_IMAM_QUESTIONS_STORED_PROCEDURE: &str =
+    "CALL get_unanswered_imam_questions(?, ?)";
+const GET_ANSWERED_IMAM_QUESTIONS_STORED_PROCEDURE: &str = "CALL get_answered_imam_questions(?, ?)";
+const DELETE_IMAM_QUESTION_BY_ID_STORED_PROCEDURE: &str = "CALL delete_imam_question_by_id(?)";
+const UPSERT_IMAM_ANSWER_TO_QUESTION_STORED_PROCEDURE: &str =
+    "CALL upsert_imam_answer_to_question(?, ?, ?, ?)";
+
 #[async_trait]
 impl ImamQuestionsAdminRepository for MySqlRepository {
-    async fn get_all_imam_questions(&self) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError> {
-        get_imam_questions_common(
-            self.db_connection.clone(),
-            "CALL get_all_imam_questions();",
-            None,
-            None,
-        )
-        .await
-    }
-
-    async fn get_unanswered_imam_questions(
+    async fn get_questions(
         &self,
+        filter: &GetImamQuestionsAdminFilter,
     ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError> {
+        let query = match &filter.question_status {
+            &QuestionStatus::Unanswered => GET_UNANSWERED_IMAM_QUESTIONS_STORED_PROCEDURE,
+            &QuestionStatus::Answered => GET_ANSWERED_IMAM_QUESTIONS_STORED_PROCEDURE,
+            &QuestionStatus::All => GET_ALL_IMAM_QUESTIONS_STORED_PROCEDURE,
+        };
         get_imam_questions_common(
             self.db_connection.clone(),
-            "CALL get_unanswered_imam_questions();",
-            None,
-            None,
-        )
-        .await
-    }
-
-    async fn get_unanswered_imam_questions_by_topic(
-        &self,
-        topic: &str,
-    ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError> {
-        get_imam_questions_common(
-            self.db_connection.clone(),
-            "CALL get_unanswered_imam_questions_by_topic(?);",
-            Some(topic),
-            None,
-        )
-        .await
-    }
-
-    async fn get_unanswered_imam_questions_by_school_of_thought(
-        &self,
-        school_of_thought: SchoolOfThought,
-    ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError> {
-        get_imam_questions_common(
-            self.db_connection.clone(),
-            "CALL get_unanswered_imam_questions_by_school_of_thought(?);",
-            None,
-            Some(&school_of_thought.to_string()),
-        )
-        .await
-    }
-
-    async fn get_unanswered_imam_questions_by_topic_and_school_of_thought(
-        &self,
-        topic: &str,
-        school_of_thought: SchoolOfThought,
-    ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError> {
-        get_imam_questions_common(
-            self.db_connection.clone(),
-            "CALL get_unanswered_imam_questions_by_topic_and_school_of_thought(?, ?);",
-            Some(topic),
-            Some(&school_of_thought.to_string()),
+            query,
+            filter.topic.clone(),
+            filter.school_of_thought.clone(),
         )
         .await
     }
@@ -83,7 +48,7 @@ impl ImamQuestionsAdminRepository for MySqlRepository {
             "upserting imam's answer to question in database"
         );
         let db_connection = self.db_connection.clone();
-        let query_result = sqlx::query("CALL upsert_imam_answer_to_question(?, ?, ?, ?)")
+        let query_result = sqlx::query(UPSERT_IMAM_ANSWER_TO_QUESTION_STORED_PROCEDURE)
             .bind(&answer.imam_name)
             .bind(&answer.text)
             .bind(&answer.date_answered)
@@ -107,7 +72,7 @@ impl ImamQuestionsAdminRepository for MySqlRepository {
     async fn delete_imam_question_by_id(&self, id: &i32) -> Result<(), DeleteQuestionError> {
         let db_connection = self.db_connection.clone();
         tracing::debug!(question_id = id, "deleting question from database");
-        let query_result = sqlx::query("CALL delete_imam_question_by_id(?)")
+        let query_result = sqlx::query(DELETE_IMAM_QUESTION_BY_ID_STORED_PROCEDURE)
             .bind(id)
             .execute(&*db_connection)
             .await

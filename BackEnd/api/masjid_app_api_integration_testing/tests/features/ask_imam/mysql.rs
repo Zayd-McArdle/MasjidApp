@@ -2,9 +2,12 @@ use crate::common::data_access_layer;
 use crate::common::data_access_layer::DatabaseCredentials;
 use crate::common::logging::setup_logging;
 use masjid_app_admin_manager_api::features::ask_imam::errors::delete_question_error::DeleteQuestionError;
+use masjid_app_admin_manager_api::features::ask_imam::models::get_imam_questions_admin_filter::GetImamQuestionsAdminFilter;
+use masjid_app_admin_manager_api::features::ask_imam::models::question_status::QuestionStatus;
 use masjid_app_admin_manager_api::features::ask_imam::repositories::new_imam_questions_admin_repository;
 use masjid_app_api_library::features::ask_imam::errors::get_questions_error::GetQuestionsError;
 use masjid_app_api_library::features::ask_imam::models::answer::Answer;
+use masjid_app_api_library::features::ask_imam::models::get_imam_questions_filter::GetImamQuestionsFilter;
 use masjid_app_api_library::features::ask_imam::models::imam_question::ImamQuestion;
 use masjid_app_api_library::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
 use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
@@ -38,7 +41,8 @@ async fn test_ask_imam() {
     ));
 
     eprintln!("When retrieving questions from an empty database, I should receive an error");
-    let get_all_questions_result = admin_repository.get_all_imam_questions().await;
+    let mut admin_filter = GetImamQuestionsAdminFilter::default();
+    let get_all_questions_result = admin_repository.get_questions(&admin_filter).await;
     assert!(matches!(
         get_all_questions_result,
         Err(GetQuestionsError::QuestionsNotFound)
@@ -75,7 +79,7 @@ async fn test_ask_imam() {
     eprintln!(
         "When attempting to retrieve all questions for imam from database, I should get all questions without error"
     );
-    let get_all_questions_result = admin_repository.get_all_imam_questions().await.unwrap();
+    let get_all_questions_result = admin_repository.get_questions(&admin_filter).await.unwrap();
     assert_eq!(valid_questions.len(), get_all_questions_result.len());
     let mut valid_questions_dto = Vec::new();
     for valid_question in valid_questions {
@@ -86,15 +90,14 @@ async fn test_ask_imam() {
     eprintln!(
         "When attempting to retrieve unanswered questions for imam from database, I should only get unanswered questions without error"
     );
+    admin_filter.question_status = QuestionStatus::Unanswered;
     let valid_unanswered_questions_dto: Vec<ImamQuestionDTO> = valid_questions_dto
         .clone()
         .into_iter()
         .filter(|question| question.answer.is_none())
         .collect();
-    let get_unanswered_questions_result = admin_repository
-        .get_unanswered_imam_questions()
-        .await
-        .unwrap();
+    let get_unanswered_questions_result =
+        admin_repository.get_questions(&admin_filter).await.unwrap();
     assert_eq!(
         valid_unanswered_questions_dto.len(),
         get_unanswered_questions_result.len()
@@ -106,32 +109,28 @@ async fn test_ask_imam() {
     eprintln!(
         "When attempting to retrieve unanswered questions by topic, I should only get questions for that relevant topic"
     );
-
+    admin_filter.topic = Some("Fiqh".to_owned());
     let valid_questions_by_fiqh: Vec<ImamQuestionDTO> = valid_unanswered_questions_dto
         .clone()
         .into_iter()
         .filter(|q| q.topic == "Fiqh")
         .collect();
-    let get_questions_by_fiqh_result = admin_repository
-        .get_unanswered_imam_questions_by_topic("Fiqh")
-        .await
-        .unwrap();
+    let get_questions_by_fiqh_result = admin_repository.get_questions(&admin_filter).await.unwrap();
     assert_dto_fields(&valid_questions_by_fiqh, &get_questions_by_fiqh_result);
 
     eprintln!(
         "When attempting to retrieve unanswered questions by school of thought, I should only get questions for that relevant school or non-school specific"
     );
-
+    admin_filter.topic = None;
+    admin_filter.school_of_thought = Some(SchoolOfThought::Hanafi.to_string());
     let valid_questions_by_school_of_thought: Vec<ImamQuestionDTO> = valid_unanswered_questions_dto
         .into_iter()
         .filter(|q| {
             q.school_of_thought == Some(SchoolOfThought::Hanafi) || q.school_of_thought == None
         })
         .collect();
-    let get_questions_by_school_of_thought_result = admin_repository
-        .get_unanswered_imam_questions_by_school_of_thought(SchoolOfThought::Hanafi)
-        .await
-        .unwrap();
+    let get_questions_by_school_of_thought_result =
+        admin_repository.get_questions(&admin_filter).await.unwrap();
     assert_dto_fields(
         &valid_questions_by_school_of_thought,
         &get_questions_by_school_of_thought_result,
@@ -141,23 +140,28 @@ async fn test_ask_imam() {
     eprintln!(
         "When attempting to retrieve answered questions for imam from database, I should only get answered questions without error"
     );
+    let mut public_filter = GetImamQuestionsFilter::default();
     let valid_answered_questions_dto: Vec<ImamQuestionDTO> = valid_questions_dto
         .clone()
         .into_iter()
         .filter(|question| question.answer.is_some())
         .collect();
-    let get_unanswered_questions_result = public_repository.get_answered_questions().await.unwrap();
+    let get_answered_questions_result = public_repository
+        .get_questions(&public_filter)
+        .await
+        .unwrap();
     assert_eq!(
         valid_answered_questions_dto.len(),
-        get_unanswered_questions_result.len()
+        get_answered_questions_result.len()
     );
     assert_dto_fields(
         &valid_answered_questions_dto,
-        &get_unanswered_questions_result,
+        &get_answered_questions_result,
     );
     eprintln!(
         "When attempting to retrieve answered questions by topic, I should only get questions for that relevant topic"
     );
+    public_filter.topic = Some("Tafseer".to_owned());
 
     let valid_questions_by_fiqh: Vec<ImamQuestionDTO> = valid_answered_questions_dto
         .clone()
@@ -165,7 +169,7 @@ async fn test_ask_imam() {
         .filter(|q| q.topic == "Tafseer")
         .collect();
     let get_questions_by_fiqh_result = public_repository
-        .get_answered_questions_by_topic("Tafseer")
+        .get_questions(&public_filter)
         .await
         .unwrap();
     assert_dto_fields(&valid_questions_by_fiqh, &get_questions_by_fiqh_result);
@@ -173,7 +177,8 @@ async fn test_ask_imam() {
     eprintln!(
         "When attempting to retrieve answered questions by school of thought, I should only get questions for that relevant school or non-school specific"
     );
-
+    public_filter.topic = None;
+    public_filter.school_of_thought = Some(SchoolOfThought::Maliki.to_string());
     let valid_questions_by_school_of_thought: Vec<ImamQuestionDTO> = valid_answered_questions_dto
         .into_iter()
         .filter(|q| {
@@ -181,7 +186,7 @@ async fn test_ask_imam() {
         })
         .collect();
     let get_questions_by_school_of_thought_result = public_repository
-        .get_answered_questions_by_school_of_thought(SchoolOfThought::Maliki)
+        .get_questions(&public_filter)
         .await
         .unwrap();
     assert_dto_fields(

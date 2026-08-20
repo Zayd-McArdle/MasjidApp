@@ -1,7 +1,7 @@
 use crate::features::ask_imam::errors::get_questions_error::GetQuestionsError;
+use crate::features::ask_imam::models::get_imam_questions_filter::GetImamQuestionsFilter;
 use crate::features::ask_imam::models::imam_question::ImamQuestion;
 use crate::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
-use crate::features::ask_imam::models::school_of_thought::SchoolOfThought;
 use crate::features::ask_imam::repositories::ImamQuestionsRepository;
 use crate::shared::data_access::repository_management::mysql_repository::MySqlRepository;
 use async_trait::async_trait;
@@ -9,7 +9,8 @@ use sqlx::mysql::MySqlRow;
 use sqlx::{MySqlPool, Row};
 use std::sync::Arc;
 
-fn imam_question_from_my_sql_row(row: MySqlRow) -> ImamQuestion {
+#[inline]
+pub fn imam_question_from_my_sql_row(row: MySqlRow) -> ImamQuestion {
     ImamQuestion {
         id: row.get(0),
         title: row.get(1),
@@ -26,34 +27,27 @@ fn imam_question_from_my_sql_row(row: MySqlRow) -> ImamQuestion {
 pub async fn get_imam_questions_common(
     db_connection: Arc<MySqlPool>,
     stored_procedure: &'static str,
-    topic_parameter: Option<&str>,
-    school_of_thought_parameter: Option<&str>,
+    topic_parameter: Option<String>,
+    school_of_thought_parameter: Option<String>,
 ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError> {
-    let questions = {
-        let mut query = sqlx::query(stored_procedure);
-        if let Some(topic) = topic_parameter {
-            query = query.bind(topic)
-        }
-        if let Some(school_of_thought) = school_of_thought_parameter {
-            query = query.bind(school_of_thought);
-        }
-        query
-    }
-    .map(imam_question_from_my_sql_row)
-    .map(ImamQuestionDTO::from)
-    .fetch_all(&*db_connection)
-    .await
-    .map_err(|err| {
-        if let sqlx::Error::RowNotFound = err {
-            return GetQuestionsError::QuestionsNotFound;
-        }
-        tracing::error!(
-            stored_procedure = stored_procedure,
-            error = err.to_string(),
-            "unable to fetch questions from imam from database",
-        );
-        GetQuestionsError::UnableToGetAnsweredQuestions
-    })?;
+    let questions = sqlx::query(stored_procedure)
+        .bind(topic_parameter)
+        .bind(school_of_thought_parameter)
+        .map(imam_question_from_my_sql_row)
+        .map(ImamQuestionDTO::from)
+        .fetch_all(&*db_connection)
+        .await
+        .map_err(|err| {
+            if let sqlx::Error::RowNotFound = err {
+                return GetQuestionsError::QuestionsNotFound;
+            }
+            tracing::error!(
+                stored_procedure = stored_procedure,
+                error = err.to_string(),
+                "unable to fetch questions from imam from database",
+            );
+            GetQuestionsError::UnableToGetAnsweredQuestions
+        })?;
     if questions.is_empty() {
         return Err(GetQuestionsError::QuestionsNotFound);
     }
@@ -62,52 +56,15 @@ pub async fn get_imam_questions_common(
 
 #[async_trait]
 impl ImamQuestionsRepository for MySqlRepository {
-    async fn get_answered_questions(&self) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError> {
-        get_imam_questions_common(
-            self.db_connection.clone(),
-            "CALL get_answered_imam_questions()",
-            None,
-            None,
-        )
-        .await
-    }
-
-    async fn get_answered_questions_by_topic(
+    async fn get_questions(
         &self,
-        topic: &str,
+        filter: &GetImamQuestionsFilter,
     ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError> {
         get_imam_questions_common(
             self.db_connection.clone(),
-            "CALL get_answered_imam_questions_by_topic(?)",
-            Some(topic),
-            None,
-        )
-        .await
-    }
-
-    async fn get_answered_questions_by_school_of_thought(
-        &self,
-        school_of_thought: SchoolOfThought,
-    ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError> {
-        get_imam_questions_common(
-            self.db_connection.clone(),
-            "CALL get_answered_imam_questions_by_school_of_thought(?)",
-            None,
-            Some(&school_of_thought.to_string()),
-        )
-        .await
-    }
-
-    async fn get_answered_questions_by_topic_and_school_of_thought(
-        &self,
-        topic: &str,
-        school_of_thought: SchoolOfThought,
-    ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError> {
-        get_imam_questions_common(
-            self.db_connection.clone(),
-            "CALL get_answered_imam_questions_by_topic_and_school_of_thought(?, ?)",
-            Some(topic),
-            Some(&school_of_thought.to_string()),
+            "CALL get_answered_imam_questions(?, ?)",
+            filter.topic.clone(),
+            filter.school_of_thought.clone(),
         )
         .await
     }

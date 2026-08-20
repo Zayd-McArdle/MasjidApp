@@ -2,9 +2,9 @@ use crate::features::ask_imam::errors::insert_imam_question_error::InsertImamQue
 use crate::features::ask_imam::repositories::ImamQuestionsPublicRepository;
 use async_trait::async_trait;
 use masjid_app_api_library::features::ask_imam::errors::get_questions_error::GetQuestionsError;
+use masjid_app_api_library::features::ask_imam::models::get_imam_questions_filter::GetImamQuestionsFilter;
 use masjid_app_api_library::features::ask_imam::models::imam_question::ImamQuestion;
 use masjid_app_api_library::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
-use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
 use masjid_app_api_library::features::ask_imam::services::AskImamServiceImpl;
 use mockall::automock;
 use std::sync::Arc;
@@ -14,8 +14,7 @@ use std::sync::Arc;
 pub trait AskImamPublicService: Send + Sync {
     async fn get_answered_questions(
         &self,
-        topic: Option<String>,
-        school_of_thought: Option<SchoolOfThought>,
+        filter: GetImamQuestionsFilter,
     ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError>;
     async fn ask_question(&self, question: ImamQuestion) -> Result<(), InsertImamQuestionError>;
 }
@@ -33,42 +32,11 @@ pub fn new_ask_imam_public_service(
 impl AskImamPublicService for AskImamServiceImpl<dyn ImamQuestionsPublicRepository> {
     async fn get_answered_questions(
         &self,
-        topic: Option<String>,
-        school_of_thought: Option<SchoolOfThought>,
+        filter: GetImamQuestionsFilter,
     ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError> {
-        match (topic, school_of_thought) {
-            (None, None) => self
-                .in_memory_repository
-                .get_answered_questions()
-                .await
-                .or(self.repository.get_answered_questions().await),
-            (Some(topic), None) => self
-                .in_memory_repository
-                .get_answered_questions_by_topic(&topic)
-                .await
-                .or(self
-                    .repository
-                    .get_answered_questions_by_topic(&topic)
-                    .await),
-            (None, Some(school_of_thought)) => self
-                .in_memory_repository
-                .get_answered_questions_by_school_of_thought(school_of_thought)
-                .await
-                .or(self
-                    .repository
-                    .get_answered_questions_by_school_of_thought(school_of_thought)
-                    .await),
-            (Some(topic), Some(school_of_thought)) => self
-                .in_memory_repository
-                .get_answered_questions_by_topic_and_school_of_thought(&topic, school_of_thought)
-                .await
-                .or(self
-                    .repository
-                    .get_answered_questions_by_topic_and_school_of_thought(
-                        &topic,
-                        school_of_thought,
-                    )
-                    .await),
+        match self.in_memory_repository.get_questions(&filter).await {
+            Ok(answers) => Ok(answers),
+            Err(_) => self.repository.get_questions(&filter).await,
         }
     }
     async fn ask_question(&self, question: ImamQuestion) -> Result<(), InsertImamQuestionError> {
@@ -92,27 +60,13 @@ mod tests {
     use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
     use masjid_app_api_library::features::ask_imam::repositories::ImamQuestionsRepository;
     use mockall::mock;
-    use std::str::FromStr;
 
     mock!(
         pub ImamQuestionsPublicRepository {}
 
         #[async_trait]
         impl ImamQuestionsRepository for ImamQuestionsPublicRepository {
-            async fn get_answered_questions(&self) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError>;
-            async fn get_answered_questions_by_topic(
-                &self,
-                topic: &str,
-            ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError>;
-            async fn get_answered_questions_by_school_of_thought(
-                &self,
-                school_of_thought: SchoolOfThought,
-            ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError>;
-            async fn get_answered_questions_by_topic_and_school_of_thought(
-                &self,
-                topic: &str,
-                school_of_thought: SchoolOfThought,
-            ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError>;
+            async fn get_questions(&self, filter: &GetImamQuestionsFilter) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError>;
         }
         #[async_trait]
         impl ImamQuestionsPublicRepository for ImamQuestionsPublicRepository {
@@ -196,37 +150,16 @@ mod tests {
     async fn test_get_answered_question() {
         struct TestCase {
             description: &'static str,
-            topic: Option<String>,
-            school_of_thought: Option<String>,
             mock_in_memory_repository_result: Result<Vec<ImamQuestionDTO>, GetQuestionsError>,
             mock_repository_result: Result<Vec<ImamQuestionDTO>, GetQuestionsError>,
             expected_result: Result<Vec<ImamQuestionDTO>, GetQuestionsError>,
         }
         const TOPIC: &'static str = "Specific topic";
         let mock_all_answered_questions = get_mock_answered_questions();
-        let mock_answered_questions_by_topic = mock_all_answered_questions
-            .clone()
-            .into_iter()
-            .filter(|question| question.topic == "Specific topic")
-            .collect::<Vec<ImamQuestionDTO>>();
-        let mock_answered_questions_by_school_of_thought = mock_all_answered_questions
-            .clone()
-            .into_iter()
-            .filter(|question| question.school_of_thought == Some(SchoolOfThought::Hanafi))
-            .collect::<Vec<ImamQuestionDTO>>();
-        let mock_answered_questions_by_topic_and_school_of_thought = mock_all_answered_questions
-            .clone()
-            .into_iter()
-            .filter(|question| {
-                question.topic == "Specific topic"
-                    && question.school_of_thought == Some(SchoolOfThought::Hanafi)
-            })
-            .collect::<Vec<ImamQuestionDTO>>();
+
         let test_cases = [
             TestCase {
-                description: "When no filters are applied and question retrieval fails in all repositories, I should get an error",
-                topic: None,
-                school_of_thought: None,
+                description: "When question retrieval fails in all repositories, I should get an error",
                 mock_in_memory_repository_result: Err(
                     GetQuestionsError::UnableToGetAnsweredQuestions,
                 ),
@@ -234,17 +167,13 @@ mod tests {
                 expected_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
             },
             TestCase {
-                description: "When no filters applied and no questions were returned from all repositories, I should receive an error",
-                topic: None,
-                school_of_thought: None,
+                description: "When no questions were returned from all repositories, I should receive an error",
                 mock_in_memory_repository_result: Err(GetQuestionsError::QuestionsNotFound),
                 mock_repository_result: Err(GetQuestionsError::QuestionsNotFound),
                 expected_result: Err(GetQuestionsError::QuestionsNotFound),
             },
             TestCase {
-                description: "When no filters applied and questions failed to be retrieved from in-memory repository but questions not found in main repository, I should receive an error",
-                topic: None,
-                school_of_thought: None,
+                description: "When questions failed to be retrieved from in-memory repository but questions not found in main repository, I should receive an error",
                 mock_in_memory_repository_result: Err(
                     GetQuestionsError::UnableToGetAnsweredQuestions,
                 ),
@@ -252,156 +181,22 @@ mod tests {
                 expected_result: Err(GetQuestionsError::QuestionsNotFound),
             },
             TestCase {
-                description: "When no filters applied and questions not found in in-memory repository but questions failed to be retrieved from main repository, I should received an error",
-                topic: None,
-                school_of_thought: None,
+                description: "When questions not found in in-memory repository but questions failed to be retrieved from main repository, I should receive an error",
                 mock_in_memory_repository_result: Err(GetQuestionsError::QuestionsNotFound),
                 mock_repository_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
                 expected_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
             },
             TestCase {
-                description: "When no filters applied and questions returned from in-memory database, I should receive no error",
-                topic: None,
-                school_of_thought: None,
+                description: "When questions returned from in-memory database, I should receive no error",
                 mock_in_memory_repository_result: Ok(mock_all_answered_questions.clone()),
                 mock_repository_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
+                expected_result: Ok(mock_all_answered_questions.clone()),
+            },
+            TestCase {
+                description: "When questions not found in in-memory repository but found in main repository, I should receive no error",
+                mock_in_memory_repository_result: Err(GetQuestionsError::QuestionsNotFound),
+                mock_repository_result: Ok(mock_all_answered_questions.clone()),
                 expected_result: Ok(mock_all_answered_questions),
-            },
-            TestCase {
-                description: "When topic filter applied and question retrieval fails in all repositories, I should get an error",
-                topic: Some(TOPIC.to_owned()),
-                school_of_thought: None,
-                mock_in_memory_repository_result: Err(
-                    GetQuestionsError::UnableToGetAnsweredQuestions,
-                ),
-                mock_repository_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-                expected_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-            },
-            TestCase {
-                description: "When topic filter applied and no questions were returned from all repositories, I should receive an error",
-                topic: Some(TOPIC.to_owned()),
-                school_of_thought: None,
-                mock_in_memory_repository_result: Err(GetQuestionsError::QuestionsNotFound),
-                mock_repository_result: Err(GetQuestionsError::QuestionsNotFound),
-                expected_result: Err(GetQuestionsError::QuestionsNotFound),
-            },
-            TestCase {
-                description: "When topic filter applied and questions failed to be retrieved from in-memory repository but questions not found in main repository, I should receive an error",
-                topic: Some(TOPIC.to_owned()),
-                school_of_thought: None,
-                mock_in_memory_repository_result: Err(
-                    GetQuestionsError::UnableToGetAnsweredQuestions,
-                ),
-                mock_repository_result: Err(GetQuestionsError::QuestionsNotFound),
-                expected_result: Err(GetQuestionsError::QuestionsNotFound),
-            },
-            TestCase {
-                description: "When topic filter applied and questions not found in in-memory repository but questions failed to be retrieved from main repository, I should received an error",
-                topic: Some(TOPIC.to_owned()),
-                school_of_thought: None,
-                mock_in_memory_repository_result: Err(GetQuestionsError::QuestionsNotFound),
-                mock_repository_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-                expected_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-            },
-            TestCase {
-                description: "When topic filter applied and questions returned from in-memory database, I should receive no error",
-                topic: Some(TOPIC.to_owned()),
-                school_of_thought: None,
-                mock_in_memory_repository_result: Ok(mock_answered_questions_by_topic.clone()),
-                mock_repository_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-                expected_result: Ok(mock_answered_questions_by_topic),
-            },
-            TestCase {
-                description: "When school of thought filter applied and question retrieval fails in all repositories, I should get an error",
-                topic: None,
-                school_of_thought: Some(SchoolOfThought::Hanafi.to_string()),
-                mock_in_memory_repository_result: Err(
-                    GetQuestionsError::UnableToGetAnsweredQuestions,
-                ),
-                mock_repository_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-                expected_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-            },
-            TestCase {
-                description: "When school of thought filter applied and no questions were returned from all repositories, I should receive an error",
-                topic: None,
-                school_of_thought: Some(SchoolOfThought::Hanafi.to_string()),
-                mock_in_memory_repository_result: Err(GetQuestionsError::QuestionsNotFound),
-                mock_repository_result: Err(GetQuestionsError::QuestionsNotFound),
-                expected_result: Err(GetQuestionsError::QuestionsNotFound),
-            },
-            TestCase {
-                description: "When school of thought filter applied and questions failed to be retrieved from in-memory repository but questions not found in main repository, I should receive an error",
-                topic: None,
-                school_of_thought: Some(SchoolOfThought::Hanafi.to_string()),
-                mock_in_memory_repository_result: Err(
-                    GetQuestionsError::UnableToGetAnsweredQuestions,
-                ),
-                mock_repository_result: Err(GetQuestionsError::QuestionsNotFound),
-                expected_result: Err(GetQuestionsError::QuestionsNotFound),
-            },
-            TestCase {
-                description: "When school of thought filter applied and questions not found in in-memory repository but questions failed to be retrieved from main repository, I should received an error",
-                topic: None,
-                school_of_thought: Some(SchoolOfThought::Hanafi.to_string()),
-                mock_in_memory_repository_result: Err(GetQuestionsError::QuestionsNotFound),
-                mock_repository_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-                expected_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-            },
-            TestCase {
-                description: "When school of thought filter applied and questions returned from in-memory database, I should receive no error",
-                topic: None,
-                school_of_thought: Some(SchoolOfThought::Hanafi.to_string()),
-                mock_in_memory_repository_result: Ok(
-                    mock_answered_questions_by_school_of_thought.clone()
-                ),
-                mock_repository_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-                expected_result: Ok(mock_answered_questions_by_school_of_thought),
-            },
-            TestCase {
-                description: "When all filters applied and question retrieval fails in all repositories, I should get an error",
-                topic: Some(TOPIC.to_owned()),
-                school_of_thought: Some(SchoolOfThought::Hanafi.to_string()),
-                mock_in_memory_repository_result: Err(
-                    GetQuestionsError::UnableToGetAnsweredQuestions,
-                ),
-                mock_repository_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-                expected_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-            },
-            TestCase {
-                description: "When all filters applied and no questions were returned from all repositories, I should receive an error",
-                topic: Some(TOPIC.to_owned()),
-                school_of_thought: Some(SchoolOfThought::Hanafi.to_string()),
-                mock_in_memory_repository_result: Err(GetQuestionsError::QuestionsNotFound),
-                mock_repository_result: Err(GetQuestionsError::QuestionsNotFound),
-                expected_result: Err(GetQuestionsError::QuestionsNotFound),
-            },
-            TestCase {
-                description: "When all filters applied and questions failed to be retrieved from in-memory repository but questions not found in main repository, I should receive an error",
-                topic: Some(TOPIC.to_owned()),
-                school_of_thought: Some(SchoolOfThought::Hanafi.to_string()),
-                mock_in_memory_repository_result: Err(
-                    GetQuestionsError::UnableToGetAnsweredQuestions,
-                ),
-                mock_repository_result: Err(GetQuestionsError::QuestionsNotFound),
-                expected_result: Err(GetQuestionsError::QuestionsNotFound),
-            },
-            TestCase {
-                description: "When all filters applied and questions not found in in-memory repository but questions failed to be retrieved from main repository, I should received an error",
-                topic: Some(TOPIC.to_owned()),
-                school_of_thought: Some(SchoolOfThought::Hanafi.to_string()),
-                mock_in_memory_repository_result: Err(GetQuestionsError::QuestionsNotFound),
-                mock_repository_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-                expected_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-            },
-            TestCase {
-                description: "When all filters applied and questions returned from in-memory database, I should receive no error",
-                topic: Some(TOPIC.to_owned()),
-                school_of_thought: Some(SchoolOfThought::Hanafi.to_string()),
-                mock_in_memory_repository_result: Ok(
-                    mock_answered_questions_by_topic_and_school_of_thought.clone(),
-                ),
-                mock_repository_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-                expected_result: Ok(mock_answered_questions_by_topic_and_school_of_thought),
             },
         ];
 
@@ -410,54 +205,22 @@ mod tests {
             let mut mock_in_memory_repository = MockImamQuestionsPublicRepository::new();
             let mut mock_repository = MockImamQuestionsPublicRepository::new();
 
-            match (test_case.topic.clone(), test_case.school_of_thought.clone()) {
-                (None, None) => {
-                    mock_in_memory_repository
-                        .expect_get_answered_questions()
-                        .return_once(|| test_case.mock_in_memory_repository_result);
-                    mock_repository
-                        .expect_get_answered_questions()
-                        .return_once(|| test_case.mock_repository_result);
-                }
-                (Some(_topic), None) => {
-                    mock_in_memory_repository
-                        .expect_get_answered_questions_by_topic()
-                        .return_once(|_| test_case.mock_in_memory_repository_result);
-                    mock_repository
-                        .expect_get_answered_questions_by_topic()
-                        .return_once(|_| test_case.mock_repository_result);
-                }
-                (None, Some(_school_of_thought)) => {
-                    mock_in_memory_repository
-                        .expect_get_answered_questions_by_school_of_thought()
-                        .return_once(|_| test_case.mock_in_memory_repository_result);
-                    mock_repository
-                        .expect_get_answered_questions_by_school_of_thought()
-                        .return_once(|_| test_case.mock_repository_result);
-                }
-                (Some(_topic), Some(_school_of_thought)) => {
-                    mock_in_memory_repository
-                        .expect_get_answered_questions_by_topic_and_school_of_thought()
-                        .return_once(|_, _| test_case.mock_in_memory_repository_result);
-                    mock_repository
-                        .expect_get_answered_questions_by_topic_and_school_of_thought()
-                        .return_once(|_, _| test_case.mock_repository_result);
-                }
-            }
+            mock_in_memory_repository
+                .expect_get_questions()
+                .return_once(move |_| test_case.mock_in_memory_repository_result);
+            mock_repository
+                .expect_get_questions()
+                .return_once(move |_| test_case.mock_repository_result);
+
             let arc_repository: Arc<dyn ImamQuestionsPublicRepository> = Arc::new(mock_repository);
             let arc_in_memory_repository: Arc<dyn ImamQuestionsPublicRepository> =
                 Arc::new(mock_in_memory_repository);
 
             let service = new_ask_imam_public_service(arc_repository, arc_in_memory_repository);
-            let actual_result = service
-                .get_answered_questions(
-                    test_case.topic,
-                    test_case.school_of_thought.and_then(|school_of_thought| {
-                        SchoolOfThought::from_str(&school_of_thought).ok()
-                    }),
-                )
+            let _actual_result = service
+                .get_answered_questions(GetImamQuestionsFilter::default())
                 .await;
-            assert!(matches!(test_case.expected_result, actual_result));
+            assert!(matches!(test_case.expected_result, _actual_result));
         }
     }
     #[tokio::test]
@@ -508,7 +271,7 @@ mod tests {
             },
             TestCase {
                 description: "When insertion succeeds for both repositories, I should receive no error",
-                question: question,
+                question,
                 mock_in_memory_repository_result: Ok(()),
                 mock_repository_result: Ok(()),
                 expected_result: Ok(()),
