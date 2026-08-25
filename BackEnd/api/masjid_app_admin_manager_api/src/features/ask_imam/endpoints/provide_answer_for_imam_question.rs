@@ -2,13 +2,14 @@ use crate::features::ask_imam::errors::upsert_answer_to_question_error::UpsertAn
 use crate::features::ask_imam::models::provide_answer_for_imam_question_request::ProvideAnswerForImamQuestionRequest;
 use crate::features::ask_imam::services::AskImamAdminService;
 use crate::shared::jwt::Claims;
-use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
 use masjid_app_api_library::shared::types::app_state::ServiceAppState;
 use std::sync::Arc;
+use axum::Json;
 use validator::Validate;
 
+#[inline]
 pub async fn provide_answer_for_imam_question(
     State(state): State<ServiceAppState<Arc<dyn AskImamAdminService>>>,
     _claims: Claims,

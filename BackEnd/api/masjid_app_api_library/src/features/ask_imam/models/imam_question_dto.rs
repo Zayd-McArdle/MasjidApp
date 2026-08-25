@@ -32,9 +32,9 @@ impl From<ImamQuestion> for ImamQuestionDTO {
             && let Some(date_answered) = imam_question.date_answered
         {
             answer = Some(Answer {
-                imam_name: imam_name,
+                imam_name,
                 text: imam_answer,
-                date_answered: date_answered,
+                date_answered,
             })
         }
         ImamQuestionDTO {
@@ -46,7 +46,7 @@ impl From<ImamQuestion> for ImamQuestionDTO {
                 .and_then(|value| SchoolOfThought::from_str(&value).ok()),
             description: imam_question.description,
             date_of_question: imam_question.date_of_question,
-            answer: answer,
+            answer,
         }
     }
 }

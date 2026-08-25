@@ -1,13 +1,14 @@
 use crate::features::ask_imam::errors::insert_imam_question_error::InsertImamQuestionError;
 use crate::features::ask_imam::models::ask_imam_request::AskImamRequest;
 use crate::features::ask_imam::services::AskImamPublicService;
-use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
 use masjid_app_api_library::shared::types::app_state::ServiceAppState;
 use std::sync::Arc;
+use axum::Json;
 use validator::Validate;
 
+#[inline]
 pub async fn ask_question_for_imam(
     State(state): State<ServiceAppState<Arc<dyn AskImamPublicService>>>,
     Json(request): Json<AskImamRequest>,
