@@ -5,7 +5,7 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use masjid_app_api_library::shared::types::app_state::ServiceAppState;
 use std::sync::Arc;
-
+#[inline]
 pub async fn delete_imam_question(
     State(state): State<ServiceAppState<Arc<dyn AskImamAdminService>>>,
     _claims: Claims,
