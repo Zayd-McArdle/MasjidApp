@@ -1,12 +1,11 @@
 use crate::features::ask_imam::errors::delete_question_error::DeleteQuestionError;
 use crate::features::ask_imam::errors::upsert_answer_to_question_error::UpsertAnswerToQuestionError;
-use crate::features::ask_imam::models::question_status::QuestionStatus;
 use crate::features::ask_imam::repositories::ImamQuestionsAdminRepository;
+use crate::features::ask_imam::models::get_imam_questions_admin_filter::GetImamQuestionsAdminFilter;
 use async_trait::async_trait;
 use masjid_app_api_library::features::ask_imam::errors::get_questions_error::GetQuestionsError;
 use masjid_app_api_library::features::ask_imam::models::answer::Answer;
 use masjid_app_api_library::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
-use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
 use masjid_app_api_library::features::ask_imam::services::AskImamServiceImpl;
 use mockall::automock;
 use std::sync::Arc;
@@ -16,9 +15,7 @@ use std::sync::Arc;
 pub trait AskImamAdminService: Send + Sync {
     async fn get_questions(
         &self,
-        answered: Option<QuestionStatus>,
-        topic: Option<String>,
-        school_of_thought: Option<SchoolOfThought>,
+        filter: GetImamQuestionsAdminFilter,
     ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError>;
     async fn provide_answer_to_question(
         &self,
@@ -42,83 +39,11 @@ pub fn new_ask_imam_admin_service(
 impl AskImamAdminService for AskImamServiceImpl<dyn ImamQuestionsAdminRepository> {
     async fn get_questions(
         &self,
-        answered: Option<QuestionStatus>,
-        topic: Option<String>,
-        school_of_thought: Option<SchoolOfThought>,
+        filter: GetImamQuestionsAdminFilter,
     ) -> Result<Vec<ImamQuestionDTO>, GetQuestionsError> {
-        match (answered, topic, school_of_thought) {
-            (None, _, _) => self
-                .in_memory_repository
-                .get_all_imam_questions()
-                .await
-                .or(self.repository.get_all_imam_questions().await),
-            (Some(QuestionStatus::Unanswered), None, None) => self
-                .in_memory_repository
-                .get_unanswered_imam_questions()
-                .await
-                .or(self.repository.get_unanswered_imam_questions().await),
-            (Some(QuestionStatus::Unanswered), Some(topic), None) => self
-                .in_memory_repository
-                .get_unanswered_imam_questions_by_topic(&topic)
-                .await
-                .or(self
-                    .repository
-                    .get_unanswered_imam_questions_by_topic(&topic)
-                    .await),
-            (Some(QuestionStatus::Unanswered), None, Some(school_of_thought)) => self
-                .in_memory_repository
-                .get_unanswered_imam_questions_by_school_of_thought(school_of_thought)
-                .await
-                .or(self
-                    .repository
-                    .get_unanswered_imam_questions_by_school_of_thought(school_of_thought)
-                    .await),
-            (Some(QuestionStatus::Unanswered), Some(topic), Some(school_of_thought)) => self
-                .in_memory_repository
-                .get_unanswered_imam_questions_by_topic_and_school_of_thought(
-                    &topic,
-                    school_of_thought,
-                )
-                .await
-                .or(self
-                    .repository
-                    .get_unanswered_imam_questions_by_topic_and_school_of_thought(
-                        &topic,
-                        school_of_thought,
-                    )
-                    .await),
-            (Some(QuestionStatus::Answered), None, None) => self
-                .in_memory_repository
-                .get_answered_questions()
-                .await
-                .or(self.repository.get_answered_questions().await),
-            (Some(QuestionStatus::Answered), Some(topic), None) => self
-                .in_memory_repository
-                .get_answered_questions_by_topic(&topic)
-                .await
-                .or(self
-                    .repository
-                    .get_answered_questions_by_topic(&topic)
-                    .await),
-            (Some(QuestionStatus::Answered), None, Some(school_of_thought)) => self
-                .in_memory_repository
-                .get_answered_questions_by_school_of_thought(school_of_thought)
-                .await
-                .or(self
-                    .repository
-                    .get_answered_questions_by_school_of_thought(school_of_thought)
-                    .await),
-            (Some(QuestionStatus::Answered), Some(topic), Some(school_of_thought)) => self
-                .in_memory_repository
-                .get_answered_questions_by_topic_and_school_of_thought(&topic, school_of_thought)
-                .await
-                .or(self
-                    .repository
-                    .get_answered_questions_by_topic_and_school_of_thought(
-                        &topic,
-                        school_of_thought,
-                    )
-                    .await),
+        match self.in_memory_repository.get_questions(&filter).await {
+            Ok(questions) => Ok(questions),
+            Err(_) => self.repository.get_questions(&filter).await,
         }
     }
 
