@@ -13,8 +13,8 @@ where
     S: Send + Sync,
 {
     type Rejection = (StatusCode, String);
-
-    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
+    #[inline]
+    async fn from_request(req: Request, _state: &S) -> Result<Self, Self::Rejection> {
         let Json(request) = req
             .extract::<Json<T>, _>()
             .await
