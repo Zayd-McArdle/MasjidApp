@@ -1,6 +1,5 @@
 use axum::extract::{FromRequest, Request};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
 use axum::{Json, RequestExt};
 use serde::de::DeserializeOwned;
 use validator::Validate;
@@ -27,6 +26,7 @@ where
     }
 }
 
+#[cfg(test)]
 mod test {
     use super::*;
     use axum::body::Body;
