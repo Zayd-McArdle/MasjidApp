@@ -1,8 +1,8 @@
-use crate::features::events::repositories::EventsAdminRepository;
 use crate::features::events::repositories::errors::delete_event_error::DeleteEventError;
 use crate::features::events::repositories::errors::insert_event_error::InsertEventError;
 use crate::features::events::repositories::errors::update_event_error::UpdateEventError;
 use crate::features::events::repositories::errors::upsert_event_error::UpsertEventError;
+use crate::features::events::repositories::EventsAdminRepository;
 use async_trait::async_trait;
 use masjid_app_api_library::features::events::models::event::Event;
 use masjid_app_api_library::shared::data_access::repository_management::mysql_repository::MySqlRepository;
@@ -48,22 +48,22 @@ impl EventsAdminRepository for MySqlRepository {
 
     async fn delete_event_by_id(&self, event_id: &i32) -> Result<Option<String>, DeleteEventError> {
         let db_connection = self.db_connection.clone();
-        let mut image_url: Option<String> = None;
-
-        match sqlx::query("CALL retrieve_image_url_by_event_id(?)")
+        let image_url = match sqlx::query("CALL retrieve_image_url_by_event_id(?)")
             .bind(&event_id)
             .fetch_optional(&*db_connection)
             .await
         {
-            Ok(url) => image_url = url.and_then(|row| row.get(0)),
+            Ok(Some(row)) => row.get(0),
+            Ok(None) => None,
             Err(err) => {
                 tracing::error!(
                     "unable to retrieve image url for event id {}, due to the following error: {}",
                     event_id,
                     err
-                )
+                );
+                None
             }
-        }
+        };
 
         let query_result = sqlx::query("CALL delete_event_by_id(?)")
             .bind(&event_id)

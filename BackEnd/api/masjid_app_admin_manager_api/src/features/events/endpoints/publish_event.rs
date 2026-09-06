@@ -17,7 +17,7 @@ use validator::Validate;
 pub async fn upsert_events(
     State(state): State<ServiceAppState<Arc<dyn EventPublishingService>>>,
     file_uploader: FileHandler,
-    claims: Claims,
+    _claims: Claims,
     request: ValidatedMultipartRequest<EventDTO>,
 ) -> Result<(), StatusCode> {
     request
