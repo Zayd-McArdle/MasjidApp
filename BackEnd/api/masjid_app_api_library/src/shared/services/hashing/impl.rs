@@ -1,6 +1,6 @@
 use crate::shared::services::hashing::errors::{HashError, VerifyHashError};
 use crate::shared::services::hashing::r#trait::HashingService;
-use bcrypt::{BcryptError, BcryptResult};
+use bcrypt::BcryptError;
 
 pub(super) struct HashingServiceImpl;
 impl HashingService for HashingServiceImpl {
