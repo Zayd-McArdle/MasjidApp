@@ -5,31 +5,27 @@ use crate::shared::jwt::Claims;
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
 use masjid_app_api_library::shared::types::app_state::ServiceAppState;
 use std::sync::Arc;
 use validator::Validate;
 
 pub async fn provide_answer_for_imam_question(
     State(state): State<ServiceAppState<Arc<dyn AskImamAdminService>>>,
-    claims: Claims,
+    _claims: Claims,
     Json(request): Json<ProvideAnswerForImamQuestionRequest>,
-) -> Response {
-    if request.validate().is_err() {
-        return StatusCode::BAD_REQUEST.into_response();
-    }
+) -> Result<(), StatusCode> {
+    request.validate().map_err(|_| StatusCode::BAD_REQUEST)?;
 
-    match state
+    state
         .service
         .provide_answer_to_question(request.question_id, request.into())
         .await
-    {
-        Ok(()) => StatusCode::OK.into_response(),
-        Err(UpsertAnswerToQuestionError::QuestionNotFound) => StatusCode::NOT_FOUND.into_response(),
-        Err(UpsertAnswerToQuestionError::UnableToUpsertAnswerToQuestion) => {
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
-    }
+        .map_err(|e| match e {
+            UpsertAnswerToQuestionError::QuestionNotFound => StatusCode::NOT_FOUND,
+            UpsertAnswerToQuestionError::UnableToUpsertAnswerToQuestion => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+        })
 }
 
 #[cfg(test)]
@@ -44,7 +40,7 @@ mod tests {
             description: &'static str,
             request: ProvideAnswerForImamQuestionRequest,
             expected_db_response: Option<Result<(), UpsertAnswerToQuestionError>>,
-            expected_status_code: StatusCode,
+            expected_result: Result<(), StatusCode>,
         }
         let valid_request = ProvideAnswerForImamQuestionRequest {
             question_id: 1,
@@ -60,13 +56,13 @@ mod tests {
                     text: "".to_owned(),
                 },
                 expected_db_response: None,
-                expected_status_code: StatusCode::BAD_REQUEST,
+                expected_result: Err(StatusCode::BAD_REQUEST),
             },
             TestCase {
                 description: "When upserting an answer to a non-existent question, I should get a NOT_FOUND response",
                 request: valid_request.clone(),
                 expected_db_response: Some(Err(UpsertAnswerToQuestionError::QuestionNotFound)),
-                expected_status_code: StatusCode::NOT_FOUND,
+                expected_result: Err(StatusCode::NOT_FOUND),
             },
             TestCase {
                 description: "When upsertion fails, I should get an INTERNAL_SERVER_ERROR response",
@@ -74,13 +70,13 @@ mod tests {
                 expected_db_response: Some(Err(
                     UpsertAnswerToQuestionError::UnableToUpsertAnswerToQuestion,
                 )),
-                expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
+                expected_result: Err(StatusCode::INTERNAL_SERVER_ERROR),
             },
             TestCase {
                 description: "When upsertion succeeds, I should get an OK response",
                 request: valid_request,
                 expected_db_response: Some(Ok(())),
-                expected_status_code: StatusCode::OK,
+                expected_result: Ok(()),
             },
         ];
         for test_case in test_cases {
@@ -95,13 +91,13 @@ mod tests {
             let app_state = ServiceAppState {
                 service: arc_service,
             };
-            let actual_response = provide_answer_for_imam_question(
+            let actual_result = provide_answer_for_imam_question(
                 State(app_state),
                 Claims::default(),
                 Json(test_case.request),
             )
             .await;
-            assert_eq!(test_case.expected_status_code, actual_response.status());
+            assert_eq!(test_case.expected_result, actual_result);
         }
     }
 }
