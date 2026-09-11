@@ -2,9 +2,10 @@ use crate::features::ask_imam::models::get_imam_question_admin_request::GetImamQ
 use crate::features::ask_imam::models::question_status::QuestionStatus;
 use crate::features::ask_imam::services::AskImamAdminService;
 use crate::shared::jwt::Claims;
+use axum::Json;
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
+use masjid_app_api_library::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
 use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
 use masjid_app_api_library::features::ask_imam::utils::send_response_for_get_imam_questions;
 use masjid_app_api_library::shared::types::app_state::ServiceAppState;
@@ -14,12 +15,10 @@ use validator::Validate;
 
 pub async fn get_imam_questions(
     State(state): State<ServiceAppState<Arc<dyn AskImamAdminService>>>,
-    claims: Claims,
+    _claims: Claims,
     Query(request): Query<GetImamQuestionsAdminRequest>,
-) -> Response {
-    if request.validate().is_err() {
-        return StatusCode::BAD_REQUEST.into_response();
-    }
+) -> Result<Json<Vec<ImamQuestionDTO>>, StatusCode> {
+    request.validate().map_err(|_| StatusCode::BAD_REQUEST)?;
     let get_questions_result = state
         .service
         .get_questions(

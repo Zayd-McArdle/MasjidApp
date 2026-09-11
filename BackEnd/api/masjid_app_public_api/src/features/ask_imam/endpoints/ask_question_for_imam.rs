@@ -4,7 +4,6 @@ use crate::features::ask_imam::services::AskImamPublicService;
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
 use masjid_app_api_library::shared::types::app_state::ServiceAppState;
 use std::sync::Arc;
 use validator::Validate;
@@ -12,17 +11,16 @@ use validator::Validate;
 pub async fn ask_question_for_imam(
     State(state): State<ServiceAppState<Arc<dyn AskImamPublicService>>>,
     Json(request): Json<AskImamRequest>,
-) -> Response {
-    if request.validate().is_err() {
-        return StatusCode::BAD_REQUEST.into_response();
-    }
+) -> Result<(), StatusCode> {
+    request.validate().map_err(|_| StatusCode::BAD_REQUEST)?;
 
-    match state.service.ask_question(request.into()).await {
-        Ok(()) => StatusCode::CREATED.into_response(),
-        Err(InsertImamQuestionError::UnableToInsertQuestion) => {
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
-    }
+    state
+        .service
+        .ask_question(request.into())
+        .await
+        .map_err(move |err| match err {
+            InsertImamQuestionError::UnableToInsertQuestion => StatusCode::INTERNAL_SERVER_ERROR,
+        })
 }
 
 #[cfg(test)]
@@ -36,7 +34,7 @@ mod tests {
             description: &'static str,
             request: AskImamRequest,
             expected_service_result: Option<Result<(), InsertImamQuestionError>>,
-            expected_status_code: StatusCode,
+            expected_result: Result<(), StatusCode>,
         }
         let test_cases = [
             TestCase {
@@ -48,7 +46,7 @@ mod tests {
                     description: "".to_string(),
                 },
                 expected_service_result: None,
-                expected_status_code: StatusCode::BAD_REQUEST,
+                expected_result: Err(StatusCode::BAD_REQUEST),
             },
             TestCase {
                 description: "When insertion fails, I should get an INTERNAL_SERVER_ERROR response",
@@ -59,7 +57,7 @@ mod tests {
                     description: "description".to_string(),
                 },
                 expected_service_result: Some(Err(InsertImamQuestionError::UnableToInsertQuestion)),
-                expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
+                expected_result: Err(StatusCode::INTERNAL_SERVER_ERROR),
             },
             TestCase {
                 description: "When insertion succeeds, I should get a CREATED response",
@@ -70,7 +68,7 @@ mod tests {
                     description: "description".to_string(),
                 },
                 expected_service_result: Some(Ok(())),
-                expected_status_code: StatusCode::CREATED,
+                expected_result: Ok(()),
             },
         ];
         for test_case in test_cases {
@@ -84,9 +82,9 @@ mod tests {
             let app_state = ServiceAppState::<Arc<dyn AskImamPublicService>> {
                 service: Arc::new(mock_service),
             };
-            let actual_response =
+            let actual_result =
                 ask_question_for_imam(State(app_state), Json(test_case.request)).await;
-            assert_eq!(test_case.expected_status_code, actual_response.status());
+            assert_eq!(test_case.expected_result, actual_result);
         }
     }
 }

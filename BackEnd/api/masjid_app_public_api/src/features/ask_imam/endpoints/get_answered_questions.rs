@@ -1,8 +1,9 @@
 use crate::features::ask_imam::services::AskImamPublicService;
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
+use axum::response::Json;
 use masjid_app_api_library::features::ask_imam::models::get_imam_questions_request::GetImamQuestionsRequest;
+use masjid_app_api_library::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
 use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
 use masjid_app_api_library::features::ask_imam::utils::send_response_for_get_imam_questions;
 use masjid_app_api_library::shared::types::app_state::ServiceAppState;
@@ -13,12 +14,10 @@ use validator::Validate;
 pub async fn get_answered_questions(
     State(state): State<ServiceAppState<Arc<dyn AskImamPublicService>>>,
     Query(request): Query<GetImamQuestionsRequest>,
-) -> Response
+) -> Result<Json<Vec<ImamQuestionDTO>>, StatusCode>
 where
 {
-    if request.validate().is_err() {
-        return StatusCode::BAD_REQUEST.into_response();
-    }
+    request.validate().map_err(|_| StatusCode::BAD_REQUEST)?;
     let get_answered_questions_result = state
         .service
         .get_answered_questions(
@@ -35,6 +34,7 @@ where
 mod tests {
     use super::*;
     use crate::features::ask_imam::services::MockAskImamPublicService;
+    use masjid_app_api_library::assert_endpoint_json_response;
     use masjid_app_api_library::features::ask_imam::errors::get_questions_error::GetQuestionsError;
     use masjid_app_api_library::features::ask_imam::models::answer::Answer;
     use masjid_app_api_library::features::ask_imam::models::get_imam_questions_request::GetImamQuestionsRequest;
@@ -104,7 +104,7 @@ mod tests {
             description: &'static str,
             request: GetImamQuestionsRequest,
             expected_service_result: Option<Result<Vec<ImamQuestionDTO>, GetQuestionsError>>,
-            expected_response_code: StatusCode,
+            expected_result: Result<Json<Vec<ImamQuestionDTO>>, StatusCode>,
         }
         let test_cases = [
             TestCase {
@@ -114,7 +114,7 @@ mod tests {
                     school_of_thought: Some("invalid school of thought".to_owned()),
                 },
                 expected_service_result: None,
-                expected_response_code: StatusCode::BAD_REQUEST,
+                expected_result: Err(StatusCode::BAD_REQUEST),
             },
             TestCase {
                 description: "When the service fails to retrieve questions, I should receive an INTERNAL_SERVER_ERROR response",
@@ -123,7 +123,7 @@ mod tests {
                     school_of_thought: None,
                 },
                 expected_service_result: Some(Err(GetQuestionsError::UnableToGetAnsweredQuestions)),
-                expected_response_code: StatusCode::INTERNAL_SERVER_ERROR,
+                expected_result: Err(StatusCode::INTERNAL_SERVER_ERROR),
             },
             TestCase {
                 description: "When the service returns no questions, I should receive a NO_CONTENT response",
@@ -132,7 +132,7 @@ mod tests {
                     school_of_thought: None,
                 },
                 expected_service_result: Some(Err(GetQuestionsError::QuestionsNotFound)),
-                expected_response_code: StatusCode::NO_CONTENT,
+                expected_result: Err(StatusCode::NOT_FOUND),
             },
             TestCase {
                 description: "When the service returns questions, I should receive an OK response",
@@ -141,7 +141,7 @@ mod tests {
                     school_of_thought: None,
                 },
                 expected_service_result: Some(Ok(get_mock_answered_questions())),
-                expected_response_code: StatusCode::OK,
+                expected_result: Ok(Json(get_mock_answered_questions())),
             },
         ];
         for test_case in test_cases {
@@ -157,7 +157,7 @@ mod tests {
             };
             let actual_result =
                 get_answered_questions(State(app_state), Query(test_case.request)).await;
-            assert_eq!(test_case.expected_response_code, actual_result.status());
+            assert_endpoint_json_response!(test_case.expected_result, actual_result);
         }
     }
 }

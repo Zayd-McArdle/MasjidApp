@@ -2,22 +2,22 @@ use crate::features::ask_imam::errors::get_questions_error::GetQuestionsError;
 use crate::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
 use axum::Json;
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
 #[inline]
 pub fn send_response_for_get_imam_questions(
     get_imam_questions_result: Result<Vec<ImamQuestionDTO>, GetQuestionsError>,
-) -> Response {
+) -> Result<Json<Vec<ImamQuestionDTO>>, StatusCode> {
     match get_imam_questions_result {
-        Ok(questions) => (StatusCode::OK, Json(questions)).into_response(),
-        Err(GetQuestionsError::QuestionsNotFound) => StatusCode::NO_CONTENT.into_response(),
+        Ok(questions) => Ok(Json(questions)),
+        Err(GetQuestionsError::QuestionsNotFound) => Err(StatusCode::NOT_FOUND),
         Err(GetQuestionsError::UnableToGetAnsweredQuestions) => {
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
         }
     }
 }
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::assert_endpoint_json_response;
     use crate::features::ask_imam::models::answer::Answer;
     use crate::features::ask_imam::models::school_of_thought::SchoolOfThought;
 
@@ -82,32 +82,32 @@ mod test {
         struct TestCase {
             description: &'static str,
             get_answered_questions_result: Result<Vec<ImamQuestionDTO>, GetQuestionsError>,
-            expected_response_code: StatusCode,
+            expected_result: Result<Json<Vec<ImamQuestionDTO>>, StatusCode>,
         }
         let imam_questions = get_mock_answered_questions();
         let test_cases = [
             TestCase {
                 description: "When get_answered_questions_result is okay, I should retrieve answered questions with no error",
-                get_answered_questions_result: Ok(imam_questions),
-                expected_response_code: StatusCode::OK,
+                get_answered_questions_result: Ok(imam_questions.clone()),
+                expected_result: Ok(Json(imam_questions)),
             },
             TestCase {
                 description: "When no questions are found, I should get a NO_CONTENT response",
                 get_answered_questions_result: Err(GetQuestionsError::QuestionsNotFound),
-                expected_response_code: StatusCode::NO_CONTENT,
+                expected_result: Err(StatusCode::NOT_FOUND),
             },
             TestCase {
                 description: "When questions are unable to be retrieved, I should get an INTERNAL_SERVER_ERROR response",
                 get_answered_questions_result: Err(GetQuestionsError::UnableToGetAnsweredQuestions),
-                expected_response_code: StatusCode::INTERNAL_SERVER_ERROR,
+                expected_result: Err(StatusCode::INTERNAL_SERVER_ERROR),
             },
         ];
 
         for test_case in test_cases {
             eprintln!("{}", test_case.description);
-            let actual_response =
+            let actual_result =
                 send_response_for_get_imam_questions(test_case.get_answered_questions_result);
-            assert_eq!(test_case.expected_response_code, actual_response.status());
+            assert_endpoint_json_response!(test_case.expected_result, actual_result);
         }
     }
 }
