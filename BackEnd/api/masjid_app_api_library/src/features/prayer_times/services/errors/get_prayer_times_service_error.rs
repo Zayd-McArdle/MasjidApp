@@ -1,5 +1,6 @@
 use crate::features::prayer_times::errors::get_prayer_times_repository_error::GetPrayerTimesRepositoryError;
 
+#[derive(Clone)]
 pub enum GetPrayerTimesServiceError {
     RepositoryError(GetPrayerTimesRepositoryError),
 }

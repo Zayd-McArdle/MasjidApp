@@ -1,26 +1,32 @@
 use crate::features::prayer_times::endpoints::utils::build_prayer_times_response;
 use crate::features::prayer_times::errors::get_prayer_times_repository_error::GetPrayerTimesRepositoryError;
+
 use crate::features::prayer_times::services::errors::get_prayer_times_service_error::GetPrayerTimesServiceError;
 use crate::features::prayer_times::services::prayer_times_retrieval_service::PrayerTimesRetrievalService;
 use crate::shared::types::app_state::ServiceAppState;
+use axum::body::Body;
 use axum::extract::State;
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
+use axum::response::Response;
 use std::sync::Arc;
 
 #[inline]
 pub async fn get_prayer_times_common<R: PrayerTimesRetrievalService + ?Sized>(
     State(state): State<ServiceAppState<Arc<R>>>,
-) -> Response {
-    match state.service.get_prayer_times().await {
-        Ok(prayer_times) => build_prayer_times_response(prayer_times, None),
-        Err(GetPrayerTimesServiceError::RepositoryError(
-            GetPrayerTimesRepositoryError::PrayerTimesNotFound,
-        )) => StatusCode::NOT_FOUND.into_response(),
-        Err(GetPrayerTimesServiceError::RepositoryError(
-            GetPrayerTimesRepositoryError::UnableToGetPrayerTimes,
-        )) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-    }
+) -> Result<Response<Body>, StatusCode> {
+    let prayer_times = state
+        .service
+        .get_prayer_times()
+        .await
+        .map_err(move |err| match err {
+            GetPrayerTimesServiceError::RepositoryError(
+                GetPrayerTimesRepositoryError::PrayerTimesNotFound,
+            ) => StatusCode::NOT_FOUND,
+            GetPrayerTimesServiceError::RepositoryError(
+                GetPrayerTimesRepositoryError::UnableToGetPrayerTimes,
+            ) => StatusCode::INTERNAL_SERVER_ERROR,
+        })?;
+    build_prayer_times_response(prayer_times, None)
 }
 
 #[cfg(test)]
@@ -33,7 +39,7 @@ mod test {
     async fn test_get_prayer_times() {
         struct TestCase {
             expected_service_response: Result<PrayerTimesDTO, GetPrayerTimesServiceError>,
-            expected_response_code: StatusCode,
+            expected_status_code: StatusCode,
         }
         let valid_prayer_times_data = Ok(PrayerTimesDTO {
             data: Some(vec![1, 2, 3, 4, 5]),
@@ -44,17 +50,17 @@ mod test {
                 expected_service_response: Err(GetPrayerTimesServiceError::RepositoryError(
                     GetPrayerTimesRepositoryError::PrayerTimesNotFound,
                 )),
-                expected_response_code: StatusCode::NOT_FOUND,
+                expected_status_code: StatusCode::NOT_FOUND,
             },
             TestCase {
                 expected_service_response: Err(GetPrayerTimesServiceError::RepositoryError(
                     GetPrayerTimesRepositoryError::UnableToGetPrayerTimes,
                 )),
-                expected_response_code: StatusCode::INTERNAL_SERVER_ERROR,
+                expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
             },
             TestCase {
-                expected_service_response: valid_prayer_times_data,
-                expected_response_code: StatusCode::OK,
+                expected_service_response: valid_prayer_times_data.clone(),
+                expected_status_code: StatusCode::OK,
             },
         ];
 
@@ -69,10 +75,16 @@ mod test {
                 service: Arc::new(mock_service),
             };
 
-            let actual_response = get_prayer_times_common(State(app_state)).await.status();
-
+            let actual_response = get_prayer_times_common(State(app_state)).await;
             // Assert response matches expected status code
-            assert_eq!(case.expected_response_code, actual_response);
+            assert!(match actual_response {
+                Ok(response) => {
+                    case.expected_status_code == response.status()
+                }
+                Err(response) => {
+                    case.expected_status_code == response
+                }
+            })
         }
     }
 }
