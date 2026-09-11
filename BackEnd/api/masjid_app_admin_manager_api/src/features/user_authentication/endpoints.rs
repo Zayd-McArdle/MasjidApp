@@ -9,10 +9,9 @@ use crate::features::user_authentication::services::login_service::LoginService;
 use crate::features::user_authentication::services::reset_password_service::ResetPasswordService;
 use crate::features::user_authentication::services::user_registration_service::UserRegistrationService;
 use crate::shared::jwt;
+use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
-use axum::Json;
 use masjid_app_api_library::shared::types::app_state::ServiceAppState;
 use std::sync::Arc;
 use validator::Validate;
@@ -20,14 +19,8 @@ use validator::Validate;
 pub(crate) async fn login(
     State(state): State<ServiceAppState<Arc<dyn LoginService>>>,
     Json(request): Json<LoginRequest>,
-) -> Response {
-    if let Err(_) = request.validate() {
-        return (
-            StatusCode::BAD_REQUEST,
-            "The username or password cannot be empty",
-        )
-            .into_response();
-    }
+) -> Result<Json<String>, StatusCode> {
+    request.validate().map_err(|_| StatusCode::BAD_REQUEST)?;
 
     let login_result = state
         .service
@@ -38,13 +31,13 @@ pub(crate) async fn login(
             let claims = jwt::Claims::generate(&request.username, &role);
             let token_generation_result = jwt::generate_token(&claims);
             if let Ok(token) = token_generation_result {
-                return (StatusCode::OK, Json(token)).into_response();
+                return Ok(Json(token));
             }
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
         }
-        Err(LoginError::InvalidCredentials) => StatusCode::UNAUTHORIZED.into_response(),
+        Err(LoginError::InvalidCredentials) => Err(StatusCode::UNAUTHORIZED),
         Err(LoginError::UnableToLogin) | Err(LoginError::UnableToVerifyPasswordHash) => {
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
         }
     }
 }
@@ -52,10 +45,8 @@ pub(crate) async fn login(
 pub(crate) async fn register_user(
     State(state): State<ServiceAppState<Arc<dyn UserRegistrationService>>>,
     Json(request): Json<RegistrationRequest>,
-) -> Response {
-    if let Err(_) = request.validate() {
-        return StatusCode::BAD_REQUEST.into_response();
-    }
+) -> Result<(), StatusCode> {
+    request.validate().map_err(|_| StatusCode::BAD_REQUEST)?;
     let new_user = UserAccountDTO {
         full_name: request.full_name,
         email: request.email,
@@ -63,36 +54,32 @@ pub(crate) async fn register_user(
         username: request.username,
         password: request.password,
     };
-    match state.service.register_user(new_user).await {
-        Ok(()) => StatusCode::CREATED.into_response(),
-        Err(UserRegistrationError::UserAlreadyRegistered) => StatusCode::CONFLICT.into_response(),
-        Err(UserRegistrationError::UnableToRegisterToRepository)
-        | Err(UserRegistrationError::UnableToHashPassword(_)) => {
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
-    }
+    state
+        .service
+        .register_user(new_user)
+        .await
+        .map_err(move |err| match err {
+            UserRegistrationError::UserAlreadyRegistered => StatusCode::CONFLICT,
+            UserRegistrationError::UnableToRegisterToRepository
+            | UserRegistrationError::UnableToHashPassword(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        })
 }
 
 pub(crate) async fn reset_user_password(
     State(state): State<ServiceAppState<Arc<dyn ResetPasswordService>>>,
     Json(request): Json<ResetUserPasswordRequest>,
-) -> Response {
-    if let Err(_) = request.validate() {
-        return StatusCode::BAD_REQUEST.into_response();
-    }
+) -> Result<(), StatusCode> {
+    request.validate().map_err(|_| StatusCode::BAD_REQUEST)?;
 
-    match state
+    state
         .service
         .reset_password(&request.username, &request.replacement_password)
         .await
-    {
-        Ok(()) => StatusCode::OK.into_response(),
-        Err(ResetPasswordError::UserDoesNotExist) => StatusCode::NOT_FOUND.into_response(),
-        Err(ResetPasswordError::UnableToResetPassword)
-        | Err(ResetPasswordError::UnableToHashPassword(_)) => {
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
-    }
+        .map_err(move |err| match err {
+            ResetPasswordError::UserDoesNotExist => StatusCode::NOT_FOUND,
+            ResetPasswordError::UnableToResetPassword
+            | ResetPasswordError::UnableToHashPassword(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        })
 }
 
 #[cfg(test)]
@@ -103,11 +90,11 @@ mod tests {
     use crate::features::user_authentication::services::user_registration_service::MockUserRegistrationService;
 
     #[derive(Clone)]
-    struct TestCase<TRequest, TOk, TErr> {
+    struct TestCase<TRequest, TOk, TErr, TResponse> {
         description: &'static str,
         request: TRequest,
         expected_service_response: Option<Result<TOk, TErr>>,
-        expected_status_code: StatusCode,
+        expected_result: TResponse,
     }
     enum ApiType {
         Login,
@@ -129,31 +116,31 @@ mod tests {
                     password: "".to_string(),
                 },
                 expected_service_response: None,
-                expected_status_code: StatusCode::BAD_REQUEST,
+                expected_result: Err(StatusCode::BAD_REQUEST),
             },
             TestCase {
                 description: "Given the request body is valid but unable to validate login credentials, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
                 expected_service_response: Some(Err(LoginError::UnableToLogin)),
-                expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
+                expected_result: Err(StatusCode::INTERNAL_SERVER_ERROR),
             },
             TestCase {
                 description: "Given the request body is valid but login credentials are invalid, I should get an UNAUTHORIZED response",
                 request: valid_request.clone(),
                 expected_service_response: Some(Err(LoginError::InvalidCredentials)),
-                expected_status_code: StatusCode::UNAUTHORIZED,
+                expected_result: Err(StatusCode::UNAUTHORIZED),
             },
             TestCase {
                 description: "Given the request body is valid and when database successfully validates credentials, I should get an OK response",
                 request: valid_request.clone(),
                 expected_service_response: Some(Ok("Admin".to_owned())),
-                expected_status_code: StatusCode::OK,
+                expected_result: Ok(Json("Admin".to_owned())),
             },
             TestCase {
                 description: "Given the request body is valid and when database successfully validates credentials, I should get an OK response",
                 request: valid_request.clone(),
                 expected_service_response: Some(Ok("Imam".to_owned())),
-                expected_status_code: StatusCode::OK,
+                expected_result: Ok(Json("Imam".to_owned())),
             },
         ];
         for test_case in test_cases {
@@ -168,8 +155,14 @@ mod tests {
             let app_state = ServiceAppState::<Arc<dyn LoginService>> {
                 service: Arc::new(mock_service),
             };
-            let actual_response = login(State(app_state), Json(test_case.request)).await;
-            assert_eq!(test_case.expected_status_code, actual_response.status());
+            let actual_result = login(State(app_state), Json(test_case.request)).await;
+            assert!(match (test_case.expected_result, actual_result) {
+                (Ok(_), Ok(_)) => {
+                    true
+                }
+                (Err(expected), Err(actual)) => expected == actual,
+                _ => false,
+            });
         }
     }
 
@@ -193,7 +186,7 @@ mod tests {
                     password: "".to_string(),
                 },
                 expected_service_response: None,
-                expected_status_code: StatusCode::BAD_REQUEST,
+                expected_result: Err(StatusCode::BAD_REQUEST),
             },
             TestCase {
                 description: "Given the request body is valid but registration fails, I should get an INTERNAL_SERVER_ERROR",
@@ -201,19 +194,19 @@ mod tests {
                 expected_service_response: Some(Err(
                     UserRegistrationError::UnableToRegisterToRepository,
                 )),
-                expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
+                expected_result: Err(StatusCode::INTERNAL_SERVER_ERROR),
             },
             TestCase {
                 description: "Given the request body is valid but the user already exists, I should get a CONFLICT response",
                 request: valid_request.clone(),
                 expected_service_response: Some(Err(UserRegistrationError::UserAlreadyRegistered)),
-                expected_status_code: StatusCode::CONFLICT,
+                expected_result: Err(StatusCode::CONFLICT),
             },
             TestCase {
                 description: "Given the request body is valid and registration succeeds, I should get a CREATED response",
                 request: valid_request.clone(),
                 expected_service_response: Some(Ok(())),
-                expected_status_code: StatusCode::CREATED,
+                expected_result: Ok(()),
             },
         ];
         for test_case in test_cases {
@@ -228,8 +221,8 @@ mod tests {
             let app_state = ServiceAppState {
                 service: arc_service,
             };
-            let actual_response = register_user(State(app_state), Json(test_case.request)).await;
-            assert_eq!(test_case.expected_status_code, actual_response.status());
+            let actual_result = register_user(State(app_state), Json(test_case.request)).await;
+            assert_eq!(test_case.expected_result, actual_result);
         }
     }
 
@@ -247,25 +240,25 @@ mod tests {
                     replacement_password: "".to_string(),
                 },
                 expected_service_response: None,
-                expected_status_code: StatusCode::BAD_REQUEST,
+                expected_result: Err(StatusCode::BAD_REQUEST),
             },
             TestCase {
                 description: "Given the request body is valid but password reset fails, I should get an INTERNAL_SERVER_ERROR",
                 request: valid_request.clone(),
                 expected_service_response: Some(Err(ResetPasswordError::UnableToResetPassword)),
-                expected_status_code: StatusCode::INTERNAL_SERVER_ERROR,
+                expected_result: Err(StatusCode::INTERNAL_SERVER_ERROR),
             },
             TestCase {
                 description: "Given the request body is valid but the user does not exist, I should get a NOT_FOUND response",
                 request: valid_request.clone(),
                 expected_service_response: Some(Err(ResetPasswordError::UserDoesNotExist)),
-                expected_status_code: StatusCode::NOT_FOUND,
+                expected_result: Err(StatusCode::NOT_FOUND),
             },
             TestCase {
                 description: "Given the request body is valid and password reset succeeds, I should get an OK response",
                 request: valid_request.clone(),
                 expected_service_response: Some(Ok(())),
-                expected_status_code: StatusCode::OK,
+                expected_result: Ok(()),
             },
         ];
         for test_case in test_cases {
@@ -280,10 +273,9 @@ mod tests {
             let app_state = ServiceAppState {
                 service: arc_service,
             };
-            let actual_response = reset_user_password(State(app_state), Json(test_case.request))
-                .await
-                .status();
-            assert_eq!(test_case.expected_status_code, actual_response);
+            let actual_result =
+                reset_user_password(State(app_state), Json(test_case.request)).await;
+            assert_eq!(test_case.expected_result, actual_result);
         }
     }
 }
