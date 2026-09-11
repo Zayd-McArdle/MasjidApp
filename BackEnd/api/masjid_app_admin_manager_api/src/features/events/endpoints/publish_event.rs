@@ -18,12 +18,12 @@ pub async fn upsert_events(
     State(state): State<ServiceAppState<Arc<dyn EventPublishingService>>>,
     file_uploader: FileHandler,
     claims: Claims,
-    mut request: ValidatedMultipartRequest<EventDTO>,
-) -> Response {
-    if request.json.validate().is_err() {
-        return StatusCode::BAD_REQUEST.into_response();
-    }
-
+    request: ValidatedMultipartRequest<EventDTO>,
+) -> Result<(), StatusCode> {
+    request
+        .json
+        .validate()
+        .map_err(|_| StatusCode::BAD_REQUEST)?;
     /* match file_uploader
         .save_file(&request.file_data, request.filename)
         .await
@@ -48,26 +48,28 @@ pub async fn upsert_events(
         }
     };*/
 
-    match state.service.publish_event(request.json).await {
-        Ok(()) => StatusCode::OK.into_response(),
-        Err(EventPublishingError::RepositoryError(UpsertEventError::InsertError(
-            InsertEventError::EventAlreadyExists,
-        ))) => StatusCode::CONFLICT.into_response(),
-
-        Err(EventPublishingError::RepositoryError(UpsertEventError::UpdateError(
-            UpdateEventError::EventNotFound,
-        ))) => StatusCode::NOT_FOUND.into_response(),
-        Err(EventPublishingError::UnableToSaveImage)
-        | Err(EventPublishingError::RepositoryError(UpsertEventError::InsertError(
-            InsertEventError::UnableToInsertEvent,
-        )))
-        | Err(EventPublishingError::RepositoryError(UpsertEventError::UpdateError(
-            UpdateEventError::UnableToUpdateEvent,
-        )))
-        | Err(EventPublishingError::RepositoryError(UpsertEventError::UnableToUpsertEvent)) => {
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
-    }
+    state
+        .service
+        .publish_event(request.json)
+        .await
+        .map_err(move |err| match err {
+            EventPublishingError::RepositoryError(UpsertEventError::InsertError(
+                InsertEventError::EventAlreadyExists,
+            )) => StatusCode::CONFLICT,
+            EventPublishingError::RepositoryError(UpsertEventError::UpdateError(
+                UpdateEventError::EventNotFound,
+            )) => StatusCode::NOT_FOUND,
+            EventPublishingError::UnableToSaveImage
+            | EventPublishingError::RepositoryError(UpsertEventError::InsertError(
+                InsertEventError::UnableToInsertEvent,
+            ))
+            | EventPublishingError::RepositoryError(UpsertEventError::UpdateError(
+                UpdateEventError::UnableToUpdateEvent,
+            ))
+            | EventPublishingError::RepositoryError(UpsertEventError::UnableToUpsertEvent) => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+        })
 }
 
 #[cfg(test)]
@@ -123,7 +125,7 @@ mod tests {
             request: ValidatedMultipartRequest<EventDTO>,
             file_uploader: FileHandler,
             expected_service_response: Option<Result<(), EventPublishingError>>,
-            expected_status: StatusCode,
+            expected_result: Result<(), StatusCode>,
         }
         let test_cases = [
             TestCase {
@@ -153,7 +155,7 @@ mod tests {
                 },
                 file_uploader: FileHandler::default(),
                 expected_service_response: None,
-                expected_status: StatusCode::BAD_REQUEST,
+                expected_result: Err(StatusCode::BAD_REQUEST),
             },
             TestCase {
                 description: "Given the json is valid, but event publishing fails, I should get an internal server error",
@@ -162,14 +164,14 @@ mod tests {
                 expected_service_response: Some(Err(EventPublishingError::RepositoryError(
                     UpsertEventError::UnableToUpsertEvent,
                 ))),
-                expected_status: StatusCode::INTERNAL_SERVER_ERROR,
+                expected_result: Err(StatusCode::INTERNAL_SERVER_ERROR),
             },
             TestCase {
                 description: "Given the json is valid and upsertion succeeds, I should get an ok response",
                 request: get_valid_upsert_request(false),
                 file_uploader: FileHandler::default(),
                 expected_service_response: Some(Ok(())),
-                expected_status: StatusCode::OK,
+                expected_result: Ok(()),
             },
         ];
         for test_case in test_cases {
@@ -183,14 +185,14 @@ mod tests {
             let app_state = ServiceAppState::<Arc<dyn EventPublishingService>> {
                 service: Arc::new(mock_service),
             };
-            let actual_response = upsert_events(
+            let actual_result = upsert_events(
                 State(app_state),
                 test_case.file_uploader,
                 Claims::default(),
                 test_case.request,
             )
             .await;
-            assert_eq!(test_case.expected_status, actual_response.status());
+            assert_eq!(test_case.expected_result, actual_result);
         }
     }
 }
