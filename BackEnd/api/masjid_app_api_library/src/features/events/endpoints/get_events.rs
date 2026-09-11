@@ -1,3 +1,4 @@
+use crate::features::events::models::event_dto::EventDTO;
 use crate::features::events::repositories::errors::get_events_repository_error::GetEventsRepositoryError;
 use crate::features::events::services::errors::get_events_service_error::GetEventsServiceError;
 use crate::features::events::services::event_retrieval_service::EventRetrievalService;
@@ -5,27 +6,30 @@ use crate::shared::types::app_state::ServiceAppState;
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
 use std::sync::Arc;
 
 #[inline]
 pub async fn get_events_common<R: EventRetrievalService + ?Sized>(
     State(state): State<ServiceAppState<Arc<R>>>,
-) -> Response {
-    match state.service.get_events().await {
-        Ok(events) => (StatusCode::OK, Json(events)).into_response(),
-
-        Err(GetEventsServiceError::UnableToGetEventsFromRepository(
-            GetEventsRepositoryError::EventsNotFound,
-        )) => StatusCode::NOT_FOUND.into_response(),
-        Err(GetEventsServiceError::UnableToGetEventsFromRepository(
-            GetEventsRepositoryError::UnableToGetEvents,
-        )) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-    }
+) -> Result<Json<Vec<EventDTO>>, StatusCode> {
+    state
+        .service
+        .get_events()
+        .await
+        .map(Json::from)
+        .map_err(move |err| match err {
+            GetEventsServiceError::UnableToGetEventsFromRepository(
+                GetEventsRepositoryError::EventsNotFound,
+            ) => StatusCode::NOT_FOUND,
+            GetEventsServiceError::UnableToGetEventsFromRepository(
+                GetEventsRepositoryError::UnableToGetEvents,
+            ) => StatusCode::INTERNAL_SERVER_ERROR,
+        })
 }
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::assert_endpoint_json_response;
     use crate::features::events::models::event_details::EventDetails;
     use crate::features::events::models::event_dto::EventDTO;
     use crate::features::events::models::event_recurrence::EventRecurrence;
@@ -62,7 +66,7 @@ mod test {
         struct TestCase {
             description: &'static str,
             expected_service_response: Result<Vec<EventDTO>, GetEventsServiceError>,
-            expected_response_code: StatusCode,
+            expected_result: Result<Json<Vec<EventDTO>>, StatusCode>,
         }
         let test_cases = vec![
             TestCase {
@@ -72,7 +76,7 @@ mod test {
                         GetEventsRepositoryError::UnableToGetEvents,
                     ),
                 ),
-                expected_response_code: StatusCode::INTERNAL_SERVER_ERROR,
+                expected_result: Err(StatusCode::INTERNAL_SERVER_ERROR),
             },
             TestCase {
                 description: "When no events found",
@@ -81,12 +85,12 @@ mod test {
                         GetEventsRepositoryError::EventsNotFound,
                     ),
                 ),
-                expected_response_code: StatusCode::NOT_FOUND,
+                expected_result: Err(StatusCode::NOT_FOUND),
             },
             TestCase {
                 description: "When events found",
-                expected_service_response: Ok(events),
-                expected_response_code: StatusCode::OK,
+                expected_service_response: Ok(events.clone()),
+                expected_result: Ok(Json(events)),
             },
         ];
 
@@ -102,8 +106,8 @@ mod test {
                 service: Arc::new(mock_service),
             };
 
-            let actual_response = get_events_common(State(app_state)).await;
-            assert_eq!(actual_response.status(), case.expected_response_code)
+            let actual_result = get_events_common(State(app_state)).await;
+            assert_endpoint_json_response!(case.expected_result, actual_result);
         }
     }
 }

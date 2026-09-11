@@ -4,19 +4,19 @@ use crate::features::events::services::event_deletion_service::EventDeletionServ
 use crate::shared::jwt::Claims;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
-use masjid_app_api_library::shared::extractors::file_handler::FileHandler;
-use masjid_app_api_library::shared::types::app_state::ServiceAppState;
+use masjid_app_api_library::shared::{
+    extractors::file_handler::FileHandler, types::app_state::ServiceAppState,
+};
 use std::sync::Arc;
 
 pub async fn delete_event(
     State(state): State<ServiceAppState<Arc<dyn EventDeletionService>>>,
     file_deleter: FileHandler,
-    claims: Claims,
+    _claims: Claims,
     Path(event_id): Path<i32>,
-) -> Response {
+) -> Result<(), StatusCode> {
     if event_id == 0 {
-        return (StatusCode::BAD_REQUEST, "event ids cannot be 0").into_response();
+        return Err(StatusCode::BAD_REQUEST);
     }
 
     match state.service.delete_event(event_id).await {
@@ -69,14 +69,14 @@ pub async fn delete_event(
                         .into_response();
                 }
             }*/
-            StatusCode::OK.into_response()
+            Ok(())
         }
         Err(EventDeletionError::RepositoryError(DeleteEventError::EventNotFound)) => {
-            StatusCode::NOT_FOUND.into_response()
+            Err(StatusCode::NOT_FOUND)
         }
         Err(EventDeletionError::RepositoryError(DeleteEventError::UnableToDeleteEvent))
         | Err(EventDeletionError::UnableToDeleteImagesRelatedToEvent) => {
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
         }
     }
 }
@@ -91,7 +91,7 @@ mod tests {
             delete_event_request_id: i32,
             file_deleter: FileHandler,
             expected_service_response: Option<Result<(), EventDeletionError>>,
-            expected_status: StatusCode,
+            expected_result: Result<(), StatusCode>,
         }
         let test_cases = [
             TestCase {
@@ -99,7 +99,7 @@ mod tests {
                 delete_event_request_id: 0,
                 file_deleter: FileHandler::default(),
                 expected_service_response: None,
-                expected_status: StatusCode::BAD_REQUEST,
+                expected_result: Err(StatusCode::BAD_REQUEST),
             },
             TestCase {
                 description: "When I delete an event using a non-existent ID, I should get a not found",
@@ -108,7 +108,7 @@ mod tests {
                 expected_service_response: Some(Err(EventDeletionError::RepositoryError(
                     DeleteEventError::EventNotFound,
                 ))),
-                expected_status: StatusCode::NOT_FOUND,
+                expected_result: Err(StatusCode::NOT_FOUND),
             },
             TestCase {
                 description: "When deleting an event fails, I should get an internal server error",
@@ -117,14 +117,14 @@ mod tests {
                 expected_service_response: Some(Err(EventDeletionError::RepositoryError(
                     DeleteEventError::UnableToDeleteEvent,
                 ))),
-                expected_status: StatusCode::INTERNAL_SERVER_ERROR,
+                expected_result: Err(StatusCode::INTERNAL_SERVER_ERROR),
             },
             TestCase {
                 description: "When deleting an event succeeds, I should get an ok response",
                 delete_event_request_id: 2,
                 file_deleter: FileHandler::default(),
                 expected_service_response: Some(Ok(())),
-                expected_status: StatusCode::OK,
+                expected_result: Ok(()),
             },
         ];
         for test_case in test_cases {
@@ -139,14 +139,14 @@ mod tests {
             let app_state = ServiceAppState::<Arc<dyn EventDeletionService>> {
                 service: Arc::new(mock_service),
             };
-            let actual_response = delete_event(
+            let actual_result = delete_event(
                 State(app_state),
                 test_case.file_deleter,
                 Claims::default(),
-                axum::extract::Path(test_case.delete_event_request_id),
+                Path(test_case.delete_event_request_id),
             )
             .await;
-            assert_eq!(test_case.expected_status, actual_response.status());
+            assert_eq!(test_case.expected_result, actual_result);
         }
     }
 }
