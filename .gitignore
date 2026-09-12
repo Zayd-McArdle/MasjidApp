@@ -17,6 +17,9 @@ obj/
 .vs/
 # Rider/JetBrains
 .idea/
+
+# Zed
+.zed/
 # NuGet
 *.nupkg
 *.snupkg
