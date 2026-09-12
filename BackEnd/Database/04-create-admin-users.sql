@@ -25,13 +25,7 @@ GRANT EXECUTE ON PROCEDURE masjidappdatabase.delete_event_by_id TO 'eventsadmin'
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'askimamadmin'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_all_imam_questions TO 'askimamadmin'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_unanswered_imam_questions TO 'askimamadmin'@'%';
-GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_unanswered_imam_questions_by_topic TO 'askimamadmin'@'%';
-GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_unanswered_imam_questions_by_school_of_thought TO 'askimamadmin'@'%';
-GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_unanswered_imam_questions_by_topic_and_school_of_thought TO 'askimamadmin'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_answered_imam_questions TO 'askimamadmin'@'%';
-GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_answered_imam_questions_by_topic TO 'askimamadmin'@'%';
-GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_answered_imam_questions_by_school_of_thought TO 'askimamadmin'@'%';
-GRANT EXECUTE ON PROCEDURE masjidappdatabase.get_answered_imam_questions_by_topic_and_school_of_thought TO 'askimamadmin'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.insert_question_for_imam TO 'askimamadmin'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.upsert_imam_answer_to_question TO 'askimamadmin'@'%';
 GRANT EXECUTE ON PROCEDURE masjidappdatabase.delete_imam_question_by_id TO 'askimamadmin'@'%';

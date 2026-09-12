@@ -1,17 +1,16 @@
 use axum::extract::FromRequestParts;
-use axum::http::StatusCode;
 use axum::http::request::Parts;
+use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::{Json, RequestPartsExt};
 use axum_extra::{
+    headers::{authorization::Bearer, Authorization},
     TypedHeader,
-    headers::{Authorization, authorization::Bearer},
 };
 use jsonwebtoken::errors::ErrorKind;
-use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode};
+use jsonwebtoken::{decode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::hash::Hash;
 use std::sync::LazyLock;
 
 pub struct AuthenticatedUser {
@@ -48,9 +47,11 @@ pub enum AuthorisationError {
     UnknownError,
 }
 impl Claims {
+    #[inline]
     fn is_valid_aud(&self) -> bool {
         !self.aud.is_empty()
     }
+    #[inline]
     fn is_valid(&self) -> bool {
         !self.sub.is_empty() && self.is_valid_aud() && self.iat < self.exp
     }
@@ -69,6 +70,7 @@ impl Claims {
             exp: expiration_date,
         }
     }
+    #[inline]
     pub fn regenerate(original_claims: Claims) -> Result<Self, ClaimsError> {
         if original_claims.is_valid() {
             return Ok(Self::generate(&original_claims.sub, &original_claims.aud));
@@ -83,6 +85,7 @@ pub struct ApiKeys {
 }
 
 impl ApiKeys {
+    #[inline]
     pub fn new(secret: &[u8]) -> Self {
         ApiKeys {
             encoding: EncodingKey::from_secret(secret),
@@ -91,16 +94,12 @@ impl ApiKeys {
     }
 }
 
+#[inline]
 pub fn generate_token(claims: &Claims) -> Result<String, ClaimsError> {
-    let encoded_token_result = jsonwebtoken::encode(&Header::default(), claims, &KEYS.encoding);
-
-    match encoded_token_result {
-        Ok(token) => Ok(token),
-        Err(err) => {
-            tracing::error!("Failed to encode JWT token: {}", err);
-            Err(ClaimsError::FailedToCreateToken)
-        }
-    }
+    jsonwebtoken::encode(&Header::default(), claims, &KEYS.encoding).map_err(move |err| {
+        tracing::error!("Failed to generate JWT token: {:?}", err);
+        ClaimsError::FailedToCreateToken
+    })
 }
 impl<S> FromRequestParts<S> for Claims
 where

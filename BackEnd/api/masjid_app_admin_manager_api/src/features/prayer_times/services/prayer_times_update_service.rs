@@ -25,6 +25,7 @@ new_prayer_times_service!(
 
 #[async_trait]
 impl PrayerTimesUpdateService for PrayerTimesServiceImpl<dyn PrayerTimesAdminRepository> {
+    #[inline]
     async fn update_prayer_times(
         &self,
         prayer_times: PrayerTimesDTO,

@@ -1,6 +1,5 @@
 use axum::extract::{FromRequest, Request};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
 use axum::{Json, RequestExt};
 use serde::de::DeserializeOwned;
 use validator::Validate;
@@ -14,8 +13,8 @@ where
     S: Send + Sync,
 {
     type Rejection = (StatusCode, String);
-
-    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
+    #[inline]
+    async fn from_request(req: Request, _state: &S) -> Result<Self, Self::Rejection> {
         let Json(request) = req
             .extract::<Json<T>, _>()
             .await
@@ -27,6 +26,7 @@ where
     }
 }
 
+#[cfg(test)]
 mod test {
     use super::*;
     use axum::body::Body;
