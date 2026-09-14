@@ -9,6 +9,7 @@ use std::sync::Arc;
 
 use crate::shared::jwt::Claims;
 
+#[inline]
 pub async fn get_events(
     State(state): State<ServiceAppState<Arc<dyn EventRetrievalService>>>,
     _claims: Claims,
