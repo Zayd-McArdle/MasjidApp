@@ -11,7 +11,7 @@ sqlx = { version = "0.8.6", features = ["runtime-tokio", "tls-native-tls", "mysq
 serde = { version = "1.0.228", features = ["derive"] }
 validator = { version = "0.20.0", features = ["derive"] }
 async-trait = "0.1.89"
-mockall = "0.14.0"
+mockall = "0.15.0"
 tracing = "0.1.41"
 [[bin]]
 name = "masjid_app_public_api"
