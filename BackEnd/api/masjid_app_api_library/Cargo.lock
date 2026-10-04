@@ -124,6 +124,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
+name = "base64"
+version = "0.23.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac07cdecf99051d9a5238b80f35af32cdeba5b336e55d957b318b50137e18da5"
+
+[[package]]
 name = "base64ct"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -131,11 +137,11 @@ checksum = "55248b47b0caf0546f7988906588779981c43bb1bc9d0c44087278f80cdb44ba"
 
 [[package]]
 name = "bcrypt"
-version = "0.19.1"
+version = "0.19.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24ae5479c93d3720e4c1dbd6b945b97457c50cb672781104768190371df1a905"
+checksum = "a0cd0bd35a28836d528d2b58ad499bc3c5641d59379421b1be9eeb0c2f2b912a"
 dependencies = [
- "base64",
+ "base64 0.23.1",
  "blowfish",
  "getrandom 0.4.2",
  "subtle",
@@ -1798,7 +1804,7 @@ version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee6798b1838b6a0f69c007c133b8df5866302197e404e8b6ee8ed3e3a5e68dc6"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "bytes",
  "chrono",
  "crc",
@@ -1873,7 +1879,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aa003f0038df784eb8fecbbac13affe3da23b45194bd57dba231c8f48199c526"
 dependencies = [
  "atoi",
- "base64",
+ "base64 0.22.1",
  "bitflags",
  "byteorder",
  "bytes",
@@ -1916,7 +1922,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db58fcd5a53cf07c184b154801ff91347e4c30d17a3562a635ff028ad5deda46"
 dependencies = [
  "atoi",
- "base64",
+ "base64 0.22.1",
  "bitflags",
  "byteorder",
  "chrono",
