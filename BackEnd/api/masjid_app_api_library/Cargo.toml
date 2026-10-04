@@ -7,7 +7,7 @@ edition = "2024"
 tokio = { version = "1.53.2", features = ["macros", "rt-multi-thread"] }
 sqlx = { version = "0.9.0", features = ["runtime-tokio", "tls-native-tls", "mysql", "chrono"] }
 tracing = "0.1.44"
-tracing-subscriber = { version = "0.3.0", features = ["std", "fmt", "json", "env-filter"] }
+tracing-subscriber = { version = "0.3.23", features = ["std", "fmt", "json", "env-filter"] }
 serde = { version = "1.0.228", features = ["derive"] }
 
 mockall = "0.15.0"
