@@ -7,10 +7,10 @@ use masjid_app_api_library::features::ask_imam::models::imam_question_dto::ImamQ
 use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
 use masjid_app_api_library::features::ask_imam::utils::send_response_for_get_imam_questions;
 use masjid_app_api_library::shared::types::app_state::ServiceAppState;
-use std::str::FromStr;
 use std::sync::Arc;
 use validator::Validate;
 
+#[inline]
 pub async fn get_answered_questions(
     State(state): State<ServiceAppState<Arc<dyn AskImamPublicService>>>,
     Query(request): Query<GetImamQuestionsRequest>,
@@ -18,15 +18,7 @@ pub async fn get_answered_questions(
 where
 {
     request.validate().map_err(|_| StatusCode::BAD_REQUEST)?;
-    let get_answered_questions_result = state
-        .service
-        .get_answered_questions(
-            request.topic,
-            request
-                .school_of_thought
-                .and_then(|school| SchoolOfThought::from_str(&school).ok()),
-        )
-        .await;
+    let get_answered_questions_result = state.service.get_answered_questions(request.into()).await;
     send_response_for_get_imam_questions(get_answered_questions_result)
 }
 
@@ -39,6 +31,7 @@ mod tests {
     use masjid_app_api_library::features::ask_imam::models::answer::Answer;
     use masjid_app_api_library::features::ask_imam::models::get_imam_questions_request::GetImamQuestionsRequest;
     use masjid_app_api_library::features::ask_imam::models::imam_question_dto::ImamQuestionDTO;
+    use masjid_app_api_library::features::ask_imam::models::school_of_thought::SchoolOfThought;
     use masjid_app_api_library::shared::types::app_state::ServiceAppState;
 
     fn get_mock_answered_questions() -> Vec<ImamQuestionDTO> {
@@ -111,7 +104,7 @@ mod tests {
                 description: "When I use an invalid request, I should get a BAD_REQUEST response",
                 request: GetImamQuestionsRequest {
                     topic: Some("".to_owned()),
-                    school_of_thought: Some("invalid school of thought".to_owned()),
+                    school_of_thought: None,
                 },
                 expected_service_result: None,
                 expected_result: Err(StatusCode::BAD_REQUEST),
@@ -150,7 +143,7 @@ mod tests {
             if let Some(expected_service_result) = test_case.expected_service_result {
                 mock_ask_imam_service
                     .expect_get_answered_questions()
-                    .return_once(move |_, _| expected_service_result);
+                    .return_once(move |_| expected_service_result);
             }
             let app_state = ServiceAppState::<Arc<dyn AskImamPublicService>> {
                 service: Arc::new(mock_ask_imam_service),

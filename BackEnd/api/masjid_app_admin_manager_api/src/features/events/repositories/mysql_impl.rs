@@ -28,7 +28,7 @@ impl EventsAdminRepository for MySqlRepository {
             .bind(&event.email)
             .execute(&*db_connection)
             .await
-            .map_err(|err| {
+            .map_err(move |err| {
                 if let sqlx::Error::Database(ref database_error) = err {
                     if database_error.message() == "Event already exists" {
                         return UpsertEventError::InsertError(InsertEventError::EventAlreadyExists);
@@ -48,28 +48,28 @@ impl EventsAdminRepository for MySqlRepository {
 
     async fn delete_event_by_id(&self, event_id: &i32) -> Result<Option<String>, DeleteEventError> {
         let db_connection = self.db_connection.clone();
-        let mut image_url: Option<String> = None;
-
-        match sqlx::query("CALL retrieve_image_url_by_event_id(?)")
+        let image_url = match sqlx::query("CALL retrieve_image_url_by_event_id(?)")
             .bind(&event_id)
             .fetch_optional(&*db_connection)
             .await
         {
-            Ok(url) => image_url = url.and_then(|row| row.get(0)),
+            Ok(Some(row)) => row.get(0),
+            Ok(None) => None,
             Err(err) => {
                 tracing::error!(
                     "unable to retrieve image url for event id {}, due to the following error: {}",
                     event_id,
                     err
-                )
+                );
+                None
             }
-        }
+        };
 
         let query_result = sqlx::query("CALL delete_event_by_id(?)")
             .bind(&event_id)
             .execute(&*db_connection)
             .await
-            .map_err(|err| {
+            .map_err(move |err| {
                 tracing::error!("failed to delete event due to the following error: {}", err);
                 DeleteEventError::UnableToDeleteEvent
             })?;

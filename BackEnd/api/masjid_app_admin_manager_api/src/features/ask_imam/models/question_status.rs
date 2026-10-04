@@ -6,4 +6,11 @@ use serde::Deserialize;
 pub enum QuestionStatus {
     Unanswered,
     Answered,
+    All,
+}
+
+impl Default for QuestionStatus {
+    fn default() -> Self {
+        Self::All
+    }
 }
