@@ -19,5 +19,5 @@ async-trait = "0.1.92"
 mockall = "0.14.0"
 jsonwebtoken = { version = "11.1.0", features = ["aws_lc_rs"] }
 tracing = "0.1.44"
-sha2 = "0.10.9"
+sha2 = "0.11.0"
 enum_stringify = "0.6.4"
