@@ -426,9 +426,9 @@ dependencies = [
 
 [[package]]
 name = "enum_stringify"
-version = "0.6.4"
+version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "059307d0918812cd22b90f16a77b4e8c93c6a2e702ccdcc9813e7baf8e540b3f"
+checksum = "f80072912c89dc1a3b16bef1edfaa2cd77385417743753179b3a12c8a9667c70"
 dependencies = [
  "convert_case",
  "proc-macro2",
