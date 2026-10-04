@@ -1,8 +1,8 @@
+use crate::features::events::repositories::EventsAdminRepository;
 use crate::features::events::repositories::errors::delete_event_error::DeleteEventError;
 use crate::features::events::repositories::errors::insert_event_error::InsertEventError;
 use crate::features::events::repositories::errors::update_event_error::UpdateEventError;
 use crate::features::events::repositories::errors::upsert_event_error::UpsertEventError;
-use crate::features::events::repositories::EventsAdminRepository;
 use async_trait::async_trait;
 use masjid_app_api_library::features::events::models::event::Event;
 use masjid_app_api_library::shared::data_access::repository_management::mysql_repository::MySqlRepository;
@@ -28,7 +28,7 @@ impl EventsAdminRepository for MySqlRepository {
             .bind(&event.email)
             .execute(&*db_connection)
             .await
-            .map_err(|err| {
+            .map_err(move |err| {
                 if let sqlx::Error::Database(ref database_error) = err {
                     if database_error.message() == "Event already exists" {
                         return UpsertEventError::InsertError(InsertEventError::EventAlreadyExists);
@@ -69,7 +69,7 @@ impl EventsAdminRepository for MySqlRepository {
             .bind(&event_id)
             .execute(&*db_connection)
             .await
-            .map_err(|err| {
+            .map_err(move |err| {
                 tracing::error!("failed to delete event due to the following error: {}", err);
                 DeleteEventError::UnableToDeleteEvent
             })?;

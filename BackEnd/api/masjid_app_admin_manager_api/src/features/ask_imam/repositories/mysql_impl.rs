@@ -55,7 +55,7 @@ impl ImamQuestionsAdminRepository for MySqlRepository {
             .bind(question_id)
             .execute(&*db_connection)
             .await
-            .map_err(|err| {
+            .map_err(move |err| {
                 tracing::error!(
                     stored_procedure = "upsert_imam_answer_to_question",
                     error = err.to_string(),
@@ -76,7 +76,7 @@ impl ImamQuestionsAdminRepository for MySqlRepository {
             .bind(id)
             .execute(&*db_connection)
             .await
-            .map_err(|err| {
+            .map_err(move |err| {
                 tracing::error!(
                     stored_prcedure = "delete_imam_question_by_id",
                     question_id = id,
