@@ -23,3 +23,8 @@ format:
 	cd ./api/masjid_app_public_api && cargo fmt || exit 1
 	cd ./api/masjid_app_admin_manager_api && cargo fmt || exit 1
 	cd ./api/masjid_app_api_integration_testing && cargo fmt || exit 1
+deps-check:
+	cd ./api/masjid_app_api_library && cargo check || exit 1
+	cd ./api/masjid_app_public_api && cargo check || exit 1
+	cd ./api/masjid_app_admin_manager_api && cargo check || exit 1
+	cd ./api/masjid_app_api_integration_testing && cargo check || exit 1
