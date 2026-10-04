@@ -13,7 +13,7 @@ serde = { version = "1.0.229", features = ["derive"] }
 mockall = "0.15.0"
 axum = { version = "0.8.9", features = ["multipart"] }
 async-trait = "0.1.92"
-chrono = { version = "0.4.42", features = ["serde"] }
+chrono = { version = "0.4.45", features = ["serde"] }
 validator = { version = "0.21.0", features = ["derive"] }
 serde_json = "1.0.151"
 enum_stringify = "0.6.5"
