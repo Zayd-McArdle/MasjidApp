@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -9,12 +10,13 @@ pub enum EventStatus {
     Confirmed,
     Cancelled,
 }
-impl ToString for EventStatus {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for EventStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             EventStatus::Confirmed => "confirmed".to_owned(),
             EventStatus::Cancelled => "cancelled".to_owned(),
-        }
+        };
+        write!(f, "{}", str)
     }
 }
 impl FromStr for EventStatus {
