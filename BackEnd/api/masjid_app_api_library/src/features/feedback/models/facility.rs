@@ -7,7 +7,7 @@ const SHOWER: &'static str = "Shower";
 const PRAYER_HALL: &'static str = "Prayer Hall";
 const KITCHEN: &'static str = "Kitchen";
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub enum Facility {
     Toilets,
     Sinks,

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::features::feedback::models::constants::{FACILITIES, MANAGEMENT};
 use crate::features::feedback::models::facility::Facility;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub enum SuggestionType {
     Management,
     Facilities(Facility),

@@ -1,6 +1,6 @@
 use crate::features::feedback::models::feedback_type::FeedbackType;
 use serde::Serialize;
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct FeedbackDTO {
     pub id: u64,
     pub title: String,
