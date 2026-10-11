@@ -1,5 +1,5 @@
-use std::fmt::Display;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 use std::str::FromStr;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, sqlx::Type)]

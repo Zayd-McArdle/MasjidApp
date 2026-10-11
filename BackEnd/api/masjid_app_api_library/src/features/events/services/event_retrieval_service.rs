@@ -42,8 +42,8 @@ mod tests {
     use crate::features::events::models::event_recurrence::EventRecurrence;
     use crate::features::events::models::event_status::EventStatus;
     use crate::features::events::models::event_type::EventType;
-    use crate::features::events::repositories::errors::get_events_repository_error::GetEventsRepositoryError;
     use crate::features::events::repositories::MockEventsRepository;
+    use crate::features::events::repositories::errors::get_events_repository_error::GetEventsRepositoryError;
     use crate::shared::types::contact_details::ContactDetails;
     use chrono::DateTime;
 
