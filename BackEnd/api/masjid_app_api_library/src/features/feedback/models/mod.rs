@@ -1,5 +1,5 @@
+pub mod concern_type;
 mod constants;
-pub mod complaint_type;
 pub mod facility;
 pub mod feedback;
 pub mod feedback_dto;

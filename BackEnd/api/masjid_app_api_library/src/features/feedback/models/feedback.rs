@@ -1,4 +1,4 @@
-use crate::features::feedback::models::complaint_type::ComplaintType;
+use crate::features::feedback::models::concern_type::ConcernType;
 use crate::features::feedback::models::feedback_dto::FeedbackDTO;
 use crate::features::feedback::models::feedback_type::FeedbackType;
 use crate::features::feedback::models::feedback_type_error::FeedbackTypeError;
@@ -27,8 +27,8 @@ impl TryInto<FeedbackDTO> for Feedback {
             SUGGESTION => Ok(FeedbackType::Suggestion(
                 SuggestionType::from_str(&self.suggestion_type.unwrap()).unwrap(),
             )),
-            COMPLAINT => Ok(FeedbackType::Complaint(
-                ComplaintType::from_str(&self.complaint_type.unwrap()).unwrap(),
+            COMPLAINT => Ok(FeedbackType::Concern(
+                ConcernType::from_str(&self.complaint_type.unwrap()).unwrap(),
             )),
             "" => Err(FeedbackTypeError::Empty),
             _ => Err(FeedbackTypeError::InvalidType(self.feedback_type)),

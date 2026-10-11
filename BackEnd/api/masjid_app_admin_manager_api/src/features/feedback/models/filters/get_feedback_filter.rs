@@ -1,5 +1,5 @@
 use masjid_app_api_library::features::feedback::models::feedback_type::FeedbackType;
-
+#[derive(Default)]
 pub struct GetFeedbackFilter {
     pub title: Option<String>,
     pub feedback_type: Option<FeedbackType>,
