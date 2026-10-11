@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -11,15 +12,16 @@ pub enum EventRecurrence {
     Monthly,
 }
 
-impl ToString for EventRecurrence {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for EventRecurrence {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             EventRecurrence::OneOff => "one-off".to_owned(),
             EventRecurrence::Daily => "daily".to_owned(),
             EventRecurrence::Weekly => "weekly".to_owned(),
             EventRecurrence::Fortnightly => "fortnightly".to_owned(),
             EventRecurrence::Monthly => "monthly".to_owned(),
-        }
+        };
+        write!(f, "{}", str)
     }
 }
 
