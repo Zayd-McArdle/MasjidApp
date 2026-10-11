@@ -11,6 +11,8 @@ pub const ASK_IMAM_MYSQL_CONNECTION: &'static str = "ASK_IMAM_CONNECTION";
 pub const ASK_IMAM_REDIS_CONNECTION: &'static str = "ASK_IMAM_CONNECTION";
 pub const EVENTS_MYSQL_CONNECTION: &'static str = "EVENTS_CONNECTION";
 pub const EVENTS_REDIS_CONNECTION: &'static str = "EVENTS_CONNECTION";
+pub const FEEDBACK_MYSQL_CONNECTION: &'static str = "FEEDBACK_CONNECTION";
+pub const FEEDBACK_REDIS_CONNECTION: &'static str = "FEEDBACK_CONNECTION";
 
 #[inline]
 pub(super) fn get_connection_string(
@@ -41,6 +43,12 @@ pub(super) fn get_connection_string(
         }
         (RepositoryType::Events, RepositoryMode::Normal(NormalDbProvider::MySql)) => {
             EVENTS_MYSQL_CONNECTION
+        }
+        (RepositoryType::Feedback, RepositoryMode::InMemory(InMemoryDbProvider::Redis)) => {
+            FEEDBACK_REDIS_CONNECTION
+        }
+        (RepositoryType::Feedback, RepositoryMode::Normal(NormalDbProvider::MySql)) => {
+            FEEDBACK_MYSQL_CONNECTION
         }
     }
 }

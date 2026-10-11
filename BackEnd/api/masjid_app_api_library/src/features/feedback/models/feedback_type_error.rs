@@ -1,4 +1,4 @@
+#[derive(Debug, Eq, PartialEq)]
 pub enum FeedbackTypeError {
-    Empty,
     InvalidType(String),
 }
