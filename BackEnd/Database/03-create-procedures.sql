@@ -11,21 +11,21 @@ BEGIN
     SELECT username, password, role FROM user_details WHERE username = p_username;
 END //
 
-CREATE PROCEDURE IF NOT EXISTS register_user(IN p_full_name VARCHAR(100), 
-                                                IN p_role VARCHAR(50), 
-                                                IN p_email VARCHAR(50), 
-                                                IN p_username VARCHAR(200), 
+CREATE PROCEDURE IF NOT EXISTS register_user(IN p_full_name VARCHAR(100),
+                                                IN p_role VARCHAR(50),
+                                                IN p_email VARCHAR(50),
+                                                IN p_username VARCHAR(200),
                                                 IN p_password VARCHAR(200))
 BEGIN
-    INSERT INTO user_details (full_name, role, email, username, password) 
+    INSERT INTO user_details (full_name, role, email, username, password)
     VALUES (p_full_name, p_role, p_email, p_username, p_password);
 END //
 
-CREATE PROCEDURE IF NOT EXISTS reset_user_password(IN p_username VARCHAR(200), 
+CREATE PROCEDURE IF NOT EXISTS reset_user_password(IN p_username VARCHAR(200),
                                                     IN p_password VARCHAR(200))
 BEGIN
-    UPDATE user_details 
-    SET password = p_password 
+    UPDATE user_details
+    SET password = p_password
     WHERE username = p_username;
 END //
 
@@ -40,24 +40,24 @@ CREATE PROCEDURE IF NOT EXISTS get_updated_prayer_times(IN p_hash CHAR(64))
 BEGIN
     DECLARE v_count INT;
 
-    SELECT COUNT(*) INTO v_count 
-    FROM prayer_times 
+    SELECT COUNT(*) INTO v_count
+    FROM prayer_times
     WHERE hash = p_hash;
 
     IF v_count = 0 THEN
         CALL get_prayer_times();
-    ELSE 
-        SELECT hash 
-        FROM prayer_times 
+    ELSE
+        SELECT hash
+        FROM prayer_times
         WHERE hash = p_hash;
     END IF;
 END //
 
-CREATE PROCEDURE IF NOT EXISTS upsert_prayer_times(IN p_data LONGBLOB, 
+CREATE PROCEDURE IF NOT EXISTS upsert_prayer_times(IN p_data LONGBLOB,
                                                     IN p_hash CHAR(64))
 BEGIN
     UPDATE prayer_times SET data = p_data, hash = p_hash;
-    IF ROW_COUNT() = 0 THEN 
+    IF ROW_COUNT() = 0 THEN
         INSERT INTO prayer_times (data, hash) VALUES (p_data, p_hash);
     END IF;
 END //
@@ -66,27 +66,27 @@ END //
 
 CREATE PROCEDURE IF NOT EXISTS get_events()
 BEGIN
-    SELECT id, 
-    title, 
-    description, 
-    date, 
-    type, 
-    recurrence, 
-    status, 
+    SELECT id,
+    title,
+    description,
+    date,
+    type,
+    recurrence,
+    status,
     minimum_age,
     maximum_age,
-    image_url, 
-    full_name, 
-    phone_number, 
+    image_url,
+    full_name,
+    phone_number,
     email
     FROM events;
 END //
 
 CREATE PROCEDURE IF NOT EXISTS upsert_event(IN p_id INT,
-                                            IN p_title VARCHAR(50), 
-                                            IN p_description VARCHAR(250), 
-                                            IN p_date TIMESTAMP, 
-                                            IN p_type VARCHAR(10), 
+                                            IN p_title VARCHAR(50),
+                                            IN p_description VARCHAR(250),
+                                            IN p_date TIMESTAMP,
+                                            IN p_type VARCHAR(10),
                                             IN p_recurrence VARCHAR(15),
                                             IN p_status VARCHAR(15),
                                             IN p_minimum_age TINYINT UNSIGNED,
@@ -100,17 +100,17 @@ BEGIN
         IF EXISTS(SELECT 1 FROM events WHERE title = p_title) THEN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Event already exists';
         ELSE
-            INSERT INTO events (title, 
-                description, 
-                date, 
-                type, 
+            INSERT INTO events (title,
+                description,
+                date,
+                type,
                 recurrence,
-                status, 
-                minimum_age, 
-                maximum_age, 
-                image_url, 
-                full_name, 
-                phone_number, 
+                status,
+                minimum_age,
+                maximum_age,
+                image_url,
+                full_name,
+                phone_number,
                 email)
             VALUES (p_title,
                 p_description,
@@ -125,9 +125,9 @@ BEGIN
                 p_phone_number,
                 p_email);
         END IF;
-    ELSE 
-        UPDATE events SET title = p_title, 
-            description = p_description, 
+    ELSE
+        UPDATE events SET title = p_title,
+            description = p_description,
             date = p_date,
             type = p_type,
             recurrence = p_recurrence,
@@ -210,7 +210,7 @@ BEGIN
     FROM imam_question WHERE answer IS NULL AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
 END //
 
-CREATE PROCEDURE IF NOT EXISTS get_unanswered_imam_questions_by_topic_and_school_of_thought(IN p_topic VARCHAR(20), 
+CREATE PROCEDURE IF NOT EXISTS get_unanswered_imam_questions_by_topic_and_school_of_thought(IN p_topic VARCHAR(20),
                                                                                                 IN p_school_of_thought VARCHAR(7))
 BEGIN
     SELECT id,
@@ -241,7 +241,7 @@ END //
 
 CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions_by_topic(IN p_topic VARCHAR(20))
 BEGIN
-    SELECT 
+    SELECT
     SELECT id,
     title,
     topic,
@@ -266,7 +266,7 @@ BEGIN
     date_answered FROM imam_question WHERE answer IS NOT NULL AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
 END //
 
-CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions_by_topic_and_school_of_thought(IN p_topic VARCHAR(20), 
+CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions_by_topic_and_school_of_thought(IN p_topic VARCHAR(20),
                                                                                             IN p_school_of_thought VARCHAR(7))
 BEGIN
     SELECT id,
@@ -290,7 +290,7 @@ BEGIN
         topic,
         school_of_thought,
         description,
-        date) 
+        date)
     VALUES (p_title,
         p_topic,
         p_school_of_thought,
@@ -299,14 +299,14 @@ BEGIN
 END //
 
 
-CREATE PROCEDURE IF NOT EXISTS upsert_imam_answer_to_question(IN p_imam_name VARCHAR(50), 
+CREATE PROCEDURE IF NOT EXISTS upsert_imam_answer_to_question(IN p_imam_name VARCHAR(50),
                                                               IN p_answer VARCHAR(250),
                                                               IN p_date_answered TIMESTAMP,
                                                               IN p_id INT)
 BEGIN
-    UPDATE imam_question 
-    SET imam_name = p_imam_name, 
-        answer = p_answer, 
+    UPDATE imam_question
+    SET imam_name = p_imam_name,
+        answer = p_answer,
         date_answered = p_date_answered
     WHERE id = p_id;
 END //
@@ -314,6 +314,40 @@ END //
 CREATE PROCEDURE IF NOT EXISTS delete_imam_question_by_id(IN p_id INT)
 BEGIN
     DELETE FROM imam_question WHERE id = p_id;
+END //
+
+CREATE PROCEDURE IF NOT EXISTS get_feedback(IN p_feedback_type VARCHAR(40),
+                                            IN p_start_date_of_feedback TIMESTAMP,
+                                            IN p_end_date_of_feedback TIMESTAMP,
+                                            IN p_has_images BOOLEAN)
+BEGIN
+    IF p_has_images = TRUE
+        SELECT id,
+            title,
+            feedback_type,
+            details,
+            date_of_feedback,
+            images
+        FROM feedback
+            WHERE (p_feedback_type IS NULL OR feedback_type LIKE p_feedback_type)
+            AND (p_start_date_of_feedback IS NULL OR date_of_feedback >= p_start_date_of_feedback)
+            AND (p_end_date_of_feedback IS NULL OR date_of_feedback <= p_end_date_of_feedback)
+            ORDER BY date_of_feedback DESC;
+    ELSE
+        SELECT id,
+            title,
+            feedback_type,
+            details,
+            date_of_feedback
+        FROM feedback
+            WHERE (p_feedback_type IS NULL OR feedback_type LIKE p_feedback_type)
+            AND (p_date_of_feedback IS NULL OR date_of_feedback = p_date_of_feedback)
+            ORDER BY date_of_feedback DESC;
+END //
+
+CREATE PROCEDURE IF NOT EXISTS delete_feedback_by_id(IN p_id INT)
+BEGIN
+    DELETE FROM feedback WHERE id = p_id;
 END //
 
 DELIMITER ;
