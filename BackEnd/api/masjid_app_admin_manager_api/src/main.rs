@@ -13,30 +13,41 @@ use crate::features::ask_imam::endpoints::provide_answer_for_imam_question::prov
 use crate::features::ask_imam::endpoints::{
     delete_imam_question, get_imam_questions, provide_answer_for_imam_question,
 };
-use crate::features::ask_imam::services::{AskImamAdminService, new_ask_imam_admin_service};
+use crate::features::ask_imam::services::{new_ask_imam_admin_service, AskImamAdminService};
 use crate::features::events::endpoints::delete_event::delete_event;
 use crate::features::events::endpoints::get_events::get_events;
 use crate::features::events::endpoints::publish_event::upsert_events;
 use crate::features::events::services::event_deletion_service::{
-    EventDeletionService, new_event_deletion_service,
+    new_event_deletion_service, EventDeletionService,
 };
 use crate::features::events::services::event_publishing_service::{
-    EventPublishingService, new_event_publishing_service,
+    new_event_publishing_service, EventPublishingService,
+};
+use crate::features::feedback::endpoints::delete_feedback::delete_feedback;
+use crate::features::feedback::endpoints::delete_feedback::delete_feedback;
+use crate::features::feedback::endpoints::get_feedback::get_concerns::get_concerns;
+use crate::features::feedback::endpoints::get_feedback::get_suggestions::get_suggestions;
+use crate::features::feedback::repositories::feedback_admin_repository::new_feedback_admin_repository;
+use crate::features::feedback::services::feedback_deletion_service::{
+    new_feedback_deletion_service, FeedbackDeletionService,
+};
+use crate::features::feedback::services::feedback_retrieval_service::{
+    new_feedback_retrieval_service, FeedbackRetrievalService,
 };
 use crate::features::prayer_times::endpoints::get_prayer_times::get_prayer_times;
 use crate::features::prayer_times::endpoints::update_prayer_times::update_prayer_times;
-use crate::features::prayer_times::services::prayer_times_update_service::PrayerTimesUpdateService;
 use crate::features::prayer_times::services::prayer_times_update_service::new_prayer_times_update_service;
+use crate::features::prayer_times::services::prayer_times_update_service::PrayerTimesUpdateService;
 use crate::features::user_authentication::services::login_service::new_login_service;
 use crate::features::user_authentication::services::reset_password_service::new_reset_password_service;
 use crate::features::user_authentication::services::user_registration_service::new_user_registration_service;
-use axum::Router;
 use axum::routing::{delete, get, patch, post, put};
+use axum::Router;
 use masjid_app_api_library::features::events::services::event_retrieval_service::{
-    EventRetrievalService, new_event_retrieval_service,
+    new_event_retrieval_service, EventRetrievalService,
 };
 use masjid_app_api_library::features::prayer_times::services::prayer_times_retrieval_service::{
-    PrayerTimesRetrievalService, new_prayer_times_retrieval_service,
+    new_prayer_times_retrieval_service, PrayerTimesRetrievalService,
 };
 use masjid_app_api_library::shared::data_access::db_providers::in_memory_db_provider::InMemoryDbProvider;
 use masjid_app_api_library::shared::data_access::db_providers::normal_db_provider::NormalDbProvider;
@@ -153,6 +164,30 @@ async fn map_ask_imam() -> Router {
         .route("/{question_id}", delete(delete_imam_question))
         .with_state(state)
 }
+async fn map_feedback() -> Router {
+    let feedback_retrieval_state = ServiceAppState::<Arc<dyn FeedbackRetrievalService>> {
+        service: new_feedback_retrieval_service(
+            new_feedback_admin_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await,
+            new_feedback_admin_repository(RepositoryMode::InMemory(InMemoryDbProvider::Redis))
+                .await,
+        ),
+    };
+    let feedback_deletion_state = ServiceAppState::<Arc<dyn FeedbackDeletionService>> {
+        service: new_feedback_deletion_service(
+            new_feedback_admin_repository(RepositoryMode::Normal(NormalDbProvider::MySql)).await,
+            new_feedback_admin_repository(RepositoryMode::InMemory(InMemoryDbProvider::Redis))
+                .await,
+        ),
+    };
+
+    Router::new()
+        .route("/suggestions", get(get_suggestions))
+        .route("/concerns", get(get_concerns))
+        .with_state(feedback_retrieval_state)
+        .route("/", delete(delete_feedback))
+        .route("/{feedback_id}", delete(delete_feedback))
+        .with_state(feedback_deletion_state)
+}
 async fn map_endpoints() -> Router {
     let authentication_routes = map_user_authentication().await;
     tracing::info!("Mapped User Authentication Endpoints");
@@ -162,12 +197,16 @@ async fn map_endpoints() -> Router {
     tracing::info!("Mapped Events Routes");
     let ask_imam_routes = map_ask_imam().await;
     tracing::info!("Mapped Ask Imam Routes");
+    let feedback_routes = map_feedback().await;
+    tracing::info!("Mapped Feedback Routes");
+
     let router = Router::new();
     router
         .nest("/authentication", authentication_routes)
         .nest("/prayer-times", prayer_times_routes)
         .nest("/events", events_routes)
         .nest("/ask-imam", ask_imam_routes)
+        .nest("/feedback", feedback_routes)
 }
 
 #[tokio::main]
