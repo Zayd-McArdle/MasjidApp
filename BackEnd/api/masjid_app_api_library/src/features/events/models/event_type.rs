@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -8,13 +9,14 @@ pub enum EventType {
     Social,
     Class,
 }
-impl ToString for EventType {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for EventType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             EventType::Talk => "talk".to_owned(),
             EventType::Social => "social".to_owned(),
             EventType::Class => "class".to_owned(),
-        }
+        };
+        write!(f, "{}", str)
     }
 }
 
