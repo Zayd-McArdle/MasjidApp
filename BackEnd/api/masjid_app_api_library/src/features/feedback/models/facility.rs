@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
-const TOILETS: &'static str = "Toilets";
-const SINKS: &'static str = "Sinks";
-const WUDHU_AREA: &'static str = "Wudhu Area";
-const SHOWER: &'static str = "Shower";
-const PRAYER_HALL: &'static str = "Prayer Hall";
-const KITCHEN: &'static str = "Kitchen";
+pub(super) const TOILETS: &'static str = "Toilets";
+pub(super) const SINKS: &'static str = "Sinks";
+pub(super) const WUDHU_AREA: &'static str = "Wudhu Area";
+pub(super) const SHOWER: &'static str = "Shower";
+pub(super) const PRAYER_HALL: &'static str = "Prayer Hall";
+pub(super) const KITCHEN: &'static str = "Kitchen";
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub enum Facility {
     Toilets,
     Sinks,
@@ -15,10 +15,10 @@ pub enum Facility {
     Shower,
     PrayerHall,
     Kitchen,
-    Other(String),
 }
 
 impl Display for Facility {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let facility_str = match self {
             Facility::Toilets => TOILETS,
@@ -27,7 +27,6 @@ impl Display for Facility {
             Facility::Shower => SHOWER,
             Facility::PrayerHall => PRAYER_HALL,
             Facility::Kitchen => KITCHEN,
-            Facility::Other(other) => other,
         };
         write!(f, "{}", facility_str)
     }
@@ -35,7 +34,7 @@ impl Display for Facility {
 
 impl FromStr for Facility {
     type Err = ();
-
+    #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             TOILETS => Ok(Facility::Toilets),
@@ -44,7 +43,7 @@ impl FromStr for Facility {
             SHOWER => Ok(Facility::Shower),
             PRAYER_HALL => Ok(Facility::PrayerHall),
             KITCHEN => Ok(Facility::Kitchen),
-            other => Ok(Facility::Other(other.to_owned())),
+            _ => Err(()),
         }
     }
 }

@@ -49,3 +49,13 @@ CREATE TABLE IF NOT EXISTS imam_question (
         (imam_name IS NOT NULL AND answer IS NOT NULL AND date_answered IS NOT NULL)
     )
 );
+
+CREATE TABLE IF NOT EXISTS feedback (
+    id INT NOT NULL AUTO_INCREMENT,
+    title VARCHAR(50) NOT NULL,
+    feedback_type VARCHAR(40) NOT NULL,
+    details VARCHAR(500) NOT NULl,
+    date_of_feedback TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    images VARCHAR(5000),
+
+);

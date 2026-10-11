@@ -1,2 +1,3 @@
-pub mod get_feedback_error;
-pub mod delete_feedback_error;
+pub mod delete_feedback_by_id_repository_error;
+pub mod delete_feedback_repository_error;
+pub mod get_feedback_repository_error;
