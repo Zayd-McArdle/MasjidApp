@@ -3,19 +3,22 @@ use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 
-use crate::features::feedback::models::constants::{FACILITIES, MANAGEMENT};
+use crate::features::feedback::models::constants::MANAGEMENT;
 use crate::features::feedback::models::facility::Facility;
-
-#[derive(Deserialize, Serialize)]
+const PROPOSAL: &'static str = "Proposal";
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub enum SuggestionType {
+    Proposal,
     Management,
     Facilities(Facility),
     Other(String),
 }
 
 impl Display for SuggestionType {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let suggestion_type_str = match self {
+            SuggestionType::Proposal => PROPOSAL,
             SuggestionType::Management => MANAGEMENT,
             SuggestionType::Facilities(facility) => &facility.to_string(),
             SuggestionType::Other(other) => other,
@@ -29,14 +32,11 @@ impl FromStr for SuggestionType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            PROPOSAL => Ok(SuggestionType::Proposal),
             MANAGEMENT => Ok(Self::Management),
             other => {
-                if other.starts_with(FACILITIES) {
-                    return Ok(Self::Facilities(Facility::from_str(
-                        &other.replace(FACILITIES, ""),
-                    )?));
-                }
-                Ok(Self::Other(other.to_owned()))
+                Ok(Facility::from_str(other)
+                    .map_or(Self::Other(other.to_owned()), Self::Facilities))
             }
         }
     }

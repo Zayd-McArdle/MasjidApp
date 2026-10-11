@@ -27,6 +27,7 @@ services:
       ANNOUNCEMENT_CONNECTION: "mysql://announcementsuser:LzwvN6bU4y3EqmAYBMJFrn@db/masjidappdatabase"
       EVENTS_CONNECTION: "mysql://eventsuser:changeme@db/masjidappdatabase"
       ASK_IMAM_CONNECTION: "mysql://askimamuser:changeme@db/masjidappdatabase"
+      FEEDBACK_CONNECTION: "mysql://feedbackuser:changeme@db/masjidappdatabase"
       DEPLOYMENT_ENV: "TESTING"
       JWT_SECRET: "for the sake of allah! store this securely"
     depends_on:
@@ -47,6 +48,7 @@ services:
       ANNOUNCEMENT_CONNECTION: "mysql://announcementsuser:LzwvN6bU4y3EqmAYBMJFrn@db/masjidappdatabase"
       EVENTS_CONNECTION: "mysql://eventsadmin:changeme@db/masjidappdatabase"
       ASK_IMAM_CONNECTION: "mysql://askimamadmin:changeme@db/masjidappdatabase"
+      FEEDBACK_CONNECTION: "mysql://feedbackadmin:changeme@db/masjidappdatabase"
       DEPLOYMENT_ENV: "TESTING"
       JWT_SECRET: "for the sake of allah! store this securely"
     depends_on:
