@@ -154,130 +154,157 @@ END //
 
 -- imam_question stored procedures
 
-CREATE PROCEDURE IF NOT EXISTS get_all_imam_questions()
+CREATE PROCEDURE IF NOT EXISTS get_all_imam_questions(IN p_topic VARCHAR(20), IN p_school_of_thought VARCHAR(7))
 BEGIN
-    SELECT id,
-    title,
-    topic,
-    school_of_thought,
-    description,
-    date,
-    imam_name,
-    answer,
-    date_answered
-    FROM imam_question;
+    IF p_topic IS NULL THEN
+        IF p_school_of_thought IS NULL THEN
+            SELECT id,
+            title,
+            topic,
+            school_of_thought,
+            description,
+            date,
+            imam_name,
+            answer,
+            date_answered
+            FROM imam_question;
+        ELSE
+            SELECT id,
+            title,
+            topic,
+            school_of_thought,
+            description,
+            date,
+            imam_name,
+            answer,
+            date_answered
+            FROM imam_question WHERE (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
+        END IF;
+    ELSEIF p_school_of_thought IS NULL THEN
+        SELECT id,
+        title,
+        topic,
+        school_of_thought,
+        description,
+        date,
+        imam_name,
+        answer,
+        date_answered
+        FROM imam_question WHERE topic = p_topic;        
+    ELSE
+        SELECT id,
+        title,
+        topic,
+        school_of_thought,
+        description,
+        date,
+        imam_name,
+        answer,
+        date_answered
+        FROM imam_question WHERE topic = p_topic AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);        
+    END IF;
 END //
 
-CREATE PROCEDURE IF NOT EXISTS get_unanswered_imam_questions()
+CREATE PROCEDURE IF NOT EXISTS get_unanswered_imam_questions(IN p_topic VARCHAR(20), IN p_school_of_thought VARCHAR(7))
 BEGIN
-    SELECT id,
-    title,
-    topic,
-    school_of_thought,
-    description,
-    date,
-    imam_name,
-    answer,
-    date_answered
-    FROM imam_question WHERE answer IS NULL;
+    IF p_topic IS NULL THEN
+        IF p_school_of_thought IS NULL THEN
+            SELECT id,
+            title,
+            topic,
+            school_of_thought,
+            description,
+            date,
+            imam_name,
+            answer,
+            date_answered
+            FROM imam_question WHERE answer IS NULL;
+        ELSE
+            SELECT id,
+            title,
+            topic,
+            school_of_thought,
+            description,
+            date,
+            imam_name,
+            answer,
+            date_answered
+            FROM imam_question WHERE answer IS NULL AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
+        END IF;
+    ELSEIF p_school_of_thought IS NULL THEN
+        SELECT id,
+        title,
+        topic,
+        school_of_thought,
+        description,
+        date,
+        imam_name,
+        answer,
+        date_answered
+        FROM imam_question WHERE answer IS NULL AND topic = p_topic;        
+    ELSE
+        SELECT id,
+        title,
+        topic,
+        school_of_thought,
+        description,
+        date,
+        imam_name,
+        answer,
+        date_answered
+        FROM imam_question WHERE answer IS NULL AND topic = p_topic AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);        
+    END IF;
 END //
 
-CREATE PROCEDURE IF NOT EXISTS get_unanswered_imam_questions_by_topic(IN p_topic VARCHAR(20))
+CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions(IN p_topic VARCHAR(20), IN p_school_of_thought VARCHAR(7))
 BEGIN
-    SELECT id,
-    title,
-    topic,
-    school_of_thought,
-    description,
-    date,
-    imam_name,
-    answer,
-    date_answered
-    FROM imam_question WHERE answer IS NULL AND topic = p_topic;
-END //
-
-CREATE PROCEDURE IF NOT EXISTS get_unanswered_imam_questions_by_school_of_thought(IN p_school_of_thought VARCHAR(7))
-BEGIN
-    SELECT id,
-    title,
-    topic,
-    school_of_thought,
-    description,
-    date,
-    imam_name,
-    answer,
-    date_answered
-    FROM imam_question WHERE answer IS NULL AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
-END //
-
-CREATE PROCEDURE IF NOT EXISTS get_unanswered_imam_questions_by_topic_and_school_of_thought(IN p_topic VARCHAR(20), 
-                                                                                                IN p_school_of_thought VARCHAR(7))
-BEGIN
-    SELECT id,
-    title,
-    topic,
-    school_of_thought,
-    description,
-    date,
-    imam_name,
-    answer,
-    date_answered
-    FROM imam_question WHERE answer IS NULL AND topic = p_topic AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
-END //
-
-CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions()
-BEGIN
-    SELECT id,
-    title,
-    topic,
-    school_of_thought,
-    description,
-    date,
-    imam_name,
-    answer,
-    date_answered
-    FROM imam_question WHERE answer IS NOT NULL;
-END //
-
-CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions_by_topic(IN p_topic VARCHAR(20))
-BEGIN
-    SELECT 
-    SELECT id,
-    title,
-    topic,
-    school_of_thought,
-    description,
-    date,
-    imam_name,
-    answer,
-    date_answered FROM imam_question WHERE answer IS NOT NULL AND topic = p_topic;
-END //
-
-CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions_by_school_of_thought(IN p_school_of_thought VARCHAR(7))
-BEGIN
-    SELECT id,
-    title,
-    topic,
-    school_of_thought,
-    description,
-    date,
-    imam_name,
-    answer,
-    date_answered FROM imam_question WHERE answer IS NOT NULL AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
-END //
-
-CREATE PROCEDURE IF NOT EXISTS get_answered_imam_questions_by_topic_and_school_of_thought(IN p_topic VARCHAR(20), 
-                                                                                            IN p_school_of_thought VARCHAR(7))
-BEGIN
-    SELECT id,
-    title,
-    topic,
-    school_of_thought,
-    description,
-    date,
-    imam_name,
-    answer,
-    date_answered FROM imam_question WHERE answer IS NOT NULL AND topic = p_topic AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
+    IF p_topic IS NULL THEN
+        IF p_school_of_thought IS NULL THEN
+            SELECT id,
+            title,
+            topic,
+            school_of_thought,
+            description,
+            date,
+            imam_name,
+            answer,
+            date_answered
+            FROM imam_question WHERE answer IS NOT NULL;
+        ELSE
+            SELECT id,
+            title,
+            topic,
+            school_of_thought,
+            description,
+            date,
+            imam_name,
+            answer,
+            date_answered
+            FROM imam_question WHERE answer IS NOT NULL AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);
+        END IF;
+    ELSEIF p_school_of_thought IS NULL THEN
+        SELECT id,
+        title,
+        topic,
+        school_of_thought,
+        description,
+        date,
+        imam_name,
+        answer,
+        date_answered
+        FROM imam_question WHERE answer IS NOT NULL AND topic = p_topic;        
+    ELSE
+        SELECT id,
+        title,
+        topic,
+        school_of_thought,
+        description,
+        date,
+        imam_name,
+        answer,
+        date_answered
+        FROM imam_question WHERE answer IS NOT NULL AND topic = p_topic AND (school_of_thought = p_school_of_thought OR school_of_thought IS NULL);        
+    END IF;
 END //
 
 CREATE PROCEDURE IF NOT EXISTS insert_question_for_imam(IN p_title VARCHAR(50),
