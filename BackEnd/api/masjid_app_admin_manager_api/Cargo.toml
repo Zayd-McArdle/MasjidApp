@@ -9,7 +9,7 @@ axum = "0.8.9"
 axum-extra = { version = "0.12.6", features = ["typed-header"] }
 
 bcrypt = "0.19.3"
-tokio = { version = "1.53.3", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread"] }
 sqlx = { version = "0.9.0", features = ["runtime-tokio", "tls-native-tls", "mysql", "chrono"] }
 chrono = { version = "0.4.45", features = ["serde"] }
 serde = { version = "1.0.229", features = ["derive"] }
