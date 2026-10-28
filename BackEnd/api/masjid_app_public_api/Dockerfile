@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM rust:latest AS builder
+FROM rust:latest@sha256:09027f873d45b8ecd1dc86f1fa13b7a62b875c961f017a0e331267b350430137 AS builder
 
 # 1. First copy the library
 WORKDIR /lib
@@ -23,7 +23,7 @@ RUN cargo build --release
 RUN ls -la /app/target/release/
 
 # Stage 2: Runtime
-FROM debian:stable-slim
+FROM debian:stable-slim@sha256:13e0a2e78aa0554ad5ff66e4e260c6dbcdff807eb1f39d43b9fb0288aae88b04
 RUN apt-get update && apt-get install -y libssl3
 COPY --from=builder /app/target/release/masjid_app_public_api /usr/local/bin/
 EXPOSE 3000
