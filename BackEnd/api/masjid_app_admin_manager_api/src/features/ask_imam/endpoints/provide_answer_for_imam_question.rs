@@ -9,6 +9,7 @@ use masjid_app_api_library::shared::types::app_state::ServiceAppState;
 use std::sync::Arc;
 use validator::Validate;
 
+#[inline]
 pub async fn provide_answer_for_imam_question(
     State(state): State<ServiceAppState<Arc<dyn AskImamAdminService>>>,
     _claims: Claims,

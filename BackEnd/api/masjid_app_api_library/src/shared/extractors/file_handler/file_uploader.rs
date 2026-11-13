@@ -1,11 +1,5 @@
 use crate::shared::extractors::file_handler::FileHandler;
-use async_trait::async_trait;
-use axum::extract::FromRequestParts;
-use axum::http::StatusCode;
-use axum::http::request::Parts;
 use std::fmt::Display;
-use std::fs::File;
-use std::path::{Path, PathBuf};
 
 #[derive(Debug, PartialEq)]
 pub enum UploadError {
@@ -69,10 +63,9 @@ impl FileHandler {
         Ok(format!("/{}/{}", &self.endpoint, file_name))
     }
 }
-
+#[cfg(test)]
 mod test {
-    use crate::shared::extractors::file_handler::FileHandler;
-    use crate::shared::extractors::file_handler::file_uploader::{NO_FILE_EXTENSION, UploadError};
+    use super::*;
 
     #[tokio::test]
     async fn test_file_uploader_save_file() {
