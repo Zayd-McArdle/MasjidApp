@@ -1,4 +1,4 @@
-FROM mysql:latest
+FROM mysql:latest@sha256:9092489f49fb59c4ba6c1425c6a59f71f864f24bf4339a5a26b718adc7a8b343
 
 # Set environment variables for MySQL setup
 ENV MYSQL_DATABASE=masjidappdatabase
